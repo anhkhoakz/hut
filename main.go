@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"mime"
 	"os"
@@ -50,18 +51,25 @@ func main() {
 			}
 
 			op := gqlclient.NewOperation(`mutation ($files: [Upload!]!) {
-				create(files: $files, visibility: UNLISTED) { id }
+				create(files: $files, visibility: UNLISTED) {
+					id
+					user { canonicalName }
+				}
 			}`)
 			op.Var("files", files)
 
 			var respData struct {
-				Create srht.Paste
+				Create struct {
+					srht.Paste
+					// TODO: don't assume this Entity is a User
+					User srht.User
+				}
 			}
 			if err := c.Execute(ctx, op, &respData); err != nil {
 				log.Fatal(err)
 			}
 
-			log.Println(respData.Create.Id)
+			fmt.Printf("%v/%v/%v", c.BaseURL, respData.Create.User.CanonicalName, respData.Create.Id)
 		},
 	}
 

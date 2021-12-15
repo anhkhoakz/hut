@@ -12,7 +12,13 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func createClient(service string) *gqlclient.Client {
+type Client struct {
+	*gqlclient.Client
+
+	BaseURL string
+}
+
+func createClient(service string) *Client {
 	configDir, err := os.UserConfigDir()
 	if err != nil {
 		log.Fatalf("failed to get user config dir: %v", err)
@@ -38,9 +44,13 @@ func createClient(service string) *gqlclient.Client {
 	}
 
 	hostname := inst.Params[0]
-	endpoint := fmt.Sprintf("https://%s.%s/query", service, hostname)
+	baseURL := fmt.Sprintf("https://%s.%s", service, hostname)
+	gqlEndpoint := baseURL + "/query"
 
 	tokenSrc := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken.Params[0]})
 	httpClient := oauth2.NewClient(context.Background(), tokenSrc)
-	return gqlclient.New(endpoint, httpClient)
+	return &Client{
+		Client:  gqlclient.New(gqlEndpoint, httpClient),
+		BaseURL: baseURL,
+	}
 }
