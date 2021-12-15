@@ -1,0 +1,57 @@
+package srht
+
+import "time"
+
+type AccessKind string
+
+const (
+	AccessKindRo AccessKind = "RO"
+	AccessKindRw AccessKind = "RW"
+)
+
+type AccessScope string
+
+const (
+	AccessScopeProfile AccessScope = "PROFILE"
+	AccessScopePastes  AccessScope = "PASTES"
+)
+
+type Cursor string
+type Entity interface{}
+type File struct {
+	Filename *string
+	Hash     string
+	Contents URL
+}
+type Paste struct {
+	Id         string
+	Created    time.Time
+	Visibility Visibility
+	Files      []*File
+	User       Entity
+}
+type PasteCursor struct {
+	Results []Paste
+	Cursor  *Cursor
+}
+type URL string
+type User struct {
+	Id            int32
+	Created       time.Time
+	CanonicalName string
+	Pastes        PasteCursor
+	Username      string
+}
+type Version struct {
+	Major           int32
+	Minor           int32
+	Patch           int32
+	DeprecationDate time.Time
+}
+type Visibility string
+
+const (
+	VisibilityPublic   Visibility = "PUBLIC"
+	VisibilityUnlisted Visibility = "UNLISTED"
+	VisibilityPrivate  Visibility = "PRIVATE"
+)
