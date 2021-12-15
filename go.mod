@@ -18,3 +18,5 @@ require (
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 )
+
+replace git.sr.ht/~emersion/gqlclient => ../gqlclient

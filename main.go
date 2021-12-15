@@ -63,8 +63,6 @@ func main() {
 			var respData struct {
 				Create struct {
 					srht.Paste
-					// TODO: don't assume this Entity is a User
-					User srht.User
 				}
 			}
 			if err := c.Execute(ctx, op, &respData); err != nil {
