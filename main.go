@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"mime"
 	"os"
@@ -69,7 +70,65 @@ func main() {
 				log.Fatal(err)
 			}
 
-			fmt.Printf("%v/%v/%v", c.BaseURL, respData.Create.User.CanonicalName, respData.Create.Id)
+			fmt.Printf("%v/%v/%v\n", c.BaseURL, respData.Create.User.CanonicalName, respData.Create.Id)
+		},
+	}
+
+	buildCmd := &cobra.Command{
+		Use:   "build [manifest...]",
+		Short: "Submit a build manifest",
+		Run: func(cmd *cobra.Command, args []string) {
+			c := createClient("builds")
+
+			filenames := args
+			if len(args) == 0 {
+				if _, err := os.Stat(".build.yml"); err == nil {
+					filenames = append(filenames, ".build.yml")
+				}
+				if matches, err := filepath.Glob(".build/*.yml"); err == nil {
+					filenames = append(filenames, matches...)
+				}
+			}
+
+			if len(filenames) == 0 {
+				log.Fatal("no build manifest found")
+			}
+
+			for _, name := range filenames {
+				var b []byte
+				var err error
+				if name == "-" {
+					b, err = io.ReadAll(os.Stdin)
+				} else {
+					b, err = os.ReadFile(name)
+				}
+				if err != nil {
+					log.Fatalf("failed to read manifest from %q: %v", name, err)
+				}
+
+				op := gqlclient.NewOperation(`mutation ($manifest: String!) {
+					submit(manifest: $manifest) {
+						id
+						owner { canonicalName }
+					}
+				}`)
+				op.Var("manifest", string(b))
+
+				// TODO: use generated types
+				var respData struct {
+					Submit struct {
+						Id    int
+						Owner struct {
+							CanonicalName string
+						}
+					}
+				}
+				if err := c.Execute(ctx, op, &respData); err != nil {
+					log.Fatal(err)
+				}
+
+				fmt.Printf("%v/%v/job/%v\n", c.BaseURL, respData.Submit.Owner.CanonicalName, respData.Submit.Id)
+			}
 		},
 	}
 
@@ -78,6 +137,7 @@ func main() {
 		Short: "hut is a CLI tool for sr.ht",
 	}
 	rootCmd.AddCommand(pasteCmd)
+	rootCmd.AddCommand(buildCmd)
 
 	rootCmd.Execute()
 }
