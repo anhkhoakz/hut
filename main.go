@@ -7,6 +7,7 @@ import (
 	"mime"
 	"os"
 	"path/filepath"
+	"time"
 
 	"git.sr.ht/~emersion/gqlclient"
 	"git.sr.ht/~emersion/hut/srht"
@@ -14,7 +15,8 @@ import (
 )
 
 func main() {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 
 	pasteCmd := &cobra.Command{
 		Use:   "paste [filenames...]",
