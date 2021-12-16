@@ -53,24 +53,12 @@ func main() {
 				})
 			}
 
-			op := gqlclient.NewOperation(`mutation ($files: [Upload!]!) {
-				create(files: $files, visibility: UNLISTED) {
-					id
-					user { canonicalName }
-				}
-			}`)
-			op.Var("files", files)
-
-			var respData struct {
-				Create struct {
-					pastesrht.Paste
-				}
-			}
-			if err := c.Execute(ctx, op, &respData); err != nil {
+			paste, err := pastesrht.CreatePaste(c.Client, ctx, files)
+			if err != nil {
 				log.Fatal(err)
 			}
 
-			fmt.Printf("%v/%v/%v\n", c.BaseURL, respData.Create.User.CanonicalName, respData.Create.Id)
+			fmt.Printf("%v/%v/%v\n", c.BaseURL, paste.User.CanonicalName, paste.Id)
 		},
 	}
 

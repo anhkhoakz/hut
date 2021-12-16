@@ -2,7 +2,11 @@
 
 package pastesrht
 
-import "time"
+import (
+	"context"
+	gqlclient "git.sr.ht/~emersion/gqlclient"
+	"time"
+)
 
 type AccessKind string
 
@@ -70,3 +74,13 @@ const (
 	VisibilityUnlisted Visibility = "UNLISTED"
 	VisibilityPrivate  Visibility = "PRIVATE"
 )
+
+func CreatePaste(client *gqlclient.Client, ctx context.Context, files []gqlclient.Upload) (create Paste, err error) {
+	op := gqlclient.NewOperation("mutation createPaste ($files: [Upload!]!) {\n\tcreate(files: $files, visibility: UNLISTED) {\n\t\tid\n\t\tuser {\n\t\t\tcanonicalName\n\t\t}\n\t}\n}\n")
+	op.Var("files", files)
+	var respData struct {
+		Create Paste
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Create, err
+}
