@@ -63,6 +63,7 @@ func main() {
 		},
 	}
 
+	var follow bool
 	buildCmd := &cobra.Command{
 		Use:   "build [manifest...]",
 		Short: "Submit a build manifest",
@@ -81,6 +82,9 @@ func main() {
 
 			if len(filenames) == 0 {
 				log.Fatal("no build manifest found")
+			}
+			if len(filenames) > 1 && follow {
+				log.Fatal("--follow cannot be used when submitting multiple jobs")
 			}
 
 			for _, name := range filenames {
@@ -101,9 +105,20 @@ func main() {
 				}
 
 				fmt.Printf("%v/%v/job/%v\n", c.BaseURL, job.Owner.CanonicalName, job.Id)
+
+				if follow {
+					job, err := c.followJob(context.Background(), job.Id)
+					if err != nil {
+						log.Fatal(err)
+					}
+					if job.Status != buildssrht.JobStatusSuccess {
+						os.Exit(1)
+					}
+				}
 			}
 		},
 	}
+	buildCmd.Flags().BoolVarP(&follow, "follow", "f", false, "follow build logs")
 
 	rootCmd := &cobra.Command{
 		Use:   "hut",

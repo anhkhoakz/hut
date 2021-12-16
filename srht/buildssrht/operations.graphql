@@ -4,3 +4,15 @@ mutation submit($manifest: String!) {
 		owner { canonicalName }
 	}
 }
+
+query monitor($id: Int!) {
+	job(id: $id) {
+		status
+		log { fullURL }
+		tasks {
+			name
+			status
+			log { fullURL }
+		}
+	}
+}
