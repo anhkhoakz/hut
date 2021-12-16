@@ -25,46 +25,46 @@ const (
 type Cursor string
 
 type Entity struct {
-	Id            int32
-	Created       time.Time
-	CanonicalName string
-	Pastes        PasteCursor
+	Id            int32       `json:"id"`
+	Created       time.Time   `json:"created"`
+	CanonicalName string      `json:"canonicalName"`
+	Pastes        PasteCursor `json:"pastes"`
 }
 
 type File struct {
-	Filename *string
-	Hash     string
-	Contents URL
+	Filename *string `json:"filename,omitempty"`
+	Hash     string  `json:"hash"`
+	Contents URL     `json:"contents"`
 }
 
 type Paste struct {
-	Id         string
-	Created    time.Time
-	Visibility Visibility
-	Files      []*File
-	User       Entity
+	Id         string     `json:"id"`
+	Created    time.Time  `json:"created"`
+	Visibility Visibility `json:"visibility"`
+	Files      []*File    `json:"files"`
+	User       Entity     `json:"user"`
 }
 
 type PasteCursor struct {
-	Results []Paste
-	Cursor  *Cursor
+	Results []Paste `json:"results"`
+	Cursor  *Cursor `json:"cursor,omitempty"`
 }
 
 type URL string
 
 type User struct {
-	Id            int32
-	Created       time.Time
-	CanonicalName string
-	Pastes        PasteCursor
-	Username      string
+	Id            int32       `json:"id"`
+	Created       time.Time   `json:"created"`
+	CanonicalName string      `json:"canonicalName"`
+	Pastes        PasteCursor `json:"pastes"`
+	Username      string      `json:"username"`
 }
 
 type Version struct {
-	Major           int32
-	Minor           int32
-	Patch           int32
-	DeprecationDate time.Time
+	Major           int32     `json:"major"`
+	Minor           int32     `json:"minor"`
+	Patch           int32     `json:"patch"`
+	DeprecationDate time.Time `json:"deprecationDate,omitempty"`
 }
 
 type Visibility string

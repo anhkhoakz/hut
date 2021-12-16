@@ -1,0 +1,6 @@
+mutation submit($manifest: String!) {
+	submit(manifest: $manifest) {
+		id
+		owner { canonicalName }
+	}
+}

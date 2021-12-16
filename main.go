@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"git.sr.ht/~emersion/gqlclient"
+	"git.sr.ht/~emersion/hut/srht/buildssrht"
 	"git.sr.ht/~emersion/hut/srht/pastesrht"
 	"github.com/spf13/cobra"
 )
@@ -94,28 +95,12 @@ func main() {
 					log.Fatalf("failed to read manifest from %q: %v", name, err)
 				}
 
-				op := gqlclient.NewOperation(`mutation ($manifest: String!) {
-					submit(manifest: $manifest) {
-						id
-						owner { canonicalName }
-					}
-				}`)
-				op.Var("manifest", string(b))
-
-				// TODO: use generated types
-				var respData struct {
-					Submit struct {
-						Id    int
-						Owner struct {
-							CanonicalName string
-						}
-					}
-				}
-				if err := c.Execute(ctx, op, &respData); err != nil {
+				job, err := buildssrht.Submit(c.Client, ctx, string(b))
+				if err != nil {
 					log.Fatal(err)
 				}
 
-				fmt.Printf("%v/%v/job/%v\n", c.BaseURL, respData.Submit.Owner.CanonicalName, respData.Submit.Id)
+				fmt.Printf("%v/%v/job/%v\n", c.BaseURL, job.Owner.CanonicalName, job.Id)
 			}
 		},
 	}

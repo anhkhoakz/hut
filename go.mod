@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	git.sr.ht/~emersion/go-scfg v0.0.0-20211215104734-c2c7a15d6c99
-	git.sr.ht/~emersion/gqlclient v0.0.0-20211216144455-60fbcf6baa72
+	git.sr.ht/~emersion/gqlclient v0.0.0-20211216153104-ab897005e827
 	github.com/spf13/cobra v1.3.0
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
 )

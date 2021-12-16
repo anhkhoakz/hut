@@ -48,8 +48,8 @@ cloud.google.com/go/storage v1.10.0/go.mod h1:FLPqc6j+Ki4BU591ie1oL6qBQGu2Bl/tZ9
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
 git.sr.ht/~emersion/go-scfg v0.0.0-20211215104734-c2c7a15d6c99 h1:1s8n5uisqkR+BzPgaum6xxIjKmzGrTykJdh+Y3f5Xao=
 git.sr.ht/~emersion/go-scfg v0.0.0-20211215104734-c2c7a15d6c99/go.mod h1:t+Ww6SR24yYnXzEWiNlOY0AFo5E9B73X++10lrSpp4U=
-git.sr.ht/~emersion/gqlclient v0.0.0-20211216144455-60fbcf6baa72 h1:kAcBfYMAoFL3SIind/y0LoHFiONuBden5sVj8L8dHyg=
-git.sr.ht/~emersion/gqlclient v0.0.0-20211216144455-60fbcf6baa72/go.mod h1:+iK5r4Xi5h/d1G3dJ/+AKvYcNl+eC9tQ9A8kueS/FHE=
+git.sr.ht/~emersion/gqlclient v0.0.0-20211216153104-ab897005e827 h1:O81H1dh8B0UtG/9B3Cz5gThD4TPL1Y8Mk/xWJ84C7Wo=
+git.sr.ht/~emersion/gqlclient v0.0.0-20211216153104-ab897005e827/go.mod h1:+iK5r4Xi5h/d1G3dJ/+AKvYcNl+eC9tQ9A8kueS/FHE=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
