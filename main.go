@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"git.sr.ht/~emersion/gqlclient"
-	"git.sr.ht/~emersion/hut/srht"
+	"git.sr.ht/~emersion/hut/srht/pastesrht"
 	"github.com/spf13/cobra"
 )
 
@@ -63,7 +63,7 @@ func main() {
 
 			var respData struct {
 				Create struct {
-					srht.Paste
+					pastesrht.Paste
 				}
 			}
 			if err := c.Execute(ctx, op, &respData); err != nil {
