@@ -12,6 +12,7 @@ import (
 
 	"git.sr.ht/~emersion/gqlclient"
 	"git.sr.ht/~emersion/hut/srht/buildssrht"
+	"git.sr.ht/~emersion/hut/srht/gitsrht"
 	"git.sr.ht/~emersion/hut/srht/pastesrht"
 	"github.com/spf13/cobra"
 )
@@ -120,12 +121,56 @@ func main() {
 	}
 	buildCmd.Flags().BoolVarP(&follow, "follow", "f", false, "follow build logs")
 
+	var repoName, rev string
+	artifactCmd := &cobra.Command{
+		Use:   "artifact [filenames...]",
+		Short: "Upload an artifact",
+		Run: func(cmd *cobra.Command, args []string) {
+			if repoName == "" {
+				log.Fatal("enter a repository name with --repo")
+			}
+			if rev == "" {
+				log.Fatal("enter a revision name with --rev")
+			}
+
+			c := createClient("git")
+
+			if len(args) == 0 {
+				log.Fatal("enter a file to upload")
+			}
+			filename := args[0]
+
+			f, err := os.Open(filename)
+			if err != nil {
+				log.Fatalf("failed to open input file: %v", err)
+			}
+			defer f.Close()
+
+			file := gqlclient.Upload{Filename: filepath.Base(filename), Body: f}
+
+			repo, err := gitsrht.RepositoryByName(c.Client, ctx, repoName)
+			if err != nil {
+				log.Fatalf("failed to get repository ID: %v", err)
+			}
+
+			artifact, err := gitsrht.UploadArtifact(c.Client, ctx, repo.Id, rev, file)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			fmt.Printf("Uploaded %s\n", artifact.Filename)
+		},
+	}
+	artifactCmd.Flags().StringVarP(&repoName, "repo", "r", "", "name of repository")
+	artifactCmd.Flags().StringVar(&rev, "rev", "", "revision tag")
+
 	rootCmd := &cobra.Command{
 		Use:   "hut",
 		Short: "hut is a CLI tool for sr.ht",
 	}
 	rootCmd.AddCommand(pasteCmd)
 	rootCmd.AddCommand(buildCmd)
+	rootCmd.AddCommand(artifactCmd)
 
 	rootCmd.Execute()
 }

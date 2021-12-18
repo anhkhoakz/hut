@@ -1,0 +1,383 @@
+# This schema definition is available in the public domain, or under the terms
+# of CC-0, at your choice.
+scalar Cursor
+scalar Time
+scalar Upload
+
+# Used to provide a human-friendly description of an access scope
+directive @scopehelp(details: String!) on ENUM_VALUE
+
+enum AccessScope {
+  PROFILE      @scopehelp(details: "profile information")
+  REPOSITORIES @scopehelp(details: "repository metadata")
+  OBJECTS      @scopehelp(details: "git objects & references")
+  ACLS         @scopehelp(details: "access control lists")
+}
+
+enum AccessKind {
+  RO @scopehelp(details: "read")
+  RW @scopehelp(details: "read and write")
+}
+
+# Decorates fields for which access requires a particular OAuth 2.0 scope with
+# read or write access.
+directive @access(scope: AccessScope!, kind: AccessKind!) on FIELD_DEFINITION
+
+# https://semver.org
+type Version {
+  major: Int!
+  minor: Int!
+  patch: Int!
+
+  # If this API version is scheduled for deprecation, this is the date on which
+  # it will stop working; or null if this API version is not scheduled for
+  # deprecation.
+  deprecationDate: Time
+
+  # Optional features
+  features: Features!
+}
+
+# Describes the status of optional features
+type Features {
+  artifacts: Boolean!
+}
+
+enum AccessMode {
+  # Read-only
+  RO
+  # Read/write
+  RW
+}
+
+enum Visibility {
+  # Visible to everyone, listed on your profile
+  PUBLIC
+  # Visible to everyone (if they know the URL), not listed on your profile
+  UNLISTED
+  # Not visible to anyone except those explicitly added to the access list
+  PRIVATE
+}
+
+interface Entity {
+  id: Int!
+  created: Time!
+  updated: Time!
+  # The canonical name of this entity. For users, this is their username
+  # prefixed with '~'. Additional entity types will be supported in the future.
+  canonicalName: String!
+
+  repositories(cursor: Cursor, filter: Filter): RepositoryCursor! @access(scope: REPOSITORIES, kind: RO)
+}
+
+type User implements Entity {
+  id: Int!
+  created: Time!
+  updated: Time!
+  canonicalName: String!
+  username: String!
+  email: String!
+  url: String
+  location: String
+  bio: String
+
+  repositories(cursor: Cursor, filter: Filter): RepositoryCursor! @access(scope: REPOSITORIES, kind: RO)
+}
+
+type Repository {
+  id: Int!
+  created: Time!
+  updated: Time!
+  owner: Entity! @access(scope: PROFILE, kind: RO)
+  name: String!
+  description: String
+  visibility: Visibility!
+
+  # The repository's custom README, if set.
+  #
+  # NOTICE: This returns unsanitized HTML. It is the client's responsibility to
+  # sanitize this for display on the web, if so desired.
+  readme: String
+
+  # If this repository was cloned from another, this is set to the original
+  # clone URL.
+  upstreamUrl: String
+
+  accessControlList(cursor: Cursor): ACLCursor! @access(scope: ACLS, kind: RO)
+
+  ## Plumbing API:
+
+  objects(ids: [String!]): [Object]! @access(scope: OBJECTS, kind: RO)
+  references(cursor: Cursor): ReferenceCursor! @access(scope: OBJECTS, kind: RO)
+
+  ## Porcelain API:
+
+  # NOTE: revspecs are git-compatible, e.g. "HEAD~4", "master", "9790b10")
+  
+  # The HEAD reference for this repository (equivalent to the default branch)
+  HEAD: Reference @access(scope: OBJECTS, kind: RO)
+
+  # Returns a list of comments sorted by committer time (similar to `git log`'s
+  # default ordering).
+  #
+  # If `from` is specified, it is interpreted as a revspec to start logging
+  # from. A clever reader may notice that using commits[-1].from + "^" as the
+  # from parameter is equivalent to passing the cursor to the next call.
+  log(cursor: Cursor, from: String): CommitCursor! @access(scope: OBJECTS, kind: RO)
+
+  # Returns a tree entry for a given path, at the given revspec.
+  path(revspec: String = "HEAD", path: String!): TreeEntry @access(scope: OBJECTS, kind: RO)
+
+  # Returns the commit for a given revspec.
+  revparse_single(revspec: String!): Commit @access(scope: OBJECTS, kind: RO)
+}
+
+# A cursor for enumerating a list of repositories
+#
+# If there are additional results available, the cursor object may be passed
+# back into the same endpoint to retrieve another page. If the cursor is null,
+# there are no remaining results to return.
+type RepositoryCursor {
+  results: [Repository!]!
+  cursor: Cursor
+}
+
+# A cursor for enumerating access control list entries
+#
+# If there are additional results available, the cursor object may be passed
+# back into the same endpoint to retrieve another page. If the cursor is null,
+# there are no remaining results to return.
+type ACLCursor {
+  results: [ACL!]!
+  cursor: Cursor
+}
+
+# A cursor for enumerating a list of references
+#
+# If there are additional results available, the cursor object may be passed
+# back into the same endpoint to retrieve another page. If the cursor is null,
+# there are no remaining results to return.
+type ReferenceCursor {
+  results: [Reference!]!
+  cursor: Cursor
+}
+
+# A cursor for enumerating commits
+#
+# If there are additional results available, the cursor object may be passed
+# back into the same endpoint to retrieve another page. If the cursor is null,
+# there are no remaining results to return.
+type CommitCursor {
+  results: [Commit!]!
+  cursor: Cursor
+}
+
+# A cursor for enumerating tree entries
+#
+# If there are additional results available, the cursor object may be passed
+# back into the same endpoint to retrieve another page. If the cursor is null,
+# there are no remaining results to return.
+type TreeEntryCursor {
+  results: [TreeEntry!]!
+  cursor: Cursor
+}
+
+# A cursor for enumerating artifacts
+#
+# If there are additional results available, the cursor object may be passed
+# back into the same endpoint to retrieve another page. If the cursor is null,
+# there are no remaining results to return.
+type ArtifactCursor {
+  results: [Artifact!]!
+  cursor: Cursor
+}
+
+type ACL {
+  id: Int!
+  created: Time!
+  repository: Repository!
+  entity: Entity! @access(scope: PROFILE, kind: RO)
+  mode: AccessMode
+}
+
+# Arbitrary file attached to a git repository
+type Artifact {
+  id: Int!
+  created: Time!
+  filename: String!
+  checksum: String!
+  size: Int!
+  url: String!
+}
+
+type Reference {
+  name: String!
+  target: String!
+  follow: Object
+
+  artifacts(cursor: Cursor): ArtifactCursor!
+}
+
+enum ObjectType {
+  COMMIT
+  TREE
+  BLOB
+  TAG
+}
+
+interface Object {
+  type: ObjectType!
+  id: String!
+  shortId: String!
+  # Raw git object, base64 encoded
+  raw: String!
+}
+
+type Signature {
+  name: String!
+  email: String!
+  time: Time!
+}
+
+type Commit implements Object {
+  type: ObjectType!
+  id: String!
+  shortId: String!
+  raw: String!
+  author: Signature!
+  committer: Signature!
+  message: String!
+  tree: Tree!
+  parents: [Commit!]!
+  diff: String!
+}
+
+type Tree implements Object {
+  type: ObjectType!
+  id: String!
+  shortId: String!
+  raw: String!
+  # TODO: add globbing
+  entries(cursor: Cursor): TreeEntryCursor!
+
+  entry(path: String): TreeEntry
+}
+
+type TreeEntry {
+  id: String!
+  name: String!
+  object: Object!
+  # Unix-style file mode, i.e. 0755 or 0644 (octal)
+  mode: Int!
+}
+
+interface Blob {
+  id: String!
+}
+
+type TextBlob implements Object & Blob {
+  type: ObjectType!
+  id: String!
+  shortId: String!
+  raw: String!
+
+  # TODO: Consider adding a range specifier
+  text: String!
+}
+
+type BinaryBlob implements Object & Blob {
+  type: ObjectType!
+  id: String!
+  shortId: String!
+  raw: String!
+
+  # TODO: Consider adding a range specifier
+  base64: String!
+}
+
+type Tag implements Object {
+  type: ObjectType!
+  id: String!
+  shortId: String!
+  raw: String!
+  target: Object!
+  name: String!
+  tagger: Signature!
+  message: String
+}
+
+input Filter {
+  # Number of results to return.
+  count: Int = 20
+
+  # Search terms. The exact meaning varies by usage, but generally these are
+  # compatible with the web UI's search syntax.
+  search: String
+}
+
+type Query {
+  # Returns API version information.
+  version: Version!
+
+  # Returns the authenticated user.
+  me: User! @access(scope: PROFILE, kind: RO)
+
+  # Returns a specific user.
+  user(username: String!): User @access(scope: PROFILE, kind: RO)
+
+  # Returns repositories that the authenticated user has access to.
+  #
+  # NOTE: in this version of the API, only repositories owned by the
+  # authenticated user are returned, but in the future the default behavior
+  # will be to return all repositories that the user either (1) has been given
+  # explicit access to via ACLs or (2) has implicit access to either by
+  # ownership or group membership.
+  repositories(cursor: Cursor, filter: Filter): RepositoryCursor @access(scope: REPOSITORIES, kind: RO)
+
+  # Returns a specific repository by ID.
+  repository(id: Int!): Repository @access(scope: REPOSITORIES, kind: RO)
+
+  # Returns a specific repository, owned by the authenticated user.
+  repositoryByName(name: String!): Repository @access(scope: REPOSITORIES, kind: RO)
+
+  # Returns a specific repository, owned by the given canonical name (e.g.
+  # "~sircmpwn").
+  repositoryByOwner(owner: String!, repo: String!): Repository @access(scope: REPOSITORIES, kind: RO)
+}
+
+input RepoInput {
+  # Omit these fields to leave them unchanged, or set them to null to clear
+  # their value.
+  name: String
+  description: String
+  visibility: Visibility
+
+  # Updates the custom README associated with this repository. Note that the
+  # provided HTML will be sanitized when displayed on the web; see
+  # https://man.sr.ht/markdown/#post-processing
+  readme: String
+}
+
+type Mutation {
+  # Creates a new git repository
+  createRepository(name: String!, visibility: Visibility!, description: String): Repository @access(scope: REPOSITORIES, kind: RW)
+
+  # Updates the metadata for a git repository
+  updateRepository(id: Int!, input: RepoInput!): Repository @access(scope: REPOSITORIES, kind: RW)
+
+  # Deletes a git repository
+  deleteRepository(id: Int!): Repository @access(scope: REPOSITORIES, kind: RW)
+
+  # Adds or updates a user in the access control list
+  updateACL(repoId: Int!, mode: AccessMode!, entity: ID!): ACL! @access(scope: ACLS, kind: RW)
+
+  # Deletes an entry from the access control list
+  deleteACL(id: Int!): ACL @access(scope: ACLS, kind: RW)
+
+  # Uploads an artifact. revspec must match a specific git tag, and the
+  # filename must be unique among artifacts for this repository.
+  uploadArtifact(repoId: Int!, revspec: String!, file: Upload!): Artifact! @access(scope: OBJECTS, kind: RW)
+
+  # Deletes an artifact.
+  deleteArtifact(id: Int!): Artifact @access(scope: OBJECTS, kind: RW)
+}
