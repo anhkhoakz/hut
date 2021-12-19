@@ -1,0 +1,15 @@
+image: alpine/latest
+packages:
+  - go
+sources:
+  - https://git.sr.ht/~emersion/hut
+tasks:
+  - build: |
+      cd hut
+      go build -v ./...
+  - test: |
+      cd hut
+      go test ./...
+  - gofmt: |
+      cd hut
+      test -z $(gofmt -l .)
