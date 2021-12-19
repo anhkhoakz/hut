@@ -14,6 +14,10 @@ A CLI tool for sr.ht.
 
 3. `hut -h`
 
+## Building
+
+    go build
+
 ## License
 
 GPLv3, see LICENSE.
