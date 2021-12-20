@@ -54,7 +54,10 @@ unset, $XDG_CONFIG_HOME defaults to *~/.config/*.
 
 ```
 instance "sr.ht" {
-    access-token "<token>"
+	access-token "<token>"
+	# As an alternative you can specify a command whose first line of output
+	# will be parsed as the token
+	access-token-cmd pass token
 }
 ```
 
