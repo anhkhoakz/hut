@@ -1,12 +1,13 @@
 image: alpine/latest
 packages:
   - go
+  - scdoc
 sources:
   - https://git.sr.ht/~emersion/hut
 tasks:
   - build: |
       cd hut
-      go build -v ./...
+      make
   - test: |
       cd hut
       go test ./...
