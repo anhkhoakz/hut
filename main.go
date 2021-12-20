@@ -21,8 +21,8 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	pasteCmd := &cobra.Command{
-		Use:   "paste [filenames...]",
+	pasteCreateCmd := &cobra.Command{
+		Use:   "create [filenames...]",
 		Short: "Create a new paste",
 		Run: func(cmd *cobra.Command, args []string) {
 			c := createClient("paste")
@@ -65,8 +65,8 @@ func main() {
 	}
 
 	var follow bool
-	buildCmd := &cobra.Command{
-		Use:   "build [manifest...]",
+	buildsSubmitCmd := &cobra.Command{
+		Use:   "submit [manifest...]",
 		Short: "Submit a build manifest",
 		Run: func(cmd *cobra.Command, args []string) {
 			c := createClient("builds")
@@ -119,10 +119,10 @@ func main() {
 			}
 		},
 	}
-	buildCmd.Flags().BoolVarP(&follow, "follow", "f", false, "follow build logs")
+	buildsSubmitCmd.Flags().BoolVarP(&follow, "follow", "f", false, "follow build logs")
 
 	var repoName, rev string
-	artifactCmd := &cobra.Command{
+	gitArtifactCmd := &cobra.Command{
 		Use:   "artifact [filenames...]",
 		Short: "Upload an artifact",
 		Run: func(cmd *cobra.Command, args []string) {
@@ -161,16 +161,34 @@ func main() {
 			fmt.Printf("Uploaded %s\n", artifact.Filename)
 		},
 	}
-	artifactCmd.Flags().StringVarP(&repoName, "repo", "r", "", "name of repository")
-	artifactCmd.Flags().StringVar(&rev, "rev", "", "revision tag")
+	gitArtifactCmd.Flags().StringVarP(&repoName, "repo", "r", "", "name of repository")
+	gitArtifactCmd.Flags().StringVar(&rev, "rev", "", "revision tag")
 
 	rootCmd := &cobra.Command{
 		Use:   "hut",
 		Short: "hut is a CLI tool for sr.ht",
 	}
+
+	pasteCmd := &cobra.Command{
+		Use:   "paste",
+		Short: "Use the paste API",
+	}
 	rootCmd.AddCommand(pasteCmd)
-	rootCmd.AddCommand(buildCmd)
-	rootCmd.AddCommand(artifactCmd)
+	pasteCmd.AddCommand(pasteCreateCmd)
+
+	buildsCmd := &cobra.Command{
+		Use:   "builds",
+		Short: "Use the builds API",
+	}
+	rootCmd.AddCommand(buildsCmd)
+	buildsCmd.AddCommand(buildsSubmitCmd)
+
+	gitCmd := &cobra.Command{
+		Use:   "git",
+		Short: "Use the git API",
+	}
+	rootCmd.AddCommand(gitCmd)
+	gitCmd.AddCommand(gitArtifactCmd)
 
 	rootCmd.Execute()
 }

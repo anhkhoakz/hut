@@ -20,6 +20,11 @@ hut is a CLI companion utility to interact with sr.ht.
 
 # COMMANDS
 
+*help* <command>
+	Help about any command.
+
+## git
+
 *artifact* <filenames> [options...]
 	Upload an artifact.
 
@@ -31,7 +36,9 @@ hut is a CLI companion utility to interact with sr.ht.
 	*--rev* <string>
 		Revision tag.
 
-*build* <manifest> [options...]
+## builds
+
+*submit* <manifest> [options...]
 	Submit a build manifest.
 
 	Options are:
@@ -39,10 +46,9 @@ hut is a CLI companion utility to interact with sr.ht.
 	*-f,  --follow*
 		Follow build logs.
 
-*help* <command>
-	Help about any command.
+## paste
 
-*paste* <filenames>
+*create* <filenames>
 	Create a new paste.
 
 # CONFIGURATION
