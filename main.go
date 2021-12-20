@@ -2,18 +2,8 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"io"
-	"log"
-	"mime"
-	"os"
-	"path/filepath"
 	"time"
 
-	"git.sr.ht/~emersion/gqlclient"
-	"git.sr.ht/~emersion/hut/srht/buildssrht"
-	"git.sr.ht/~emersion/hut/srht/gitsrht"
-	"git.sr.ht/~emersion/hut/srht/pastesrht"
 	"github.com/spf13/cobra"
 )
 
@@ -21,174 +11,13 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	pasteCreateCmd := &cobra.Command{
-		Use:   "create [filenames...]",
-		Short: "Create a new paste",
-		Run: func(cmd *cobra.Command, args []string) {
-			c := createClient("paste")
-
-			var files []gqlclient.Upload
-			for _, filename := range args {
-				f, err := os.Open(filename)
-				if err != nil {
-					log.Fatalf("failed to open input file: %v", err)
-				}
-				defer f.Close()
-
-				t := mime.TypeByExtension(filename)
-				if t == "" {
-					t = "text/plain"
-				}
-
-				files = append(files, gqlclient.Upload{
-					Filename: filepath.Base(filename),
-					MIMEType: t,
-					Body:     f,
-				})
-			}
-
-			if len(args) == 0 {
-				files = append(files, gqlclient.Upload{
-					Filename: "-",
-					MIMEType: "text/plain",
-					Body:     os.Stdin,
-				})
-			}
-
-			paste, err := pastesrht.CreatePaste(c.Client, ctx, files)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			fmt.Printf("%v/%v/%v\n", c.BaseURL, paste.User.CanonicalName, paste.Id)
-		},
-	}
-
-	var follow bool
-	buildsSubmitCmd := &cobra.Command{
-		Use:   "submit [manifest...]",
-		Short: "Submit a build manifest",
-		Run: func(cmd *cobra.Command, args []string) {
-			c := createClient("builds")
-
-			filenames := args
-			if len(args) == 0 {
-				if _, err := os.Stat(".build.yml"); err == nil {
-					filenames = append(filenames, ".build.yml")
-				}
-				if matches, err := filepath.Glob(".build/*.yml"); err == nil {
-					filenames = append(filenames, matches...)
-				}
-			}
-
-			if len(filenames) == 0 {
-				log.Fatal("no build manifest found")
-			}
-			if len(filenames) > 1 && follow {
-				log.Fatal("--follow cannot be used when submitting multiple jobs")
-			}
-
-			for _, name := range filenames {
-				var b []byte
-				var err error
-				if name == "-" {
-					b, err = io.ReadAll(os.Stdin)
-				} else {
-					b, err = os.ReadFile(name)
-				}
-				if err != nil {
-					log.Fatalf("failed to read manifest from %q: %v", name, err)
-				}
-
-				job, err := buildssrht.Submit(c.Client, ctx, string(b))
-				if err != nil {
-					log.Fatal(err)
-				}
-
-				fmt.Printf("%v/%v/job/%v\n", c.BaseURL, job.Owner.CanonicalName, job.Id)
-
-				if follow {
-					job, err := c.followJob(context.Background(), job.Id)
-					if err != nil {
-						log.Fatal(err)
-					}
-					if job.Status != buildssrht.JobStatusSuccess {
-						os.Exit(1)
-					}
-				}
-			}
-		},
-	}
-	buildsSubmitCmd.Flags().BoolVarP(&follow, "follow", "f", false, "follow build logs")
-
-	var repoName, rev string
-	gitArtifactCmd := &cobra.Command{
-		Use:   "artifact [filenames...]",
-		Short: "Upload an artifact",
-		Run: func(cmd *cobra.Command, args []string) {
-			if repoName == "" {
-				log.Fatal("enter a repository name with --repo")
-			}
-			if rev == "" {
-				log.Fatal("enter a revision name with --rev")
-			}
-
-			c := createClient("git")
-
-			if len(args) == 0 {
-				log.Fatal("enter a file to upload")
-			}
-			filename := args[0]
-
-			f, err := os.Open(filename)
-			if err != nil {
-				log.Fatalf("failed to open input file: %v", err)
-			}
-			defer f.Close()
-
-			file := gqlclient.Upload{Filename: filepath.Base(filename), Body: f}
-
-			repo, err := gitsrht.RepositoryByName(c.Client, ctx, repoName)
-			if err != nil {
-				log.Fatalf("failed to get repository ID: %v", err)
-			}
-
-			artifact, err := gitsrht.UploadArtifact(c.Client, ctx, repo.Id, rev, file)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			fmt.Printf("Uploaded %s\n", artifact.Filename)
-		},
-	}
-	gitArtifactCmd.Flags().StringVarP(&repoName, "repo", "r", "", "name of repository")
-	gitArtifactCmd.Flags().StringVar(&rev, "rev", "", "revision tag")
-
-	rootCmd := &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "hut",
 		Short: "hut is a CLI tool for sr.ht",
 	}
+	cmd.AddCommand(newBuildsCommand())
+	cmd.AddCommand(newGitCommand())
+	cmd.AddCommand(newPasteCommand())
 
-	pasteCmd := &cobra.Command{
-		Use:   "paste",
-		Short: "Use the paste API",
-	}
-	rootCmd.AddCommand(pasteCmd)
-	pasteCmd.AddCommand(pasteCreateCmd)
-
-	buildsCmd := &cobra.Command{
-		Use:   "builds",
-		Short: "Use the builds API",
-	}
-	rootCmd.AddCommand(buildsCmd)
-	buildsCmd.AddCommand(buildsSubmitCmd)
-
-	gitCmd := &cobra.Command{
-		Use:   "git",
-		Short: "Use the git API",
-	}
-	rootCmd.AddCommand(gitCmd)
-	gitCmd.AddCommand(gitArtifactCmd)
-
-	rootCmd.Execute()
+	cmd.ExecuteContext(ctx)
 }

@@ -4,12 +4,88 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
+
+	"github.com/spf13/cobra"
 
 	"git.sr.ht/~emersion/hut/srht/buildssrht"
 )
+
+func newBuildsCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "builds",
+		Short: "Use the builds API",
+	}
+	cmd.AddCommand(newBuildsSubmitCommand())
+	return cmd
+}
+
+func newBuildsSubmitCommand() *cobra.Command {
+	var follow bool
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("builds")
+
+		filenames := args
+		if len(args) == 0 {
+			if _, err := os.Stat(".build.yml"); err == nil {
+				filenames = append(filenames, ".build.yml")
+			}
+			if matches, err := filepath.Glob(".build/*.yml"); err == nil {
+				filenames = append(filenames, matches...)
+			}
+		}
+
+		if len(filenames) == 0 {
+			log.Fatal("no build manifest found")
+		}
+		if len(filenames) > 1 && follow {
+			log.Fatal("--follow cannot be used when submitting multiple jobs")
+		}
+
+		for _, name := range filenames {
+			var b []byte
+			var err error
+			if name == "-" {
+				b, err = io.ReadAll(os.Stdin)
+			} else {
+				b, err = os.ReadFile(name)
+			}
+			if err != nil {
+				log.Fatalf("failed to read manifest from %q: %v", name, err)
+			}
+
+			job, err := buildssrht.Submit(c.Client, ctx, string(b))
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			fmt.Printf("%v/%v/job/%v\n", c.BaseURL, job.Owner.CanonicalName, job.Id)
+
+			if follow {
+				job, err := c.followJob(context.Background(), job.Id)
+				if err != nil {
+					log.Fatal(err)
+				}
+				if job.Status != buildssrht.JobStatusSuccess {
+					os.Exit(1)
+				}
+			}
+		}
+	}
+
+	cmd := &cobra.Command{
+		Use:   "submit [manifest...]",
+		Short: "Submit a build manifest",
+		Run:   run,
+	}
+	cmd.Flags().BoolVarP(&follow, "follow", "f", false, "follow build logs")
+	return cmd
+}
 
 type buildLog struct {
 	offset int64
