@@ -16,7 +16,15 @@ A CLI tool for sr.ht.
 
 ## Building
 
-    go build
+Dependencies:
+
+- Go
+- scdoc (optional, for man pages)
+
+For end users, a `Makefile` is provided:
+
+    make
+    sudo make install
 
 ## License
 
