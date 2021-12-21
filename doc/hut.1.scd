@@ -51,6 +51,11 @@ hut is a CLI companion utility to interact with sr.ht.
 *create* <filenames...>
 	Create a new paste.
 
+	Options are:
+
+	*-v, --visibility* <string>
+		Visibility to use (public, unlisted, private)
+
 ## pages
 
 *publish* <tarball> [options...]

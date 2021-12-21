@@ -6,6 +6,7 @@ import (
 	"mime"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"git.sr.ht/~emersion/gqlclient"
 	"github.com/spf13/cobra"
@@ -23,8 +24,15 @@ func newPasteCommand() *cobra.Command {
 }
 
 func newPasteCreateCommand() *cobra.Command {
+	var visibility string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
+
+		pasteVisibility, err := getVisibility(visibility)
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		c := createClient("paste")
 
 		var files []gqlclient.Upload
@@ -55,7 +63,7 @@ func newPasteCreateCommand() *cobra.Command {
 			})
 		}
 
-		paste, err := pastesrht.CreatePaste(c.Client, ctx, files)
+		paste, err := pastesrht.CreatePaste(c.Client, ctx, files, pasteVisibility)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -63,9 +71,24 @@ func newPasteCreateCommand() *cobra.Command {
 		fmt.Printf("%v/%v/%v\n", c.BaseURL, paste.User.CanonicalName, paste.Id)
 	}
 
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "create [filenames...]",
 		Short: "Create a new paste",
 		Run:   run,
+	}
+	cmd.Flags().StringVarP(&visibility, "visibility", "v", "unlisted", "paste visibility")
+	return cmd
+}
+
+func getVisibility(visibility string) (pastesrht.Visibility, error) {
+	switch strings.ToLower(visibility) {
+	case "unlisted":
+		return pastesrht.VisibilityUnlisted, nil
+	case "private":
+		return pastesrht.VisibilityPrivate, nil
+	case "public":
+		return pastesrht.VisibilityPublic, nil
+	default:
+		return "", fmt.Errorf("invalid visibility: %s", visibility)
 	}
 }

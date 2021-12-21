@@ -1,6 +1,8 @@
-mutation createPaste($files: [Upload!]!) {
-	create(files: $files, visibility: UNLISTED) {
-		id
-		user { canonicalName }
-	}
+mutation createPaste($files: [Upload!]!, $visibility: Visibility!) {
+    create(files: $files, visibility: $visibility) {
+        id
+        user {
+            canonicalName
+        }
+    }
 }

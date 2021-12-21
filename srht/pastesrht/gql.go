@@ -75,9 +75,10 @@ const (
 	VisibilityPrivate  Visibility = "PRIVATE"
 )
 
-func CreatePaste(client *gqlclient.Client, ctx context.Context, files []gqlclient.Upload) (create Paste, err error) {
-	op := gqlclient.NewOperation("mutation createPaste ($files: [Upload!]!) {\n\tcreate(files: $files, visibility: UNLISTED) {\n\t\tid\n\t\tuser {\n\t\t\tcanonicalName\n\t\t}\n\t}\n}\n")
+func CreatePaste(client *gqlclient.Client, ctx context.Context, files []gqlclient.Upload, visibility Visibility) (create Paste, err error) {
+	op := gqlclient.NewOperation("mutation createPaste ($files: [Upload!]!, $visibility: Visibility!) {\n\tcreate(files: $files, visibility: $visibility) {\n\t\tid\n\t\tuser {\n\t\t\tcanonicalName\n\t\t}\n\t}\n}\n")
 	op.Var("files", files)
+	op.Var("visibility", visibility)
 	var respData struct {
 		Create Paste
 	}
