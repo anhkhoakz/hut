@@ -62,7 +62,7 @@ func newGitArtifactCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:   "artifact [filenames...]",
+		Use:   "artifact <filename>",
 		Short: "Upload an artifact",
 		Run:   run,
 	}
