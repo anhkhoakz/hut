@@ -3,3 +3,9 @@ mutation publish($domain: String!, $content: Upload!, $protocol: Protocol!) {
         domain
     }
 }
+
+mutation unpublish($domain: String!, $protocol: Protocol!) {
+    unpublish(domain: $domain, protocol: $protocol) {
+        domain
+    }
+}

@@ -18,6 +18,7 @@ func newPagesCommand() *cobra.Command {
 		Short: "Use the pages API",
 	}
 	cmd.AddCommand(newPagesPublishCommand())
+	cmd.AddCommand(newPagesUnpublishCommand())
 	return cmd
 }
 
@@ -61,6 +62,41 @@ func newPagesPublishCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "publish <archive>",
 		Short: "Publish a website",
+		Run:   run,
+	}
+	cmd.Flags().StringVarP(&domain, "domain", "d", "", "domain name")
+	cmd.Flags().StringVarP(&protocol, "protocol", "p", "HTTPS",
+		"protocol (HTTPS or GEMINI)")
+	return cmd
+}
+
+func newPagesUnpublishCommand() *cobra.Command {
+	var domain, protocol string
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		if domain == "" {
+			log.Fatal("enter a domain with --domain")
+		}
+
+		pagesProtocol, err := getProtocol(protocol)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		c := createClient("pages")
+
+		site, err := pagessrht.Unpublish(c.Client, ctx, domain, pagesProtocol)
+		if err != nil {
+			log.Fatalf("failed to unpublish site: %v", err)
+		}
+
+		fmt.Printf("Unpublished site at %s\n", site.Domain)
+	}
+
+	cmd := &cobra.Command{
+		Use:   "unpublish",
+		Short: "Unpublish a website",
 		Run:   run,
 	}
 	cmd.Flags().StringVarP(&domain, "domain", "d", "", "domain name")

@@ -83,3 +83,14 @@ func Publish(client *gqlclient.Client, ctx context.Context, domain string, conte
 	err = client.Execute(ctx, op, &respData)
 	return respData.Publish, err
 }
+
+func Unpublish(client *gqlclient.Client, ctx context.Context, domain string, protocol Protocol) (unpublish *Site, err error) {
+	op := gqlclient.NewOperation("mutation unpublish ($domain: String!, $protocol: Protocol!) {\n\tunpublish(domain: $domain, protocol: $protocol) {\n\t\tdomain\n\t}\n}\n")
+	op.Var("domain", domain)
+	op.Var("protocol", protocol)
+	var respData struct {
+		Unpublish *Site
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Unpublish, err
+}
