@@ -1,0 +1,5 @@
+mutation publish($domain: String!, $content: Upload!, $protocol: Protocol!) {
+    publish(domain: $domain, content: $content, protocol: $protocol) {
+        domain
+    }
+}

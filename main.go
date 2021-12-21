@@ -18,6 +18,7 @@ func main() {
 	cmd.AddCommand(newBuildsCommand())
 	cmd.AddCommand(newGitCommand())
 	cmd.AddCommand(newPasteCommand())
+	cmd.AddCommand(newPagesCommand())
 
 	cmd.ExecuteContext(ctx)
 }

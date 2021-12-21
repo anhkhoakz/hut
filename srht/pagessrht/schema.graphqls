@@ -1,0 +1,121 @@
+scalar Cursor
+scalar Time
+scalar Upload
+
+# Used to provide a human-friendly description of an access scope
+directive @scopehelp(details: String!) on ENUM_VALUE
+
+enum AccessScope {
+  PROFILE @scopehelp(details: "profile information")
+  SITES   @scopehelp(details: "registered sites")
+  PAGES   @scopehelp(details: "contents of registered sites")
+}
+
+enum AccessKind {
+  RO @scopehelp(details: "read")
+  RW @scopehelp(details: "read and write")
+}
+
+# Decorates fields for which access requires a particular OAuth 2.0 scope with
+# read or write access.
+directive @access(scope: AccessScope!, kind: AccessKind!) on FIELD_DEFINITION
+
+enum Protocol {
+  HTTPS
+  GEMINI
+}
+
+# https://semver.org
+type Version {
+  major: Int!
+  minor: Int!
+  patch: Int!
+  # If this API version is scheduled for deprecation, this is the date on which
+  # it will stop working; or null if this API version is not scheduled for
+  # deprecation.
+  deprecationDate: Time
+}
+
+interface Entity {
+  id: Int!
+  created: Time!
+  updated: Time!
+  # The canonical name of this entity. For users, this is their username
+  # prefixed with '~'. Additional entity types will be supported in the future.
+  canonicalName: String!
+}
+
+type User implements Entity {
+  id: Int!
+  created: Time!
+  updated: Time!
+  canonicalName: String!
+  username: String!
+  email: String!
+  url: String
+  location: String
+  bio: String
+}
+
+# A published website
+type Site {
+  id: Int!
+  created: Time!
+  updated: Time!
+  # Domain name the site services
+  domain: String!
+  # The site protocol
+  protocol: Protocol!
+  # SHA-256 checksum of the source tarball (uncompressed)
+  version: String!
+}
+
+# A cursor for enumerating site entries
+#
+# If there are additional results available, the cursor object may be passed
+# back into the same endpoint to retrieve another page. If the cursor is null,
+# there are no remaining results to return.
+type SiteCursor {
+  results: [Site]!
+  cursor: Cursor
+}
+
+type Query {
+  # Returns API version information.
+  version: Version!
+
+  # Returns the authenticated user.
+  me: User! @access(scope: PROFILE, kind: RO)
+
+  # Returns a list of registered sites on your account.
+  sites(cursor: Cursor): SiteCursor! @access(scope: SITES, kind: RO)
+}
+
+type Mutation {
+  # Publishes a website. If the domain already exists on your account, it is
+  # updated to a new version. If the domain already exists under someone else's
+  # account, the request is rejected. If the domain does not exist, a new site
+  # is created.
+  #
+  # Every user is given exclusive use over the 'username.srht.site' domain, and
+  # it requires no special configuration to use. Users may also bring their own
+  # domain name, in which case they should consult the configuration docs:
+  #
+  # https://man.sr.ht/pages.sr.ht
+  #
+  # 'content' must be a .tar.gz file. It must contain only directories and
+  # regular files of mode 644. Symlinks are not supported. No error is returned
+  # for an invalid tarball; the invalid data is simply discarded.
+  #
+  # If protocol is unset, HTTPS is presumed.
+  #
+  # If subdirectory is set, only the specified directory is updated. The rest
+  # of the files are unchanged.
+  publish(domain: String!, content: Upload!, protocol: Protocol,
+    subdirectory: String): Site! @access(scope: PAGES, kind: RW)
+
+  # Deletes a previously published website.
+  #
+  # If protocol is unset, HTTPS is presumed.
+  unpublish(domain: String!, protocol: Protocol): Site @access(scope: SITES, kind: RW)
+}

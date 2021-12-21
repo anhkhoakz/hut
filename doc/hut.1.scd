@@ -51,6 +51,19 @@ hut is a CLI companion utility to interact with sr.ht.
 *create* <filenames...>
 	Create a new paste.
 
+## pages
+
+*publish* <tarball> [options...]
+	Publish a website.
+
+	Options are:
+
+	*-d, --domain* <string>
+		Fully qualified domain name.
+
+	*-p, --protocol* <string>
+		Protocol to use (either HTTPS or GEMINI; defaults to HTTPS)
+
 # CONFIGURATION
 
 Generate a new OAuth2 access token on _meta.sr.ht_.
