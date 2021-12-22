@@ -30,6 +30,6 @@ For end users, a `Makefile` is provided:
 
 ## License
 
-GPLv3, see LICENSE.
+AGPLv3, see LICENSE.
 
-Copyright (C) 2020 Simon Ser
+Copyright (C) 2021 Simon Ser
