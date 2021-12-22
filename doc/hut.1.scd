@@ -35,8 +35,11 @@ hut is a CLI companion utility to interact with sr.ht.
 
 ## builds
 
-*submit* <manifest...> [options...]
+*submit* [manifest...] [options...]
 	Submit a build manifest.
+
+	If no build manifest is specified, build manifests are discovered at
+	_.build.yml_ and _.builds/\*.yml_.
 
 	Options are:
 
