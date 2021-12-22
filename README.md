@@ -1,4 +1,4 @@
-# hut
+# [hut]
 
 [![builds.sr.ht status](https://builds.sr.ht/~emersion/hut/commits.svg)](https://builds.sr.ht/~emersion/hut/commits?)
 
@@ -33,3 +33,5 @@ For end users, a `Makefile` is provided:
 AGPLv3, see LICENSE.
 
 Copyright (C) 2021 Simon Ser
+
+[hut]: https://sr.ht/~emersion/hut/
