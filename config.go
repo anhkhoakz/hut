@@ -17,7 +17,8 @@ import (
 type Client struct {
 	*gqlclient.Client
 
-	BaseURL string
+	Hostname string
+	BaseURL  string
 }
 
 func createClient(service string) *Client {
@@ -67,7 +68,8 @@ func createClient(service string) *Client {
 	tokenSrc := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
 	httpClient := oauth2.NewClient(context.Background(), tokenSrc)
 	return &Client{
-		Client:  gqlclient.New(gqlEndpoint, httpClient),
-		BaseURL: baseURL,
+		Client:   gqlclient.New(gqlEndpoint, httpClient),
+		Hostname: hostname,
+		BaseURL:  baseURL,
 	}
 }
