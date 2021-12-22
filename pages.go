@@ -19,6 +19,7 @@ func newPagesCommand() *cobra.Command {
 	}
 	cmd.AddCommand(newPagesPublishCommand())
 	cmd.AddCommand(newPagesUnpublishCommand())
+	cmd.AddCommand(newPagesListCommand())
 	return cmd
 }
 
@@ -102,6 +103,30 @@ func newPagesUnpublishCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&domain, "domain", "d", "", "domain name")
 	cmd.Flags().StringVarP(&protocol, "protocol", "p", "HTTPS",
 		"protocol (HTTPS or GEMINI)")
+	return cmd
+}
+
+func newPagesListCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		c := createClient("pages")
+
+		sites, err := pagessrht.Sites(c.Client, ctx)
+		if err != nil {
+			log.Fatalf("failed to list sites: %v", err)
+		}
+
+		for _, site := range sites.Results {
+			fmt.Printf("%s (%s)\n", site.Domain, site.Protocol)
+		}
+	}
+
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List registered sites",
+		Run:   run,
+	}
 	return cmd
 }
 

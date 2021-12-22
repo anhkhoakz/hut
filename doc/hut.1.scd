@@ -80,6 +80,9 @@ hut is a CLI companion utility to interact with sr.ht.
 	*-p, --protocol* <string>
 		Protocol to use (either HTTPS or GEMINI; defaults to HTTPS)
 
+*list*
+	List registered sites.
+
 # CONFIGURATION
 
 Generate a new OAuth2 access token on _meta.sr.ht_.

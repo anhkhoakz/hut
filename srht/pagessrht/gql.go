@@ -94,3 +94,12 @@ func Unpublish(client *gqlclient.Client, ctx context.Context, domain string, pro
 	err = client.Execute(ctx, op, &respData)
 	return respData.Unpublish, err
 }
+
+func Sites(client *gqlclient.Client, ctx context.Context) (sites SiteCursor, err error) {
+	op := gqlclient.NewOperation("query sites {\n\tsites {\n\t\tresults {\n\t\t\tdomain\n\t\t\tprotocol\n\t\t}\n\t}\n}\n")
+	var respData struct {
+		Sites SiteCursor
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Sites, err
+}

@@ -9,3 +9,12 @@ mutation unpublish($domain: String!, $protocol: Protocol!) {
         domain
     }
 }
+
+query sites {
+    sites {
+        results {
+            domain
+            protocol
+        }
+    }
+}
