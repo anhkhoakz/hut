@@ -28,6 +28,8 @@ func newPagesPublishCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
+		filename := args[0]
+
 		if domain == "" {
 			log.Fatal("enter a domain with --domain")
 		}
@@ -38,11 +40,6 @@ func newPagesPublishCommand() *cobra.Command {
 		}
 
 		c := createClient("pages")
-
-		if len(args) != 1 {
-			log.Fatal("enter a tarball to upload")
-		}
-		filename := args[0]
 
 		f, err := os.Open(filename)
 		if err != nil {
@@ -63,6 +60,7 @@ func newPagesPublishCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "publish <archive>",
 		Short: "Publish a website",
+		Args:  cobra.ExactArgs(1),
 		Run:   run,
 	}
 	cmd.Flags().StringVarP(&domain, "domain", "d", "", "domain name")
