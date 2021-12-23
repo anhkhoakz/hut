@@ -29,6 +29,7 @@ func newBuildsCommand() *cobra.Command {
 	cmd.AddCommand(newBuildsCancelCommand())
 	cmd.AddCommand(newBuildsShowCommand())
 	cmd.AddCommand(newBuildsListCommand())
+	cmd.AddCommand(newBuildsSecretsCommand())
 	return cmd
 }
 
@@ -330,6 +331,33 @@ func newBuildsListCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List jobs",
+		Run:   run,
+	}
+	return cmd
+}
+
+func newBuildsSecretsCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("builds")
+
+		secrets, err := buildssrht.Secrets(c.Client, ctx)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for _, secret := range secrets.Results {
+			if secret.Name != nil {
+				fmt.Printf("%s (%s)\n", secret.Uuid, *secret.Name)
+			} else {
+				fmt.Println(secret.Uuid)
+			}
+		}
+	}
+
+	cmd := &cobra.Command{
+		Use:   "secrets",
+		Short: "List secrets",
 		Run:   run,
 	}
 	return cmd

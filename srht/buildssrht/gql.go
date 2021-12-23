@@ -279,3 +279,12 @@ func Show(client *gqlclient.Client, ctx context.Context, id int32) (job *Job, er
 	err = client.Execute(ctx, op, &respData)
 	return respData.Job, err
 }
+
+func Secrets(client *gqlclient.Client, ctx context.Context) (secrets SecretCursor, err error) {
+	op := gqlclient.NewOperation("query secrets {\n\tsecrets {\n\t\tresults {\n\t\t\tuuid\n\t\t\tname\n\t\t}\n\t}\n}\n")
+	var respData struct {
+		Secrets SecretCursor
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Secrets, err
+}

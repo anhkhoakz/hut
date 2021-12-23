@@ -87,6 +87,9 @@ hut is a CLI companion utility to interact with sr.ht.
 *list*
 	List jobs.
 
+*secrets*
+	List secrets.
+
 ## paste
 
 *create* <filenames...>

@@ -60,3 +60,12 @@ query show($id: Int!) {
         }
     }
 }
+
+query secrets {
+    secrets {
+        results {
+            uuid
+            name
+        }
+    }
+}
