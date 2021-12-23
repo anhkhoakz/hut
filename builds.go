@@ -98,16 +98,12 @@ func newBuildsResubmitCommand() *cobra.Command {
 		ctx := cmd.Context()
 		c := createClient("builds")
 
-		id, err := strconv.Atoi(args[0])
+		id, err := parseInt32(args[0])
 		if err != nil {
-			log.Fatalf("failed to parse job ID: %v", err)
+			log.Fatal(err)
 		}
 
-		if id > 2147483647 {
-			log.Fatal("job ID too large")
-		}
-
-		oldJob, err := buildssrht.Manifest(c.Client, ctx, int32(id))
+		oldJob, err := buildssrht.Manifest(c.Client, ctx, id)
 		if err != nil {
 			log.Fatalf("failed to get build manifest: %v", err)
 		}
@@ -198,12 +194,12 @@ func newBuildsCancelCommand() *cobra.Command {
 		c := createClient("builds")
 
 		for _, id := range args {
-			id, err := strconv.ParseInt(id, 10, 32)
+			id, err := parseInt32(id)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			job, err := buildssrht.Cancel(c.Client, ctx, int32(id))
+			job, err := buildssrht.Cancel(c.Client, ctx, id)
 			if err != nil {
 				log.Fatalf("failed to cancel job %d: %v", id, err)
 			}
@@ -368,4 +364,13 @@ func jobStatusIcon(status buildssrht.JobStatus) string {
 	default:
 		panic(fmt.Sprintf("unknown job status: %q", status))
 	}
+}
+
+func parseInt32(s string) (int32, error) {
+	i, err := strconv.ParseInt(s, 10, 32)
+	if err != nil {
+		return 0, err
+	}
+
+	return int32(i), nil
 }
