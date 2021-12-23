@@ -25,13 +25,16 @@ hut is a CLI companion utility to interact with sr.ht.
 
 ## git
 
-*artifact* <revision> <filename> [options...]
+*artifact* <filename> [options...]
 	Upload an artifact.
 
 	Options are:
 
 	*-r, --repo* <string>
 		Name of repository.
+
+	*--rev* <string>
+		Revision tag.
 
 ## builds
 
