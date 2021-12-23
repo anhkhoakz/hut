@@ -17,6 +17,7 @@ func main() {
 	}
 	cmd.AddCommand(newBuildsCommand())
 	cmd.AddCommand(newGitCommand())
+	cmd.AddCommand(newGraphqlCommand())
 	cmd.AddCommand(newPasteCommand())
 	cmd.AddCommand(newPagesCommand())
 

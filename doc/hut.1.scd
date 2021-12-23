@@ -23,6 +23,22 @@ hut is a CLI companion utility to interact with sr.ht.
 *help* <command>
 	Help about any command.
 
+*graphql* <service>
+	Read a GraphQL query from stdin and execute it. The JSON response is
+	written to stdout. _service_ is the sr.ht service to execute to query on
+	(for instance "meta" or "builds").
+
+	A tool like *jq*(1) can be used to prettify the output and process the
+	data. Example:
+
+	```
+	hut graphql meta <<EOF | jq '.me'
+	query {
+		me { canonicalName }
+	}
+	EOF
+	```
+
 ## git
 
 *artifact* <filename> [options...]
