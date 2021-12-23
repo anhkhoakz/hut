@@ -1,5 +1,5 @@
-mutation submit($manifest: String!) {
-	submit(manifest: $manifest) {
+mutation submit($manifest: String!, $note: String) {
+	submit(manifest: $manifest, note: $note) {
 		id
 		owner { canonicalName }
 	}
@@ -26,5 +26,8 @@ query monitor($id: Int!) {
 query manifest($id: Int!) {
     job(id: $id) {
         manifest
+        owner {
+            canonicalName
+        }
     }
 }

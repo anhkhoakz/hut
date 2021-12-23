@@ -220,9 +220,10 @@ type WebhookTriggerInput struct {
 	Url string `json:"url"`
 }
 
-func Submit(client *gqlclient.Client, ctx context.Context, manifest string) (submit Job, err error) {
-	op := gqlclient.NewOperation("mutation submit ($manifest: String!) {\n\tsubmit(manifest: $manifest) {\n\t\tid\n\t\towner {\n\t\t\tcanonicalName\n\t\t}\n\t}\n}\n")
+func Submit(client *gqlclient.Client, ctx context.Context, manifest string, note *string) (submit Job, err error) {
+	op := gqlclient.NewOperation("mutation submit ($manifest: String!, $note: String) {\n\tsubmit(manifest: $manifest, note: $note) {\n\t\tid\n\t\towner {\n\t\t\tcanonicalName\n\t\t}\n\t}\n}\n")
 	op.Var("manifest", manifest)
+	op.Var("note", note)
 	var respData struct {
 		Submit Job
 	}
@@ -251,7 +252,7 @@ func Monitor(client *gqlclient.Client, ctx context.Context, id int32) (job *Job,
 }
 
 func Manifest(client *gqlclient.Client, ctx context.Context, id int32) (job *Job, err error) {
-	op := gqlclient.NewOperation("query manifest ($id: Int!) {\n\tjob(id: $id) {\n\t\tmanifest\n\t}\n}\n")
+	op := gqlclient.NewOperation("query manifest ($id: Int!) {\n\tjob(id: $id) {\n\t\tmanifest\n\t\towner {\n\t\t\tcanonicalName\n\t\t}\n\t}\n}\n")
 	op.Var("id", id)
 	var respData struct {
 		Job *Job

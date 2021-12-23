@@ -64,7 +64,7 @@ func newBuildsSubmitCommand() *cobra.Command {
 				log.Fatalf("failed to read manifest from %q: %v", name, err)
 			}
 
-			job, err := buildssrht.Submit(c.Client, ctx, string(b))
+			job, err := buildssrht.Submit(c.Client, ctx, string(b), nil)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -156,7 +156,14 @@ func newBuildsResubmitCommand() *cobra.Command {
 			oldJob.Manifest = string(content)
 		}
 
-		job, err := buildssrht.Submit(c.Client, ctx, oldJob.Manifest)
+		note := fmt.Sprintf("Resubmission of build [#%d](/%s/job/%d)",
+			id, oldJob.Owner.CanonicalName, id)
+
+		if edit {
+			note += " (edited)"
+		}
+
+		job, err := buildssrht.Submit(c.Client, ctx, oldJob.Manifest, &note)
 		if err != nil {
 			log.Fatal(err)
 		}
