@@ -28,7 +28,6 @@ func newGitArtifactCommand() *cobra.Command {
 	var repoName, rev string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-
 		c := createClient("git")
 
 		if repoName == "" {
@@ -42,9 +41,6 @@ func newGitArtifactCommand() *cobra.Command {
 			log.Fatal("enter a revision name with --rev")
 		}
 
-		if len(args) == 0 {
-			log.Fatal("enter a file to upload")
-		}
 		filename := args[0]
 
 		f, err := os.Open(filename)
@@ -71,6 +67,7 @@ func newGitArtifactCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "artifact <filename>",
 		Short: "Upload an artifact",
+		Args:  cobra.ExactArgs(1),
 		Run:   run,
 	}
 	cmd.Flags().StringVarP(&repoName, "repo", "r", "", "name of repository")
