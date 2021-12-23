@@ -14,7 +14,7 @@ hut is a CLI companion utility to interact with sr.ht.
 
 # OPTIONS
 
-*-h, --help*
+*-h*, *--help*
 	Show help message and quit.
 	Can be used after a command to get more information it.
 
@@ -46,7 +46,7 @@ hut is a CLI companion utility to interact with sr.ht.
 
 	Options are:
 
-	*-r, --repo* <string>
+	*-r*, *--repo* <string>
 		Name of repository.
 
 	*--rev* <string>
@@ -62,7 +62,7 @@ hut is a CLI companion utility to interact with sr.ht.
 
 	Options are:
 
-	*-f,  --follow*
+	*-f*, *--follow*
 		Follow build logs.
 
 *resubmit* <ID>
@@ -70,10 +70,10 @@ hut is a CLI companion utility to interact with sr.ht.
 
 	Options are:
 
-	*-f,  --follow*
+	*-f*, *--follow*
 		Follow build logs.
 
-	*-e,  --edit*
+	*-e*, *--edit*
 		Edit manifest with $EDITOR.
 
 *cancel* <IDs...>
@@ -86,7 +86,7 @@ hut is a CLI companion utility to interact with sr.ht.
 
 	Options are:
 
-	*-v, --visibility* <string>
+	*-v*, *--visibility* <string>
 		Visibility to use (public, unlisted, private)
 
 *delete* <IDs...>
@@ -99,10 +99,10 @@ hut is a CLI companion utility to interact with sr.ht.
 
 	Options are:
 
-	*-d, --domain* <string>
+	*-d*, *--domain* <string>
 		Fully qualified domain name.
 
-	*-p, --protocol* <string>
+	*-p*, *--protocol* <string>
 		Protocol to use (either HTTPS or GEMINI; defaults to HTTPS)
 
 *unpublish* [options...]
@@ -110,10 +110,10 @@ hut is a CLI companion utility to interact with sr.ht.
 
 	Options are:
 
-	*-d, --domain* <string>
+	*-d*, *--domain* <string>
 		Fully qualified domain name.
 
-	*-p, --protocol* <string>
+	*-p*, *--protocol* <string>
 		Protocol to use (either HTTPS or GEMINI; defaults to HTTPS)
 
 *list*
@@ -124,7 +124,7 @@ hut is a CLI companion utility to interact with sr.ht.
 Generate a new OAuth2 access token on _meta.sr.ht_.
 
 On startup hut will look for a file at *$XDG_CONFIG_HOME/hut/config*. If
-unset, $XDG_CONFIG_HOME defaults to *~/.config/*.
+unset, _$XDG_CONFIG_HOME_ defaults to *~/.config/*.
 
 ```
 instance "sr.ht" {
@@ -140,4 +140,3 @@ instance "sr.ht" {
 Maintained by Simon Ser <contact@emersion.fr>, who is assisted by other
 open-source contributors. For more information about hut development, see
 <https://sr.ht/~emersion/hut>.
-
