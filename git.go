@@ -38,7 +38,11 @@ func newGitArtifactCommand() *cobra.Command {
 			}
 		}
 		if rev == "" {
-			log.Fatal("enter a revision name with --rev")
+			var err error
+			rev, err = guessRev()
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 
 		filename := args[0]
@@ -123,4 +127,13 @@ func gitRemoteURL() (*url.URL, error) {
 
 		return &url.URL{Scheme: "ssh", Host: host, Path: path}, nil
 	}
+}
+
+func guessRev() (string, error) {
+	out, err := exec.Command("git", "describe", "--abbrev=0").Output()
+	if err != nil {
+		return "", fmt.Errorf("failed to autodetect revision tag: %v", err)
+	}
+
+	return strings.TrimSpace(string(out)), nil
 }

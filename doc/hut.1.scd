@@ -50,7 +50,7 @@ hut is a CLI companion utility to interact with sr.ht.
 		Name of repository.
 
 	*--rev* <string>
-		Revision tag.
+		Revision tag. Defaults to the last Git tag.
 
 ## builds
 
