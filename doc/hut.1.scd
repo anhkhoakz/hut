@@ -46,6 +46,14 @@ hut is a CLI companion utility to interact with sr.ht.
 	*-f,  --follow*
 		Follow build logs.
 
+*resubmit* <ID>
+	Resubmit a build.
+
+	Options are:
+
+	*-f,  --follow*
+		Follow build logs.
+
 ## paste
 
 *create* <filenames...>

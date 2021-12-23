@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -21,6 +22,7 @@ func newBuildsCommand() *cobra.Command {
 		Short: "Use the builds API",
 	}
 	cmd.AddCommand(newBuildsSubmitCommand())
+	cmd.AddCommand(newBuildsResubmitCommand())
 	return cmd
 }
 
@@ -81,6 +83,58 @@ func newBuildsSubmitCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "submit [manifest...]",
 		Short: "Submit a build manifest",
+		Run:   run,
+	}
+	cmd.Flags().BoolVarP(&follow, "follow", "f", false, "follow build logs")
+	return cmd
+}
+
+func newBuildsResubmitCommand() *cobra.Command {
+	var follow bool
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("builds")
+
+		id, err := strconv.Atoi(args[0])
+		if err != nil {
+			log.Fatalf("failed to parse job ID: %v", err)
+		}
+
+		if id > 2147483647 {
+			log.Fatal("job ID too large")
+		}
+
+		oldJob, err := buildssrht.Manifest(c.Client, ctx, int32(id))
+		if err != nil {
+			log.Fatalf("failed to get build manifest: %v", err)
+		}
+
+		if oldJob == nil {
+			log.Fatal("failed to get build manifest")
+		}
+
+		job, err := buildssrht.Submit(c.Client, ctx, oldJob.Manifest)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf("%v/%v/job/%v\n", c.BaseURL, job.Owner.CanonicalName, job.Id)
+
+		if follow {
+			job, err := c.followJob(context.Background(), job.Id)
+			if err != nil {
+				log.Fatal(err)
+			}
+			if job.Status != buildssrht.JobStatusSuccess {
+				os.Exit(1)
+			}
+		}
+	}
+
+	cmd := &cobra.Command{
+		Use:   "resubmit <ID>",
+		Short: "Resubmit a build",
+		Args:  cobra.ExactArgs(1),
 		Run:   run,
 	}
 	cmd.Flags().BoolVarP(&follow, "follow", "f", false, "follow build logs")

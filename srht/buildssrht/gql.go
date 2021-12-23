@@ -239,3 +239,13 @@ func Monitor(client *gqlclient.Client, ctx context.Context, id int32) (job *Job,
 	err = client.Execute(ctx, op, &respData)
 	return respData.Job, err
 }
+
+func Manifest(client *gqlclient.Client, ctx context.Context, id int32) (job *Job, err error) {
+	op := gqlclient.NewOperation("query manifest ($id: Int!) {\n\tjob(id: $id) {\n\t\tmanifest\n\t}\n}\n")
+	op.Var("id", id)
+	var respData struct {
+		Job *Job
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Job, err
+}
