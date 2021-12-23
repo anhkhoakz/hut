@@ -54,6 +54,9 @@ hut is a CLI companion utility to interact with sr.ht.
 	*-f,  --follow*
 		Follow build logs.
 
+	*-e,  --edit*
+		Edit manifest with $EDITOR.
+
 ## paste
 
 *create* <filenames...>

@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -90,7 +92,7 @@ func newBuildsSubmitCommand() *cobra.Command {
 }
 
 func newBuildsResubmitCommand() *cobra.Command {
-	var follow bool
+	var follow, edit bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("builds")
@@ -111,6 +113,46 @@ func newBuildsResubmitCommand() *cobra.Command {
 
 		if oldJob == nil {
 			log.Fatal("failed to get build manifest")
+		}
+
+		if edit {
+			editor := os.Getenv("EDITOR")
+			if editor == "" {
+				log.Fatal("EDITOR not set")
+			}
+
+			file, err := ioutil.TempFile(os.TempDir(), "hut*.yml")
+			if err != nil {
+				log.Fatal(err)
+			}
+			defer os.Remove(file.Name())
+
+			_, err = file.WriteString(oldJob.Manifest)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			err = file.Close()
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			cmd := exec.Command(editor, file.Name())
+			cmd.Stdin = os.Stdin
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+
+			err = cmd.Run()
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			content, err := ioutil.ReadFile(file.Name())
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			oldJob.Manifest = string(content)
 		}
 
 		job, err := buildssrht.Submit(c.Client, ctx, oldJob.Manifest)
@@ -138,6 +180,7 @@ func newBuildsResubmitCommand() *cobra.Command {
 		Run:   run,
 	}
 	cmd.Flags().BoolVarP(&follow, "follow", "f", false, "follow build logs")
+	cmd.Flags().BoolVarP(&edit, "edit", "e", false, "edit manifest")
 	return cmd
 }
 
