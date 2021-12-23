@@ -5,6 +5,12 @@ mutation submit($manifest: String!) {
 	}
 }
 
+mutation cancel($jobId: Int!) {
+    cancel(jobId: $jobId) {
+        id
+    }
+}
+
 query monitor($id: Int!) {
 	job(id: $id) {
 		status

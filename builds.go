@@ -25,6 +25,7 @@ func newBuildsCommand() *cobra.Command {
 	}
 	cmd.AddCommand(newBuildsSubmitCommand())
 	cmd.AddCommand(newBuildsResubmitCommand())
+	cmd.AddCommand(newBuildsCancelCommand())
 	return cmd
 }
 
@@ -181,6 +182,35 @@ func newBuildsResubmitCommand() *cobra.Command {
 	}
 	cmd.Flags().BoolVarP(&follow, "follow", "f", false, "follow build logs")
 	cmd.Flags().BoolVarP(&edit, "edit", "e", false, "edit manifest")
+	return cmd
+}
+
+func newBuildsCancelCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("builds")
+
+		for _, id := range args {
+			id, err := strconv.ParseInt(id, 10, 32)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			job, err := buildssrht.Cancel(c.Client, ctx, int32(id))
+			if err != nil {
+				log.Fatalf("failed to cancel job %d: %v", id, err)
+			}
+
+			fmt.Printf("%d is cancelled\n", job.Id)
+		}
+	}
+
+	cmd := &cobra.Command{
+		Use:   "cancel [ID...]",
+		Short: "Cancel jobs",
+		Args:  cobra.MinimumNArgs(1),
+		Run:   run,
+	}
 	return cmd
 }
 
