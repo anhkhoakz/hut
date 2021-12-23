@@ -85,3 +85,13 @@ func CreatePaste(client *gqlclient.Client, ctx context.Context, files []gqlclien
 	err = client.Execute(ctx, op, &respData)
 	return respData.Create, err
 }
+
+func Delete(client *gqlclient.Client, ctx context.Context, id string) (delete *Paste, err error) {
+	op := gqlclient.NewOperation("mutation delete ($id: String!) {\n\tdelete(id: $id) {\n\t\tid\n\t}\n}\n")
+	op.Var("id", id)
+	var respData struct {
+		Delete *Paste
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Delete, err
+}

@@ -73,6 +73,9 @@ hut is a CLI companion utility to interact with sr.ht.
 	*-v, --visibility* <string>
 		Visibility to use (public, unlisted, private)
 
+*delete* <IDs...>
+	Delete pastes.
+
 ## pages
 
 *publish* <tarball> [options...]

@@ -20,6 +20,7 @@ func newPasteCommand() *cobra.Command {
 		Short: "Use the paste API",
 	}
 	cmd.AddCommand(newPasteCreateCommand())
+	cmd.AddCommand(newPasteDeleteCommand())
 	return cmd
 }
 
@@ -77,6 +78,34 @@ func newPasteCreateCommand() *cobra.Command {
 		Run:   run,
 	}
 	cmd.Flags().StringVarP(&visibility, "visibility", "v", "unlisted", "paste visibility")
+	return cmd
+}
+
+func newPasteDeleteCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("paste")
+
+		for _, id := range args {
+			paste, err := pastesrht.Delete(c.Client, ctx, id)
+			if err != nil {
+				log.Fatalf("failed to delete paste %s: %v", id, err)
+			}
+
+			if paste == nil {
+				fmt.Printf("Paste %s does not exist\n", id)
+			} else {
+				fmt.Printf("Deleted paste %s\n", paste.Id)
+			}
+		}
+	}
+
+	cmd := &cobra.Command{
+		Use:   "delete <ID...>",
+		Short: "Delete pastes",
+		Args:  cobra.MinimumNArgs(1),
+		Run:   run,
+	}
 	return cmd
 }
 

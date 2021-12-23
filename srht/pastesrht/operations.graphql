@@ -6,3 +6,9 @@ mutation createPaste($files: [Upload!]!, $visibility: Visibility!) {
         }
     }
 }
+
+mutation delete($id: String!) {
+    delete(id: $id) {
+        id
+    }
+}
