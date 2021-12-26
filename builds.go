@@ -499,7 +499,7 @@ func jobStatusDone(status buildssrht.JobStatus) bool {
 func jobStatusIcon(status buildssrht.JobStatus) string {
 	switch status {
 	case buildssrht.JobStatusPending, buildssrht.JobStatusQueued, buildssrht.JobStatusRunning:
-		return "⌛"
+		return "○"
 	case buildssrht.JobStatusSuccess:
 		return "✔"
 	case buildssrht.JobStatusFailed:
