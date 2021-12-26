@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -319,10 +320,10 @@ func newBuildsListCommand() *cobra.Command {
 				tagString += *tag
 			}
 
-			fmt.Printf("%d%s: %s\n", job.Id, tagString, job.Status)
+			fmt.Printf("#%d%s: %s\n", job.Id, tagString, job.Status)
 
 			if job.Note != nil {
-				fmt.Println(*job.Note)
+				fmt.Println(indent(strings.TrimSpace(*job.Note), "  "))
 			}
 
 			fmt.Println()
@@ -530,4 +531,8 @@ func parseInt32(s string) (int32, error) {
 	}
 
 	return int32(i), nil
+}
+
+func indent(s, prefix string) string {
+	return prefix + strings.ReplaceAll(s, "\n", "\n"+prefix)
 }
