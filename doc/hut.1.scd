@@ -84,6 +84,9 @@ hut is a CLI companion utility to interact with sr.ht.
 
 	If no ID is specified, the latest build will be printed.
 
+*list*
+	List jobs.
+
 ## paste
 
 *create* <filenames...>

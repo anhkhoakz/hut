@@ -28,6 +28,7 @@ func newBuildsCommand() *cobra.Command {
 	cmd.AddCommand(newBuildsResubmitCommand())
 	cmd.AddCommand(newBuildsCancelCommand())
 	cmd.AddCommand(newBuildsShowCommand())
+	cmd.AddCommand(newBuildsListCommand())
 	return cmd
 }
 
@@ -286,6 +287,49 @@ func newBuildsShowCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "show [ID]",
 		Short: "Show job status",
+		Run:   run,
+	}
+	return cmd
+}
+
+func newBuildsListCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("builds")
+
+		jobs, err := buildssrht.Jobs(c.Client, ctx)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for _, job := range jobs.Results {
+			var tagString string
+			for i, tag := range job.Tags {
+				if tag == nil || *tag == "" {
+					break
+				}
+
+				if i == 0 {
+					tagString = " - "
+				} else {
+					tagString += "/"
+				}
+				tagString += *tag
+			}
+
+			fmt.Printf("%d%s: %s\n", job.Id, tagString, job.Status)
+
+			if job.Note != nil {
+				fmt.Println(*job.Note)
+			}
+
+			fmt.Println()
+		}
+	}
+
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List jobs",
 		Run:   run,
 	}
 	return cmd

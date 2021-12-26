@@ -36,6 +36,9 @@ query jobs {
     jobs {
         results {
             id
+            status
+            note
+            tags
         }
     }
 }
