@@ -260,3 +260,22 @@ func Manifest(client *gqlclient.Client, ctx context.Context, id int32) (job *Job
 	err = client.Execute(ctx, op, &respData)
 	return respData.Job, err
 }
+
+func Jobs(client *gqlclient.Client, ctx context.Context) (jobs JobCursor, err error) {
+	op := gqlclient.NewOperation("query jobs {\n\tjobs {\n\t\tresults {\n\t\t\tid\n\t\t}\n\t}\n}\n")
+	var respData struct {
+		Jobs JobCursor
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Jobs, err
+}
+
+func Show(client *gqlclient.Client, ctx context.Context, id int32) (job *Job, err error) {
+	op := gqlclient.NewOperation("query show ($id: Int!) {\n\tjob(id: $id) {\n\t\tid\n\t\trunner\n\t\tstatus\n\t\tlog {\n\t\t\tfullURL\n\t\t}\n\t\ttasks {\n\t\t\tname\n\t\t\tstatus\n\t\t\tlog {\n\t\t\t\tfullURL\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op.Var("id", id)
+	var respData struct {
+		Job *Job
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Job, err
+}

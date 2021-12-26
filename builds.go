@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -26,6 +27,7 @@ func newBuildsCommand() *cobra.Command {
 	cmd.AddCommand(newBuildsSubmitCommand())
 	cmd.AddCommand(newBuildsResubmitCommand())
 	cmd.AddCommand(newBuildsCancelCommand())
+	cmd.AddCommand(newBuildsShowCommand())
 	return cmd
 }
 
@@ -217,6 +219,78 @@ func newBuildsCancelCommand() *cobra.Command {
 	return cmd
 }
 
+func newBuildsShowCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("builds")
+
+		// get last build
+		var id int32
+		if len(args) == 0 {
+			jobs, err := buildssrht.Jobs(c.Client, ctx)
+			if err != nil {
+				log.Fatal(err)
+			}
+			if len(jobs.Results) == 0 {
+				log.Fatal("cannot show last job: no jobs found")
+			}
+
+			id = jobs.Results[0].Id
+		} else {
+			var err error
+			id, err = parseInt32(args[0])
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
+		job, err := buildssrht.Show(c.Client, ctx, id)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf("Build %d: %s\n", job.Id, job.Status)
+
+		failedTask := -1
+		for i, task := range job.Tasks {
+			fmt.Printf("\t%s: %s\n", task.Name, task.Status)
+
+			if task.Status == buildssrht.TaskStatusFailed {
+				failedTask = i
+			}
+		}
+
+		if job.Status == buildssrht.JobStatusFailed {
+			if failedTask == -1 {
+				fmt.Printf("\nSetup log:\n")
+				if err := fetchJobLogs(ctx, new(buildLog), job); err != nil {
+					log.Fatalf("failed to fetch job logs: %v", err)
+				}
+			} else {
+				name := job.Tasks[failedTask].Name
+				fmt.Printf("\n%s log:\n", name)
+				if err := fetchTaskLogs(ctx, new(buildLog), job.Tasks[failedTask]); err != nil {
+					log.Fatalf("failed to fetch task logs: %v", err)
+				}
+			}
+
+			cmd, err := getSSHCommand(job)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			fmt.Printf("\nSSH Command: %s\n", cmd)
+		}
+	}
+
+	cmd := &cobra.Command{
+		Use:   "show [ID]",
+		Short: "Show job status",
+		Run:   run,
+	}
+	return cmd
+}
+
 type buildLog struct {
 	offset int64
 	done   bool
@@ -364,6 +438,16 @@ func jobStatusIcon(status buildssrht.JobStatus) string {
 	default:
 		panic(fmt.Sprintf("unknown job status: %q", status))
 	}
+}
+
+func getSSHCommand(job *buildssrht.Job) (string, error) {
+	// TODO: compare timestamps and check if ssh access is still possible
+	if job.Runner == nil {
+		return "", errors.New("job has no runner assigned yet")
+	}
+
+	cmd := fmt.Sprintf("ssh -t builds@%s connect %d", *job.Runner, job.Id)
+	return cmd, nil
 }
 
 func parseInt32(s string) (int32, error) {

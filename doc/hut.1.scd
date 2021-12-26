@@ -79,6 +79,11 @@ hut is a CLI companion utility to interact with sr.ht.
 *cancel* <IDs...>
 	Cancel jobs.
 
+*show* [ID]
+	Show job status.
+
+	If no ID is specified, the latest build will be printed.
+
 ## paste
 
 *create* <filenames...>

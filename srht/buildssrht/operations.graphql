@@ -31,3 +31,29 @@ query manifest($id: Int!) {
         }
     }
 }
+
+query jobs {
+    jobs {
+        results {
+            id
+        }
+    }
+}
+
+query show($id: Int!) {
+    job(id: $id) {
+        id
+        runner
+        status
+        log {
+            fullURL
+        }
+        tasks {
+            name
+            status
+            log {
+                fullURL
+            }
+        }
+    }
+}
