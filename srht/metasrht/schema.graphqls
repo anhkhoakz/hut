@@ -1,0 +1,512 @@
+# This schema definition is available in the public domain, or under the terms
+# of CC-0, at your choice.
+
+scalar Cursor
+scalar Time
+
+"""
+This is used to decorate fields which are only accessible with a personal
+access token, and are not available to clients using OAuth 2.0 access tokens.
+"""
+directive @private on FIELD_DEFINITION
+
+"""
+This used to decorate fields which are for internal use, and are not
+available to normal API users.
+"""
+directive @internal on FIELD_DEFINITION
+
+directive @anoninternal on FIELD_DEFINITION
+
+"""
+Used to provide a human-friendly description of an access scope.
+"""
+directive @scopehelp(details: String!) on ENUM_VALUE
+
+enum AccessScope {
+  AUDIT_LOG @scopehelp(details: "audit log")
+  BILLING   @scopehelp(details: "billing history")
+  PGP_KEYS  @scopehelp(details: "PGP keys")
+  SSH_KEYS  @scopehelp(details: "SSH keys")
+  PROFILE   @scopehelp(details: "profile information")
+}
+
+enum AccessKind {
+  RO @scopehelp(details: "read")
+  RW @scopehelp(details: "read and write")
+}
+
+"""
+Decorates fields for which access requires a particular OAuth 2.0 scope with
+read or write access. For the meta.sr.ht API, you have access to all public
+information without any special permissions - user profile information,
+public keys, and so on.
+"""
+directive @access(scope: AccessScope!, kind: AccessKind!) on FIELD_DEFINITION | ENUM_VALUE
+
+# https://semver.org
+type Version {
+  major: Int!
+  minor: Int!
+  patch: Int!
+  """
+  If this API version is scheduled for deprecation, this is the date on which
+  it will stop working; or null if this API version is not scheduled for
+  deprecation.
+  """
+  deprecationDate: Time
+}
+
+interface Entity {
+  id: Int!
+  created: Time!
+  updated: Time!
+  """
+  The canonical name of this entity. For users, this is their username
+  prefixed with '~'. Additional entity types will be supported in the future.
+  """
+  canonicalName: String!
+}
+
+enum UserType {
+  UNCONFIRMED
+  ACTIVE_NON_PAYING
+  ACTIVE_FREE
+  ACTIVE_PAYING
+  ACTIVE_DELINQUENT
+  ADMIN
+  SUSPENDED
+}
+
+type User implements Entity {
+  id: Int!
+  created: Time!
+  updated: Time!
+  canonicalName: String!
+  username: String!
+  email: String!
+  url: String
+  location: String
+  bio: String
+
+  userType: UserType! @private
+  suspensionNotice: String @internal
+
+  sshKeys(cursor: Cursor): SSHKeyCursor! @access(scope: SSH_KEYS, kind: RO)
+  pgpKeys(cursor: Cursor): PGPKeyCursor! @access(scope: PGP_KEYS, kind: RO)
+}
+
+type AuditLogEntry {
+  id: Int!
+  created: Time!
+  ipAddress: String!
+  eventType: String!
+  details: String
+}
+
+type SSHKey {
+  id: Int!
+  created: Time!
+  lastUsed: Time
+  user: User! @access(scope: PROFILE, kind: RO)
+  key: String!
+  fingerprint: String!
+  comment: String
+}
+
+type PGPKey {
+  id: Int!
+  created: Time!
+  user: User! @access(scope: PROFILE, kind: RO)
+  key: String!
+  fingerprint: String!
+}
+
+type Invoice {
+  id: Int!
+  created: Time!
+  cents: Int!
+  validThru: Time!
+  source: String
+}
+
+type OAuthGrant {
+  id: Int!
+  client: OAuthClient!
+  issued: Time!
+  expires: Time!
+  tokenHash: String! @internal
+}
+
+type OAuthGrantRegistration {
+  grant: OAuthGrant!
+  grants: String!
+  secret: String!
+}
+
+type OAuthClient {
+  id: Int!
+  uuid: String!
+  redirectUrl: String!
+
+  name: String!
+  description: String
+  url: String
+
+  owner: Entity! @access(scope: PROFILE, kind: RO)
+}
+
+type OAuthClientRegistration {
+  client: OAuthClient!
+  secret: String!
+}
+
+type OAuthPersonalToken {
+  id: Int!
+  issued: Time!
+  expires: Time!
+  comment: String
+}
+
+type OAuthPersonalTokenRegistration {
+  token: OAuthPersonalToken!
+  secret: String!
+}
+
+enum WebhookEvent {
+  "Used for user profile webhooks"
+  PROFILE_UPDATE  @access(scope: PROFILE, kind: RO)
+  PGP_KEY_ADDED   @access(scope: PGP_KEYS, kind: RO)
+  PGP_KEY_REMOVED @access(scope: PGP_KEYS, kind: RO)
+  SSH_KEY_ADDED   @access(scope: SSH_KEYS, kind: RO)
+  SSH_KEY_REMOVED @access(scope: SSH_KEYS, kind: RO)
+}
+
+interface WebhookSubscription {
+  id: Int!
+  events: [WebhookEvent!]!
+  query: String!
+  url: String!
+
+  """
+  If this webhook was registered by an authorized OAuth 2.0 client, this
+  field is non-null.
+  """
+  client: OAuthClient @private
+
+  "All deliveries which have been sent to this webhook."
+  deliveries(cursor: Cursor): WebhookDeliveryCursor!
+
+  "Returns a sample payload for this subscription, for testing purposes"
+  sample(event: WebhookEvent!): String!
+}
+
+type ProfileWebhookSubscription implements WebhookSubscription {
+  id: Int!
+  events: [WebhookEvent!]!
+  query: String!
+  url: String!
+  client: OAuthClient @private
+  deliveries(cursor: Cursor): WebhookDeliveryCursor!
+  sample(event: WebhookEvent): String!
+}
+
+type WebhookDelivery {
+  uuid: String!
+  date: Time!
+  event: WebhookEvent!
+  subscription: WebhookSubscription!
+  requestBody: String!
+
+  """
+  These details are provided only after a response is received from the
+  remote server. If a response is sent whose Content-Type is not text/*, or
+  cannot be decoded as UTF-8, the response body will be null. It will be
+  truncated after 64 KiB.
+  """
+  responseBody: String
+  responseHeaders: String
+  responseStatus: Int
+}
+
+interface WebhookPayload {
+  uuid: String!
+  event: WebhookEvent!
+  date: Time!
+}
+
+type ProfileUpdateEvent implements WebhookPayload {
+  uuid: String!
+  event: WebhookEvent!
+  date: Time!
+
+  profile: User!
+}
+
+type PGPKeyEvent implements WebhookPayload {
+  uuid: String!
+  event: WebhookEvent!
+  date: Time!
+
+  key: PGPKey!
+}
+
+type SSHKeyEvent implements WebhookPayload {
+  uuid: String!
+  event: WebhookEvent!
+  date: Time!
+
+  key: SSHKey!
+}
+
+"""
+A cursor for enumerating a list of audit log entries
+
+If there are additional results available, the cursor object may be passed
+back into the same endpoint to retrieve another page. If the cursor is null,
+there are no remaining results to return.
+"""
+type AuditLogCursor {
+  results: [AuditLogEntry!]!
+  cursor: Cursor
+}
+
+"""
+A cursor for enumerating a list of invoices
+
+If there are additional results available, the cursor object may be passed
+back into the same endpoint to retrieve another page. If the cursor is null,
+there are no remaining results to return.
+"""
+type InvoiceCursor {
+  results: [Invoice!]!
+  cursor: Cursor
+}
+
+"""
+A cursor for enumerating a list of SSH keys
+
+If there are additional results available, the cursor object may be passed
+back into the same endpoint to retrieve another page. If the cursor is null,
+there are no remaining results to return.
+"""
+type SSHKeyCursor {
+  results: [SSHKey!]!
+  cursor: Cursor
+}
+
+"""
+A cursor for enumerating a list of PGP keys
+
+If there are additional results available, the cursor object may be passed
+back into the same endpoint to retrieve another page. If the cursor is null,
+there are no remaining results to return.
+"""
+type PGPKeyCursor {
+  results: [PGPKey!]!
+  cursor: Cursor
+}
+
+"""
+A cursor for enumerating a list of webhook deliveries
+
+If there are additional results available, the cursor object may be passed
+back into the same endpoint to retrieve another page. If the cursor is null,
+there are no remaining results to return.
+"""
+type WebhookDeliveryCursor {
+  results: [WebhookDelivery!]!
+  cursor: Cursor
+}
+
+"""
+A cursor for enumerating a list of webhook subscriptions
+
+If there are additional results available, the cursor object may be passed
+back into the same endpoint to retrieve another page. If the cursor is null,
+there are no remaining results to return.
+"""
+type WebhookSubscriptionCursor {
+  results: [WebhookSubscription!]!
+  cursor: Cursor
+}
+
+type Query {
+  "Returns API version information."
+  version: Version!
+
+  "Returns the authenticated user."
+  me: User! @access(scope: PROFILE, kind: RO)
+
+  "Returns a specific user"
+  userByID(id: Int!): User @access(scope: PROFILE, kind: RO)
+  userByName(username: String!): User @access(scope: PROFILE, kind: RO)
+  userByEmail(email: String!): User @access(scope: PROFILE, kind: RO)
+
+  "Returns a specific SSH key by its fingerprint, in hexadecimal"
+  sshKeyByFingerprint(fingerprint: String!): SSHKey @access(scope: SSH_KEYS, kind: RO)
+
+  "Returns a specific PGP key by its fingerprint, in hexadecimal."
+  pgpKeyByFingerprint(fingerprint: String!): PGPKey @access(scope: PGP_KEYS, kind: RO)
+
+  "Returns invoices for the authenticated user."
+  invoices(cursor: Cursor): InvoiceCursor! @access(scope: BILLING, kind: RO)
+
+  "Returns the audit log for the authenticated user."
+  auditLog(cursor: Cursor): AuditLogCursor! @access(scope: AUDIT_LOG, kind: RO)
+
+  """
+  Returns a list of user profile webhook subscriptions. For clients
+  authenticated with a personal access token, this returns all webhooks
+  configured by all GraphQL clients for your account. For clients
+  authenticated with an OAuth 2.0 access token, this returns only webhooks
+  registered for your client.
+  """
+  profileWebhooks(cursor: Cursor): WebhookSubscriptionCursor!
+
+  "Returns details of a user profile webhook subscription by its ID."
+  profileWebhook(id: Int!): WebhookSubscription
+
+  """
+  Returns information about the webhook currently being processed. This is
+  not valid during normal queries over HTTP, and will return an error if used
+  outside of a webhook context.
+  """
+  webhook: WebhookPayload!
+
+  "Returns OAuth grants issued for the authenticated user"
+  oauthGrants: [OAuthGrant]! @private
+
+  "List of OAuth clients this user administrates"
+  oauthClients: [OAuthClient]! @private
+
+  "Returns a list of personal OAuth tokens issued"
+  personalAccessTokens: [OAuthPersonalToken]! @private
+
+  ###                                               ###
+  ### The following resolvers are for internal use. ###
+  ###                                               ###
+
+  "Returns a specific OAuth client (by database ID)"
+  oauthClientByID(id: Int!): OAuthClient @internal
+
+  "Returns a specific OAuth client (by UUID)"
+  oauthClientByUUID(uuid: String!): OAuthClient @internal
+
+  """
+  Returns the revocation status of a given OAuth 2.0 token hash (SHA-512). If
+  the token or client ID has been revoked, this returns true, and the key
+  should not be trusted. Client ID is optional for personal access tokens.
+  """
+  tokenRevocationStatus(hash: String!, clientId: String): Boolean! @internal
+}
+
+"""
+Omit these fields to leave them unchanged, or set them to null to clear
+their value.
+"""
+input UserInput {
+  url: String
+  location: String
+  bio: String
+
+  """
+  Note: changing the user's email address will not take effect immediately;
+  the user is sent an email to confirm the change first.
+  """
+  email: String
+}
+
+input ProfileWebhookInput {
+  url: String!
+  events: [WebhookEvent!]!
+  query: String!
+}
+
+type Mutation {
+  updateUser(input: UserInput): User! @access(scope: PROFILE, kind: RW)
+
+  createPGPKey(key: String!): PGPKey! @access(scope: PGP_KEYS, kind: RW)
+  deletePGPKey(id: Int!): PGPKey @access(scope: PGP_KEYS, kind: RW)
+
+  createSSHKey(key: String!): SSHKey! @access(scope: SSH_KEYS, kind: RW)
+  deleteSSHKey(id: Int!): SSHKey @access(scope: SSH_KEYS, kind: RW)
+
+  """
+  Causes the "last used" time of this SSH key to be updated.
+  """
+  updateSSHKey(id: Int!): SSHKey! @access(scope: SSH_KEYS, kind: RO)
+
+  """
+  Creates a new user profile webhook subscription. When an event from the
+  provided list of events occurs, the 'query' parameter (a GraphQL query)
+  will be evaluated and the results will be sent to the provided URL as the
+  body of an HTTP POST request. The list of events must include at least one
+  event, and no duplicates.
+
+  This query is evaluated in the webhook context, such that query { webhook }
+  may be used to access details of the event which trigged the webhook. The
+  query may not make any mutations.
+  """
+  createWebhook(config: ProfileWebhookInput!): WebhookSubscription!
+
+  """
+  Deletes a user profile webhook. Any events already queued may still be
+  delivered after this request completes. Clients authenticated with a
+  personal access token may delete any webhook registered for their account,
+  but authorized OAuth 2.0 clients may only delete their own webhooks.
+  Manually deleting a webhook configured by a third-party client may cause
+  unexpected behavior with the third-party integration.
+  """
+  deleteWebhook(id: Int!): WebhookSubscription
+
+  ###                                               ###
+  ### The following resolvers are for internal use. ###
+  ###                                               ###
+
+  "Registers a new account."
+  registerAccount(email: String!,
+    username: String!,
+    password: String!,
+    pgpKey: String,
+    invite: String): User @anoninternal
+
+  """
+  Registers an OAuth client. Only OAuth 2.0 confidental clients are
+  supported.
+  """
+  registerOAuthClient(
+    redirectUri: String!,
+    clientName: String!,
+    clientDescription: String,
+    clientUrl: String): OAuthClientRegistration! @internal
+
+  """
+  Revokes this OAuth client, revoking all tokens for it and preventing future
+  use.
+  """
+  revokeOAuthClient(uuid: String!): OAuthClient @internal
+
+  "Revokes a specific OAuth grant."
+  revokeOAuthGrant(hash: String!): OAuthGrant @internal
+
+  "Issues an OAuth personal access token."
+  issuePersonalAccessToken(grants: String, comment: String):
+    OAuthPersonalTokenRegistration! @internal
+
+  "Revokes a personal access token."
+  revokePersonalAccessToken(id: Int!): OAuthPersonalToken @internal
+
+  """
+  Issues an OAuth 2.0 authorization code. Used after the user has consented
+  to the access grant request.
+  """
+  issueAuthorizationCode(clientUUID: String!, grants: String!): String! @internal
+
+  """
+  Completes the OAuth 2.0 grant process and issues an OAuth token for a
+  specific OAuth client.
+  """
+  issueOAuthGrant(authorization: String!,
+    clientSecret: String!): OAuthGrantRegistration @internal
+}

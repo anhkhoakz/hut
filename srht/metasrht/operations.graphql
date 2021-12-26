@@ -1,0 +1,9 @@
+query fetchUser($username: String!) {
+    userByName(username: $username) {
+        canonicalName
+        email
+        url
+        location
+        bio
+    }
+}

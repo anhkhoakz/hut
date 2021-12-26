@@ -90,6 +90,11 @@ hut is a CLI companion utility to interact with sr.ht.
 *secrets*
 	List secrets.
 
+## meta
+
+*show* <username>
+	Show a user's profile.
+
 ## paste
 
 *create* <filenames...>
