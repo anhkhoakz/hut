@@ -288,6 +288,7 @@ func newBuildsShowCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "show [ID]",
 		Short: "Show job status",
+		Args:  cobra.MaximumNArgs(1),
 		Run:   run,
 	}
 	return cmd
