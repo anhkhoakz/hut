@@ -252,16 +252,21 @@ func newBuildsShowCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Build %d: %s\n", job.Id, job.Status)
+		fmt.Printf("#%d", job.Id)
+		if tagString := formatJobTags(job); tagString != "" {
+			fmt.Printf(" - %s", tagString)
+		}
+		fmt.Printf(": %s %s\n", jobStatusIcon(job.Status), job.Status)
 
 		failedTask := -1
 		for i, task := range job.Tasks {
-			fmt.Printf("\t%s: %s\n", task.Name, task.Status)
+			fmt.Printf("%s %s  ", taskStatusIcon(task.Status), task.Name)
 
 			if task.Status == buildssrht.TaskStatusFailed {
 				failedTask = i
 			}
 		}
+		fmt.Println()
 
 		if job.Status == buildssrht.JobStatusFailed {
 			if failedTask == -1 {
@@ -306,21 +311,11 @@ func newBuildsListCommand() *cobra.Command {
 		}
 
 		for _, job := range jobs.Results {
-			var tagString string
-			for i, tag := range job.Tags {
-				if tag == nil || *tag == "" {
-					break
-				}
-
-				if i == 0 {
-					tagString = " - "
-				} else {
-					tagString += "/"
-				}
-				tagString += *tag
+			fmt.Printf("#%d", job.Id)
+			if tagString := formatJobTags(&job); tagString != "" {
+				fmt.Printf(" - %s", tagString)
 			}
-
-			fmt.Printf("#%d%s: %s\n", job.Id, tagString, job.Status)
+			fmt.Printf(": %s\n", job.Status)
 
 			if job.Note != nil {
 				fmt.Println(indent(strings.TrimSpace(*job.Note), "  "))
@@ -514,6 +509,21 @@ func jobStatusIcon(status buildssrht.JobStatus) string {
 	}
 }
 
+func taskStatusIcon(status buildssrht.TaskStatus) string {
+	switch status {
+	case buildssrht.TaskStatusPending, buildssrht.TaskStatusRunning:
+		return "○"
+	case buildssrht.TaskStatusSuccess:
+		return "✔"
+	case buildssrht.TaskStatusFailed:
+		return "✗"
+	case buildssrht.TaskStatusSkipped:
+		return "⏩"
+	default:
+		panic(fmt.Sprintf("unknown task status: %q", status))
+	}
+}
+
 func getSSHCommand(job *buildssrht.Job) (string, error) {
 	// TODO: compare timestamps and check if ssh access is still possible
 	if job.Runner == nil {
@@ -535,4 +545,18 @@ func parseInt32(s string) (int32, error) {
 
 func indent(s, prefix string) string {
 	return prefix + strings.ReplaceAll(s, "\n", "\n"+prefix)
+}
+
+func formatJobTags(job *buildssrht.Job) string {
+	var s string
+	for i, tag := range job.Tags {
+		if tag == nil || *tag == "" {
+			break
+		}
+		if i > 0 {
+			s += "/"
+		}
+		s += *tag
+	}
+	return s
 }

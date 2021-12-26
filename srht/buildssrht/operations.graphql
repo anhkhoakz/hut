@@ -48,6 +48,7 @@ query show($id: Int!) {
         id
         runner
         status
+        tags
         log {
             fullURL
         }
