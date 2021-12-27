@@ -250,6 +250,8 @@ func newBuildsShowCommand() *cobra.Command {
 		job, err := buildssrht.Show(c.Client, ctx, id)
 		if err != nil {
 			log.Fatal(err)
+		} else if job == nil {
+			log.Fatal("invalid job ID")
 		}
 
 		fmt.Printf("#%d", job.Id)
