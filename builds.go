@@ -111,10 +111,8 @@ func newBuildsResubmitCommand() *cobra.Command {
 		oldJob, err := buildssrht.Manifest(c.Client, ctx, id)
 		if err != nil {
 			log.Fatalf("failed to get build manifest: %v", err)
-		}
-
-		if oldJob == nil {
-			log.Fatal("failed to get build manifest")
+		} else if oldJob == nil {
+			log.Fatal("failed to get build manifest: invalid job ID")
 		}
 
 		if edit {
