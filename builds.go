@@ -315,10 +315,10 @@ func newBuildsListCommand() *cobra.Command {
 			if tagString := formatJobTags(&job); tagString != "" {
 				fmt.Printf(" - %s", tagString)
 			}
-			fmt.Printf(": %s\n", job.Status)
+			fmt.Printf(": %s %s\n", jobStatusIcon(job.Status), job.Status)
 
 			if job.Note != nil {
-				fmt.Println(indent(strings.TrimSpace(*job.Note), "  "))
+				fmt.Println("\n" + indent(strings.TrimSpace(*job.Note), "  "))
 			}
 
 			fmt.Println()
