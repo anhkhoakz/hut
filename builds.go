@@ -317,6 +317,11 @@ func newBuildsListCommand() *cobra.Command {
 			}
 			fmt.Printf(": %s %s\n", jobStatusIcon(job.Status), job.Status)
 
+			for _, task := range job.Tasks {
+				fmt.Printf("%s %s  ", taskStatusIcon(task.Status), task.Name)
+			}
+			fmt.Println()
+
 			if job.Note != nil {
 				fmt.Println("\n" + indent(strings.TrimSpace(*job.Note), "  "))
 			}

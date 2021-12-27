@@ -271,7 +271,7 @@ func JobIDs(client *gqlclient.Client, ctx context.Context) (jobs JobCursor, err 
 }
 
 func Jobs(client *gqlclient.Client, ctx context.Context) (jobs JobCursor, err error) {
-	op := gqlclient.NewOperation("query jobs {\n\tjobs {\n\t\tresults {\n\t\t\tid\n\t\t\tstatus\n\t\t\tnote\n\t\t\ttags\n\t\t}\n\t}\n}\n")
+	op := gqlclient.NewOperation("query jobs {\n\tjobs {\n\t\tresults {\n\t\t\tid\n\t\t\tstatus\n\t\t\tnote\n\t\t\ttags\n\t\t\ttasks {\n\t\t\t\tname\n\t\t\t\tstatus\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	var respData struct {
 		Jobs JobCursor
 	}

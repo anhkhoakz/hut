@@ -47,6 +47,10 @@ query jobs {
             status
             note
             tags
+            tasks {
+                name
+                status
+            }
         }
     }
 }
