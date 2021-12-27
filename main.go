@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"os"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -23,5 +24,7 @@ func main() {
 	cmd.AddCommand(newPasteCommand())
 	cmd.AddCommand(newPagesCommand())
 
-	cmd.ExecuteContext(ctx)
+	if err := cmd.ExecuteContext(ctx); err != nil {
+		os.Exit(1)
+	}
 }
