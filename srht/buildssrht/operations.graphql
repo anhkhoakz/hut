@@ -32,6 +32,14 @@ query manifest($id: Int!) {
     }
 }
 
+query jobIDs {
+    jobs {
+        results {
+            id
+        }
+    }
+}
+
 query jobs {
     jobs {
         results {

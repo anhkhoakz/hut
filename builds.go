@@ -230,7 +230,7 @@ func newBuildsShowCommand() *cobra.Command {
 		// get last build
 		var id int32
 		if len(args) == 0 {
-			jobs, err := buildssrht.Jobs(c.Client, ctx)
+			jobs, err := buildssrht.JobIDs(c.Client, ctx)
 			if err != nil {
 				log.Fatal(err)
 			}
