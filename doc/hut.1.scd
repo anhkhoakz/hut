@@ -74,7 +74,7 @@ hut is a CLI companion utility to interact with sr.ht.
 		Follow build logs.
 
 	*-e*, *--edit*
-		Edit manifest with $EDITOR.
+		Edit manifest with _$EDITOR_.
 
 *cancel* <IDs...>
 	Cancel jobs.
