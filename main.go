@@ -12,8 +12,9 @@ func main() {
 	defer cancel()
 
 	cmd := &cobra.Command{
-		Use:   "hut",
-		Short: "hut is a CLI tool for sr.ht",
+		Use:               "hut",
+		Short:             "hut is a CLI tool for sr.ht",
+		CompletionOptions: cobra.CompletionOptions{HiddenDefaultCmd: true},
 	}
 	cmd.AddCommand(newBuildsCommand())
 	cmd.AddCommand(newGitCommand())
