@@ -252,21 +252,15 @@ func newBuildsShowCommand() *cobra.Command {
 			log.Fatal("invalid job ID")
 		}
 
-		fmt.Printf("#%d", job.Id)
-		if tagString := formatJobTags(job); tagString != "" {
-			fmt.Printf(" - %s", tagString)
-		}
-		fmt.Printf(": %s %s\n", jobStatusIcon(job.Status), job.Status)
+		printJob(job)
 
 		failedTask := -1
 		for i, task := range job.Tasks {
-			fmt.Printf("%s %s  ", taskStatusIcon(task.Status), task.Name)
-
 			if task.Status == buildssrht.TaskStatusFailed {
 				failedTask = i
+				break
 			}
 		}
-		fmt.Println()
 
 		if job.Status == buildssrht.JobStatusFailed {
 			if failedTask == -1 {
@@ -311,22 +305,7 @@ func newBuildsListCommand() *cobra.Command {
 		}
 
 		for _, job := range jobs.Results {
-			fmt.Printf("#%d", job.Id)
-			if tagString := formatJobTags(&job); tagString != "" {
-				fmt.Printf(" - %s", tagString)
-			}
-			fmt.Printf(": %s %s\n", jobStatusIcon(job.Status), job.Status)
-
-			for _, task := range job.Tasks {
-				fmt.Printf("%s %s  ", taskStatusIcon(task.Status), task.Name)
-			}
-			fmt.Println()
-
-			if job.Note != nil {
-				fmt.Println("\n" + indent(strings.TrimSpace(*job.Note), "  "))
-			}
-
-			fmt.Println()
+			printJob(&job)
 		}
 	}
 
@@ -336,6 +315,25 @@ func newBuildsListCommand() *cobra.Command {
 		Run:   run,
 	}
 	return cmd
+}
+
+func printJob(job *buildssrht.Job) {
+	fmt.Printf("#%d", job.Id)
+	if tagString := formatJobTags(job); tagString != "" {
+		fmt.Printf(" - %s", tagString)
+	}
+	fmt.Printf(": %s %s\n", jobStatusIcon(job.Status), job.Status)
+
+	for _, task := range job.Tasks {
+		fmt.Printf("%s %s  ", taskStatusIcon(task.Status), task.Name)
+	}
+	fmt.Println()
+
+	if job.Note != nil {
+		fmt.Println("\n" + indent(strings.TrimSpace(*job.Note), "  "))
+	}
+
+	fmt.Println()
 }
 
 func newBuildsSecretsCommand() *cobra.Command {

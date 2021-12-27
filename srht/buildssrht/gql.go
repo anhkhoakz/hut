@@ -280,7 +280,7 @@ func Jobs(client *gqlclient.Client, ctx context.Context) (jobs JobCursor, err er
 }
 
 func Show(client *gqlclient.Client, ctx context.Context, id int32) (job *Job, err error) {
-	op := gqlclient.NewOperation("query show ($id: Int!) {\n\tjob(id: $id) {\n\t\tid\n\t\trunner\n\t\tstatus\n\t\ttags\n\t\tlog {\n\t\t\tfullURL\n\t\t}\n\t\ttasks {\n\t\t\tname\n\t\t\tstatus\n\t\t\tlog {\n\t\t\t\tfullURL\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op := gqlclient.NewOperation("query show ($id: Int!) {\n\tjob(id: $id) {\n\t\tid\n\t\trunner\n\t\tstatus\n\t\tnote\n\t\ttags\n\t\tlog {\n\t\t\tfullURL\n\t\t}\n\t\ttasks {\n\t\t\tname\n\t\t\tstatus\n\t\t\tlog {\n\t\t\t\tfullURL\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	op.Var("id", id)
 	var respData struct {
 		Job *Job

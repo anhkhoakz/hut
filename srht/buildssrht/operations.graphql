@@ -60,6 +60,7 @@ query show($id: Int!) {
         id
         runner
         status
+        note
         tags
         log {
             fullURL
