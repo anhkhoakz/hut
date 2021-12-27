@@ -214,7 +214,7 @@ func newBuildsCancelCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:   "cancel [ID...]",
+		Use:   "cancel <ID...>",
 		Short: "Cancel jobs",
 		Args:  cobra.MinimumNArgs(1),
 		Run:   run,
