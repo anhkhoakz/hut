@@ -540,11 +540,7 @@ func getSSHCommand(job *buildssrht.Job) (string, error) {
 
 func parseInt32(s string) (int32, error) {
 	i, err := strconv.ParseInt(s, 10, 32)
-	if err != nil {
-		return 0, err
-	}
-
-	return int32(i), nil
+	return int32(i), err
 }
 
 func indent(s, prefix string) string {
