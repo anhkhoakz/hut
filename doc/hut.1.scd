@@ -40,14 +40,15 @@ hut is a CLI companion utility to interact with sr.ht.
 	```
 
 ## git
+	Options are:
+
+	*-r*, *--repo* <string>
+		Name of repository.
 
 *artifact upload* <filename> [options...]
 	Upload an artifact.
 
 	Options are:
-
-	*-r*, *--repo* <string>
-		Name of repository.
 
 	*--rev* <string>
 		Revision tag. Defaults to the last Git tag.
@@ -56,9 +57,6 @@ hut is a CLI companion utility to interact with sr.ht.
 	List artifacts.
 
 	Options are:
-
-	*-r*, *--repo* <string>
-		Name of repository.
 
 *artifact delete* <ID>
 	Delete an artifact.

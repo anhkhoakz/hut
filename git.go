@@ -16,12 +16,15 @@ import (
 	"git.sr.ht/~emersion/hut/srht/gitsrht"
 )
 
+var repoName string
+
 func newGitCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "git",
 		Short: "Use the git API",
 	}
 	cmd.AddCommand(newGitArtifactCommand())
+	cmd.PersistentFlags().StringVarP(&repoName, "repo", "r", "", "name of repository")
 	return cmd
 }
 
@@ -37,7 +40,7 @@ func newGitArtifactCommand() *cobra.Command {
 }
 
 func newGitArtifactUploadCommand() *cobra.Command {
-	var repoName, rev string
+	var rev string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("git")
@@ -88,13 +91,11 @@ func newGitArtifactUploadCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Run:   run,
 	}
-	cmd.Flags().StringVarP(&repoName, "repo", "r", "", "name of repository")
 	cmd.Flags().StringVar(&rev, "rev", "", "revision tag")
 	return cmd
 }
 
 func newGitArtifactListCommand() *cobra.Command {
-	var repoName string
 	// TODO: Filter by rev
 
 	run := func(cmd *cobra.Command, args []string) {
@@ -135,7 +136,6 @@ func newGitArtifactListCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(0),
 		Run:   run,
 	}
-	cmd.Flags().StringVarP(&repoName, "repo", "r", "", "name of repository")
 	return cmd
 }
 
