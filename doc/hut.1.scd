@@ -52,6 +52,14 @@ hut is a CLI companion utility to interact with sr.ht.
 	*--rev* <string>
 		Revision tag. Defaults to the last Git tag.
 
+*artifact list* [options...]
+	List artifacts.
+
+	Options are:
+
+	*-r*, *--repo* <string>
+		Name of repository.
+
 ## builds
 
 *submit* [manifest...] [options...]

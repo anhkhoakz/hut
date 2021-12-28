@@ -4,6 +4,22 @@ query repositoryByName($name: String!) {
     }
 }
 
+query listArtifacts($name: String!) {
+    repositoryByName(name: $name) {
+        references {
+            results {
+                name
+                artifacts {
+                    results {
+                        id
+                        filename
+                    }
+                }
+            }
+        }
+    }
+}
+
 mutation uploadArtifact($repoId: Int!, $revspec: String!, $file: Upload!) {
     uploadArtifact(repoId: $repoId, revspec: $revspec, file: $file) {
         filename

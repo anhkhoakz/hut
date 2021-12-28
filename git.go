@@ -30,6 +30,7 @@ func newGitArtifactCommand() *cobra.Command {
 		Short: "Manage artifacts",
 	}
 	cmd.AddCommand(newGitArtifactUploadCommand())
+	cmd.AddCommand(newGitArtifactListCommand())
 	return cmd
 }
 
@@ -87,6 +88,52 @@ func newGitArtifactUploadCommand() *cobra.Command {
 	}
 	cmd.Flags().StringVarP(&repoName, "repo", "r", "", "name of repository")
 	cmd.Flags().StringVar(&rev, "rev", "", "revision tag")
+	return cmd
+}
+
+func newGitArtifactListCommand() *cobra.Command {
+	var repoName string
+	// TODO: Filter by rev
+
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("git")
+
+		if repoName == "" {
+			var err error
+			repoName, err = guessGitRepoName(c)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
+		repo, err := gitsrht.ListArtifacts(c.Client, ctx, repoName)
+		if err != nil {
+			log.Fatal(err)
+		} else if repo == nil {
+			log.Fatalf("repository %s does not exist", repoName)
+		}
+
+		for _, ref := range repo.References.Results {
+			if len(ref.Artifacts.Results) == 0 {
+				continue
+			}
+
+			name := ref.Name[strings.LastIndex(ref.Name, "/")+1:]
+			fmt.Printf("Tag %s:\n", name)
+			for _, artifact := range ref.Artifacts.Results {
+				fmt.Printf("  #%d: %s\n", artifact.Id, artifact.Filename)
+			}
+		}
+	}
+
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List artifacts",
+		Args:  cobra.ExactArgs(0),
+		Run:   run,
+	}
+	cmd.Flags().StringVarP(&repoName, "repo", "r", "", "name of repository")
 	return cmd
 }
 
