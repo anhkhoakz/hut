@@ -252,7 +252,7 @@ func RepositoryByName(client *gqlclient.Client, ctx context.Context, name string
 }
 
 func ListArtifacts(client *gqlclient.Client, ctx context.Context, name string) (repositoryByName *Repository, err error) {
-	op := gqlclient.NewOperation("query listArtifacts ($name: String!) {\n\trepositoryByName(name: $name) {\n\t\treferences {\n\t\t\tresults {\n\t\t\t\tname\n\t\t\t\ttarget\n\t\t\t\tartifacts {\n\t\t\t\t\tresults {\n\t\t\t\t\t\tid\n\t\t\t\t\t\tfilename\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op := gqlclient.NewOperation("query listArtifacts ($name: String!) {\n\trepositoryByName(name: $name) {\n\t\treferences {\n\t\t\tresults {\n\t\t\t\tname\n\t\t\t\tartifacts {\n\t\t\t\t\tresults {\n\t\t\t\t\t\tid\n\t\t\t\t\t\tfilename\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	op.Var("name", name)
 	var respData struct {
 		RepositoryByName *Repository
