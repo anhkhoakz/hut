@@ -58,6 +58,8 @@ func newGitArtifactCommand() *cobra.Command {
 		repo, err := gitsrht.RepositoryByName(c.Client, ctx, repoName)
 		if err != nil {
 			log.Fatalf("failed to get repository ID: %v", err)
+		} else if repo == nil {
+			log.Fatalf("repository %s does not exist", repoName)
 		}
 
 		artifact, err := gitsrht.UploadArtifact(c.Client, ctx, repo.Id, rev, file)
