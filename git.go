@@ -25,6 +25,15 @@ func newGitCommand() *cobra.Command {
 }
 
 func newGitArtifactCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "artifact",
+		Short: "Manage artifacts",
+	}
+	cmd.AddCommand(newGitArtifactUploadCommand())
+	return cmd
+}
+
+func newGitArtifactUploadCommand() *cobra.Command {
 	var repoName, rev string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
@@ -71,7 +80,7 @@ func newGitArtifactCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:   "artifact <filename>",
+		Use:   "upload <filename>",
 		Short: "Upload an artifact",
 		Args:  cobra.ExactArgs(1),
 		Run:   run,

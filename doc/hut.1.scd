@@ -41,7 +41,7 @@ hut is a CLI companion utility to interact with sr.ht.
 
 ## git
 
-*artifact* <filename> [options...]
+*artifact upload* <filename> [options...]
 	Upload an artifact.
 
 	Options are:
