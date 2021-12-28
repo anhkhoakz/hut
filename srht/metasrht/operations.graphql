@@ -7,3 +7,10 @@ query fetchUser($username: String!) {
         bio
     }
 }
+
+mutation createSSHKey($key: String!) {
+    createSSHKey(key: $key) {
+        fingerprint
+        comment
+    }
+}

@@ -95,6 +95,11 @@ hut is a CLI companion utility to interact with sr.ht.
 *show* <username>
 	Show a user's profile.
 
+*ssh-key create* [path]
+	Upload an SSH public key and associate it with your account.
+
+	If _path_ is not specified, the default SSH public key is used.
+
 ## paste
 
 *create* <filenames...>

@@ -264,3 +264,13 @@ func FetchUser(client *gqlclient.Client, ctx context.Context, username string) (
 	err = client.Execute(ctx, op, &respData)
 	return respData.UserByName, err
 }
+
+func CreateSSHKey(client *gqlclient.Client, ctx context.Context, key string) (createSSHKey SSHKey, err error) {
+	op := gqlclient.NewOperation("mutation createSSHKey ($key: String!) {\n\tcreateSSHKey(key: $key) {\n\t\tfingerprint\n\t\tcomment\n\t}\n}\n")
+	op.Var("key", key)
+	var respData struct {
+		CreateSSHKey SSHKey
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.CreateSSHKey, err
+}
