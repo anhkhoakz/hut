@@ -31,6 +31,7 @@ func newGitArtifactCommand() *cobra.Command {
 	}
 	cmd.AddCommand(newGitArtifactUploadCommand())
 	cmd.AddCommand(newGitArtifactListCommand())
+	cmd.AddCommand(newGitArtifactDeleteCommand())
 	return cmd
 }
 
@@ -134,6 +135,33 @@ func newGitArtifactListCommand() *cobra.Command {
 		Run:   run,
 	}
 	cmd.Flags().StringVarP(&repoName, "repo", "r", "", "name of repository")
+	return cmd
+}
+
+func newGitArtifactDeleteCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("git")
+
+		id, err := parseInt32(args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		artifact, err := gitsrht.DeleteArtifact(c.Client, ctx, id)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf("Deleted artifact %s\n", artifact.Filename)
+	}
+
+	cmd := &cobra.Command{
+		Use:   "delete <ID>",
+		Short: "Delete an artifact",
+		Args:  cobra.ExactArgs(1),
+		Run:   run,
+	}
 	return cmd
 }
 

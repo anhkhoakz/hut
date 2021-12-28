@@ -25,3 +25,9 @@ mutation uploadArtifact($repoId: Int!, $revspec: String!, $file: Upload!) {
         filename
     }
 }
+
+mutation deleteArtifact($id: Int!) {
+    deleteArtifact(id: $id) {
+        filename
+    }
+}

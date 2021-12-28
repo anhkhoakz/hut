@@ -272,3 +272,13 @@ func UploadArtifact(client *gqlclient.Client, ctx context.Context, repoId int32,
 	err = client.Execute(ctx, op, &respData)
 	return respData.UploadArtifact, err
 }
+
+func DeleteArtifact(client *gqlclient.Client, ctx context.Context, id int32) (deleteArtifact *Artifact, err error) {
+	op := gqlclient.NewOperation("mutation deleteArtifact ($id: Int!) {\n\tdeleteArtifact(id: $id) {\n\t\tfilename\n\t}\n}\n")
+	op.Var("id", id)
+	var respData struct {
+		DeleteArtifact *Artifact
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.DeleteArtifact, err
+}
