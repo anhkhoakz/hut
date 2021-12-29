@@ -31,6 +31,7 @@ func newGitCommand() *cobra.Command {
 
 func newGitCreateCommand() *cobra.Command {
 	var visibility, desc string
+	var clone bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("git")
@@ -47,6 +48,20 @@ func newGitCreateCommand() *cobra.Command {
 		}
 
 		fmt.Printf("Created repository %s\n", repo.Name)
+
+		if clone {
+			cloneURL := fmt.Sprintf("git@git.%s:%s/%s", c.Hostname,
+				repo.Owner.CanonicalName, repo.Name)
+			cloneCmd := exec.Command("git", "clone", cloneURL)
+			cloneCmd.Stdin = os.Stdin
+			cloneCmd.Stdout = os.Stdout
+			cloneCmd.Stderr = os.Stderr
+
+			err = cloneCmd.Run()
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
 	}
 
 	cmd := &cobra.Command{
@@ -57,6 +72,7 @@ func newGitCreateCommand() *cobra.Command {
 	}
 	cmd.Flags().StringVarP(&visibility, "visibility", "v", "unlisted", "repo visibility")
 	cmd.Flags().StringVarP(&desc, "description", "d", "", "repo description")
+	cmd.Flags().BoolVarP(&clone, "clone", "c", false, "autoclone repo")
 	return cmd
 }
 

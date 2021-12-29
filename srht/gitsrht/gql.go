@@ -284,7 +284,7 @@ func DeleteArtifact(client *gqlclient.Client, ctx context.Context, id int32) (de
 }
 
 func CreateRepository(client *gqlclient.Client, ctx context.Context, name string, visibility Visibility, description string) (createRepository *Repository, err error) {
-	op := gqlclient.NewOperation("mutation createRepository ($name: String!, $visibility: Visibility!, $description: String!) {\n\tcreateRepository(name: $name, visibility: $visibility, description: $description) {\n\t\tname\n\t}\n}\n")
+	op := gqlclient.NewOperation("mutation createRepository ($name: String!, $visibility: Visibility!, $description: String!) {\n\tcreateRepository(name: $name, visibility: $visibility, description: $description) {\n\t\towner {\n\t\t\tcanonicalName\n\t\t}\n\t\tname\n\t}\n}\n")
 	op.Var("name", name)
 	op.Var("visibility", visibility)
 	op.Var("description", description)

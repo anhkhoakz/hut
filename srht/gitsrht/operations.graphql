@@ -42,6 +42,9 @@ mutation createRepository(
         visibility: $visibility
         description: $description
     ) {
+        owner {
+            canonicalName
+        }
         name
     }
 }
