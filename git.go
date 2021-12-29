@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/url"
@@ -43,7 +44,7 @@ func newGitArtifactUploadCommand() *cobra.Command {
 
 		if repoName == "" {
 			var err error
-			repoName, err = guessGitRepoName(c)
+			repoName, err = guessGitRepoName(ctx, c)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -102,7 +103,7 @@ func newGitArtifactListCommand() *cobra.Command {
 
 		if repoName == "" {
 			var err error
-			repoName, err = guessGitRepoName(c)
+			repoName, err = guessGitRepoName(ctx, c)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -165,8 +166,8 @@ func newGitArtifactDeleteCommand() *cobra.Command {
 	return cmd
 }
 
-func guessGitRepoName(c *Client) (string, error) {
-	remoteURL, err := gitRemoteURL()
+func guessGitRepoName(ctx context.Context, c *Client) (string, error) {
+	remoteURL, err := gitRemoteURL(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -186,9 +187,9 @@ func guessGitRepoName(c *Client) (string, error) {
 	return repoName, nil
 }
 
-func gitRemoteURL() (*url.URL, error) {
+func gitRemoteURL(ctx context.Context) (*url.URL, error) {
 	// TODO: iterate over all remotes, find one which matches the config file, etc
-	out, err := exec.Command("git", "remote", "get-url", "origin").Output()
+	out, err := exec.CommandContext(ctx, "git", "remote", "get-url", "origin").Output()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get remote URL: %v", err)
 	}
