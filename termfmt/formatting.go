@@ -16,6 +16,8 @@ const (
 	Green  Color = "green"
 	Yellow Color = "yellow"
 	Blue   Color = "blue"
+
+	DarkYellow Color = "dark-yellow"
 )
 
 func String(s string, color Color) string {
@@ -32,6 +34,8 @@ func String(s string, color Color) string {
 		return fmt.Sprintf("\033[93m%s\033[0m", s)
 	case Blue:
 		return fmt.Sprintf("\033[94m%s\033[0m", s)
+	case DarkYellow:
+		return fmt.Sprintf("\033[33m%s\033[0m", s)
 	}
 
 	return s
