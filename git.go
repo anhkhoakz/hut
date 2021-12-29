@@ -93,13 +93,8 @@ func newGitArtifactUploadCommand() *cobra.Command {
 		ctx := cmd.Context()
 		c := createClient("git")
 
-		if repoName == "" {
-			var err error
-			repoName, err = guessGitRepoName(ctx, c)
-			if err != nil {
-				log.Fatal(err)
-			}
-		}
+		getRepoName(ctx, c)
+
 		if rev == "" {
 			var err error
 			rev, err = guessRev()
@@ -150,13 +145,7 @@ func newGitArtifactListCommand() *cobra.Command {
 		ctx := cmd.Context()
 		c := createClient("git")
 
-		if repoName == "" {
-			var err error
-			repoName, err = guessGitRepoName(ctx, c)
-			if err != nil {
-				log.Fatal(err)
-			}
-		}
+		getRepoName(ctx, c)
 
 		repo, err := gitsrht.ListArtifacts(c.Client, ctx, repoName)
 		if err != nil {
@@ -212,6 +201,16 @@ func newGitArtifactDeleteCommand() *cobra.Command {
 		Run:   run,
 	}
 	return cmd
+}
+
+func getRepoName(ctx context.Context, c *Client) {
+	if repoName == "" {
+		var err error
+		repoName, err = guessGitRepoName(ctx, c)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 }
 
 func guessGitRepoName(ctx context.Context, c *Client) (string, error) {
