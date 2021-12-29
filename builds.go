@@ -322,7 +322,7 @@ func printJob(job *buildssrht.Job) {
 	if tagString := formatJobTags(job); tagString != "" {
 		fmt.Printf(" - %s", tagString)
 	}
-	fmt.Printf(": %s %s\n", jobStatusIcon(job.Status), job.Status)
+	fmt.Printf(": %s %s\n", jobStatusIcon(job.Status), job.Status.TermString())
 
 	for _, task := range job.Tasks {
 		fmt.Printf("%s %s  ", taskStatusIcon(task.Status), task.Name)
