@@ -8,8 +8,10 @@ import (
 	"strings"
 
 	"git.sr.ht/~emersion/gqlclient"
-	"git.sr.ht/~emersion/hut/srht/pagessrht"
 	"github.com/spf13/cobra"
+
+	"git.sr.ht/~emersion/hut/srht/pagessrht"
+	"git.sr.ht/~emersion/hut/termfmt"
 )
 
 func newPagesCommand() *cobra.Command {
@@ -116,7 +118,7 @@ func newPagesListCommand() *cobra.Command {
 		}
 
 		for _, site := range sites.Results {
-			fmt.Printf("%s (%s)\n", site.Domain, site.Protocol)
+			fmt.Printf("%s (%s)\n", termfmt.String(site.Domain, termfmt.Bold), site.Protocol)
 		}
 	}
 
