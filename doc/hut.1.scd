@@ -56,8 +56,6 @@ hut is a CLI companion utility to interact with sr.ht.
 *artifact list* [options...]
 	List artifacts.
 
-	Options are:
-
 *artifact delete* <ID>
 	Delete an artifact.
 
