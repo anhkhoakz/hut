@@ -12,6 +12,9 @@ var isTerminal = term.IsTerminal(int(os.Stdout.Fd()))
 type Style string
 
 const (
+	Bold Style = "bold"
+	Dim  Style = "dim"
+
 	Red    Style = "red"
 	Green  Style = "green"
 	Yellow Style = "yellow"
@@ -26,6 +29,10 @@ func String(s string, style Style) string {
 	}
 
 	switch style {
+	case Bold:
+		return fmt.Sprintf("\033[1m%s\033[0m", s)
+	case Dim:
+		return fmt.Sprintf("\033[2m%s\033[0m", s)
 	case Red:
 		return fmt.Sprintf("\033[91m%s\033[0m", s)
 	case Green:
