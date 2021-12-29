@@ -24,7 +24,39 @@ func newGitCommand() *cobra.Command {
 		Short: "Use the git API",
 	}
 	cmd.AddCommand(newGitArtifactCommand())
+	cmd.AddCommand(newGitCreateCommand())
 	cmd.PersistentFlags().StringVarP(&repoName, "repo", "r", "", "name of repository")
+	return cmd
+}
+
+func newGitCreateCommand() *cobra.Command {
+	var visibility, desc string
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("git")
+
+		gitVisibility, err := getGitVisibility(visibility)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		repo, err := gitsrht.CreateRepository(c.Client, ctx, args[0],
+			gitVisibility, desc)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf("Created repository %s\n", repo.Name)
+	}
+
+	cmd := &cobra.Command{
+		Use:   "create <name>",
+		Short: "Create a repository",
+		Args:  cobra.ExactArgs(1),
+		Run:   run,
+	}
+	cmd.Flags().StringVarP(&visibility, "visibility", "v", "unlisted", "repo visibility")
+	cmd.Flags().StringVarP(&desc, "description", "d", "", "repo description")
 	return cmd
 }
 
@@ -223,4 +255,17 @@ func guessRev() (string, error) {
 	}
 
 	return strings.TrimSpace(string(out)), nil
+}
+
+func getGitVisibility(visibility string) (gitsrht.Visibility, error) {
+	switch strings.ToLower(visibility) {
+	case "unlisted":
+		return gitsrht.VisibilityUnlisted, nil
+	case "private":
+		return gitsrht.VisibilityPrivate, nil
+	case "public":
+		return gitsrht.VisibilityPublic, nil
+	default:
+		return "", fmt.Errorf("invalid visibility: %s", visibility)
+	}
 }

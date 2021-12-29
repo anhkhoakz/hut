@@ -282,3 +282,15 @@ func DeleteArtifact(client *gqlclient.Client, ctx context.Context, id int32) (de
 	err = client.Execute(ctx, op, &respData)
 	return respData.DeleteArtifact, err
 }
+
+func CreateRepository(client *gqlclient.Client, ctx context.Context, name string, visibility Visibility, description string) (createRepository *Repository, err error) {
+	op := gqlclient.NewOperation("mutation createRepository ($name: String!, $visibility: Visibility!, $description: String!) {\n\tcreateRepository(name: $name, visibility: $visibility, description: $description) {\n\t\tname\n\t}\n}\n")
+	op.Var("name", name)
+	op.Var("visibility", visibility)
+	op.Var("description", description)
+	var respData struct {
+		CreateRepository *Repository
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.CreateRepository, err
+}

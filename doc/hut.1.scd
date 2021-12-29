@@ -45,6 +45,17 @@ hut is a CLI companion utility to interact with sr.ht.
 	*-r*, *--repo* <string>
 		Name of repository.
 
+*create* <repoName> [options...]
+	Create a repository.
+
+	Options are:
+
+	*-v*, *--visibility* <string>
+		Visibility to use (public, unlisted, private). Defaults to unlisted.
+
+	*-d*, *--description* <string>
+		Description of the repository.
+
 *artifact upload* <filename> [options...]
 	Upload an artifact.
 

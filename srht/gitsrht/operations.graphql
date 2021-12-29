@@ -31,3 +31,17 @@ mutation deleteArtifact($id: Int!) {
         filename
     }
 }
+
+mutation createRepository(
+    $name: String!
+    $visibility: Visibility!
+    $description: String!
+) {
+    createRepository(
+        name: $name
+        visibility: $visibility
+        description: $description
+    ) {
+        name
+    }
+}
