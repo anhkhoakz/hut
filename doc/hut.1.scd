@@ -121,6 +121,14 @@ hut is a CLI companion utility to interact with sr.ht.
 
 	If _path_ is not specified, the default SSH public key is used.
 
+*pgp-key create* [path]
+	Upload a PGP public key and associate it with your account.
+
+	The public key must be in the armored format.
+
+	If _path_ is not specified, the default public key from the local GPG
+	keyring is used.
+
 ## paste
 
 *create* <filenames...>

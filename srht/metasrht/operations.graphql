@@ -14,3 +14,9 @@ mutation createSSHKey($key: String!) {
         comment
     }
 }
+
+mutation createPGPKey($key: String!) {
+    createPGPKey(key: $key) {
+        fingerprint
+    }
+}

@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -22,6 +24,7 @@ func newMetaCommand() *cobra.Command {
 	}
 	cmd.AddCommand(newMetaShowCommand())
 	cmd.AddCommand(newMetaSSHKeyCommand())
+	cmd.AddCommand(newMetaPGPKeyCommand())
 	return cmd
 }
 
@@ -139,4 +142,86 @@ func guessSSHPubKeyFilename() (string, error) {
 	}
 
 	return match, nil
+}
+
+func newMetaPGPKeyCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "pgp-key",
+		Short: "Manage PGP keys",
+	}
+	cmd.AddCommand(newMetaPGPKeyCreateCommand())
+	return cmd
+}
+
+func newMetaPGPKeyCreateCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("meta")
+
+		var (
+			keyBytes []byte
+			err      error
+		)
+		if len(args) > 0 {
+			keyBytes, err = ioutil.ReadFile(args[0])
+		} else {
+			keyBytes, err = exportDefaultPGPKey(ctx)
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Sanity check, mostly to avoid uploading private keys
+		if !strings.HasPrefix(string(keyBytes), "-----BEGIN PGP PUBLIC KEY BLOCK-----") {
+			log.Fatalf("input doesn't look like a PGP public key file")
+		}
+
+		key, err := metasrht.CreatePGPKey(c.Client, ctx, string(keyBytes))
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf("Uploaded PGP public key %v\n", key.Fingerprint)
+	}
+
+	return &cobra.Command{
+		Use:   "create [path]",
+		Short: "Create a new PGP key",
+		Args:  cobra.MaximumNArgs(1),
+		Run:   run,
+	}
+}
+
+func exportDefaultPGPKey(ctx context.Context) ([]byte, error) {
+	out, err := exec.Command("gpg", "--list-secret-keys", "--with-colons").Output()
+	if err != nil {
+		return nil, fmt.Errorf("failed to list keys in GPG keyring: %v", err)
+	}
+
+	var keyID string
+	for _, l := range strings.Split(string(out), "\n") {
+		if !strings.HasPrefix(l, "sec:") {
+			continue
+		}
+
+		if keyID != "" {
+			return nil, fmt.Errorf("multiple keys found in GPG keyring")
+		}
+
+		fields := strings.Split(l, ":")
+		if len(fields) <= 4 {
+			continue
+		}
+		keyID = fields[4]
+	}
+	if keyID == "" {
+		return nil, fmt.Errorf("no key found in GPG keyring")
+	}
+
+	out, err = exec.Command("gpg", "--export", "--armor", "--export-options=export-minimal", keyID).Output()
+	if err != nil {
+		return nil, fmt.Errorf("failed to export key from GPG kerying: %v", err)
+	}
+
+	return out, nil
 }
