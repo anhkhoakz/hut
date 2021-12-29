@@ -9,23 +9,23 @@ import (
 
 var isTerminal = term.IsTerminal(int(os.Stdout.Fd()))
 
-type Color string
+type Style string
 
 const (
-	Red    Color = "red"
-	Green  Color = "green"
-	Yellow Color = "yellow"
-	Blue   Color = "blue"
+	Red    Style = "red"
+	Green  Style = "green"
+	Yellow Style = "yellow"
+	Blue   Style = "blue"
 
-	DarkYellow Color = "dark-yellow"
+	DarkYellow Style = "dark-yellow"
 )
 
-func String(s string, color Color) string {
+func String(s string, style Style) string {
 	if !isTerminal {
 		return s
 	}
 
-	switch color {
+	switch style {
 	case Red:
 		return fmt.Sprintf("\033[91m%s\033[0m", s)
 	case Green:
