@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"git.sr.ht/~emersion/hut/srht/metasrht"
+	"git.sr.ht/~emersion/hut/termfmt"
 )
 
 func newMetaCommand() *cobra.Command {
@@ -38,7 +39,7 @@ func newMetaShowCommand() *cobra.Command {
 			log.Fatal("no such user")
 		}
 
-		fmt.Printf("%v <%v>\n", user.CanonicalName, user.Email)
+		fmt.Printf("%v <%v>\n", termfmt.String(user.CanonicalName, termfmt.Bold), user.Email)
 		if user.Url != nil {
 			fmt.Println(*user.Url)
 		}
