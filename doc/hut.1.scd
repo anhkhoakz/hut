@@ -134,6 +134,9 @@ hut is a CLI companion utility to interact with sr.ht.
 *delete* <IDs...>
 	Delete pastes.
 
+*list*
+	List pastes.
+
 ## pages
 
 *publish* <tarball> [options...]

@@ -95,3 +95,12 @@ func Delete(client *gqlclient.Client, ctx context.Context, id string) (delete *P
 	err = client.Execute(ctx, op, &respData)
 	return respData.Delete, err
 }
+
+func Pastes(client *gqlclient.Client, ctx context.Context) (pastes *PasteCursor, err error) {
+	op := gqlclient.NewOperation("query pastes {\n\tpastes {\n\t\tresults {\n\t\t\tid\n\t\t\tcreated\n\t\t\tvisibility\n\t\t\tfiles {\n\t\t\t\tfilename\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	var respData struct {
+		Pastes *PasteCursor
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Pastes, err
+}

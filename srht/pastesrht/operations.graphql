@@ -12,3 +12,16 @@ mutation delete($id: String!) {
         id
     }
 }
+
+query pastes {
+    pastes {
+        results {
+            id
+            created
+            visibility
+            files {
+                filename
+            }
+        }
+    }
+}

@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"git.sr.ht/~emersion/gqlclient"
 	"github.com/spf13/cobra"
@@ -21,6 +22,7 @@ func newPasteCommand() *cobra.Command {
 	}
 	cmd.AddCommand(newPasteCreateCommand())
 	cmd.AddCommand(newPasteDeleteCommand())
+	cmd.AddCommand(newPasteListCommand())
 	return cmd
 }
 
@@ -109,6 +111,38 @@ func newPasteDeleteCommand() *cobra.Command {
 	return cmd
 }
 
+func newPasteListCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("paste")
+
+		pastes, err := pastesrht.Pastes(c.Client, ctx)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for _, paste := range pastes.Results {
+			time := time.Since(paste.Created)
+			fmt.Printf("%s %s %s ago\n", paste.Id,
+				strings.ToLower(string(paste.Visibility)), timeDelta(time))
+			for _, file := range paste.Files {
+				if *file.Filename != "" {
+					fmt.Printf("  %s\n", *file.Filename)
+				}
+			}
+
+			fmt.Println()
+		}
+	}
+
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List pastes",
+		Run:   run,
+	}
+	return cmd
+}
+
 func getVisibility(visibility string) (pastesrht.Visibility, error) {
 	switch strings.ToLower(visibility) {
 	case "unlisted":
@@ -120,4 +154,19 @@ func getVisibility(visibility string) (pastesrht.Visibility, error) {
 	default:
 		return "", fmt.Errorf("invalid visibility: %s", visibility)
 	}
+}
+
+func timeDelta(d time.Duration) string {
+	switch {
+	case d > time.Hour*24*30:
+		return fmt.Sprintf("%.f months", d.Hours()/(24*30))
+	case d > time.Hour*24:
+		return fmt.Sprintf("%.f days", d.Hours()/24)
+	case d > time.Hour:
+		return fmt.Sprintf("%.f hours", d.Hours())
+	case d > time.Minute:
+		return fmt.Sprintf("%.f minutes", d.Minutes())
+	}
+
+	return fmt.Sprintf("%.f seconds", d.Seconds())
 }
