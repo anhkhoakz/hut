@@ -100,10 +100,15 @@ hut is a CLI companion utility to interact with sr.ht.
 *cancel* <IDs...>
 	Cancel jobs.
 
-*show* [ID]
+*show* [ID] [options...]
 	Show job status.
 
 	If no ID is specified, the latest build will be printed.
+
+	Options are:
+
+	*-f*, *--follow*
+		Follow job status.
 
 *list*
 	List jobs.

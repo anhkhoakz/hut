@@ -222,6 +222,7 @@ func newBuildsCancelCommand() *cobra.Command {
 }
 
 func newBuildsShowCommand() *cobra.Command {
+	var follow bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("builds")
@@ -246,11 +247,23 @@ func newBuildsShowCommand() *cobra.Command {
 			}
 		}
 
-		job, err := buildssrht.Show(c.Client, ctx, id)
-		if err != nil {
-			log.Fatal(err)
-		} else if job == nil {
-			log.Fatal("invalid job ID")
+		var (
+			err error
+			job *buildssrht.Job
+		)
+
+		if follow {
+			job, err = c.followJobShow(context.Background(), id)
+			if err != nil {
+				log.Fatal(err)
+			}
+		} else {
+			job, err = buildssrht.Show(c.Client, ctx, id)
+			if err != nil {
+				log.Fatal(err)
+			} else if job == nil {
+				log.Fatal("invalid job ID")
+			}
 		}
 
 		printJob(job)
@@ -292,6 +305,7 @@ func newBuildsShowCommand() *cobra.Command {
 		Args:  cobra.MaximumNArgs(1),
 		Run:   run,
 	}
+	cmd.Flags().BoolVarP(&follow, "follow", "f", false, "follow job status")
 	return cmd
 }
 
@@ -607,4 +621,37 @@ func sshConnection(job *buildssrht.Job) error {
 	cmd.Stderr = os.Stderr
 
 	return cmd.Run()
+}
+
+func (c *Client) followJobShow(ctx context.Context, id int32) (*buildssrht.Job, error) {
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+
+	for {
+		job, err := buildssrht.Show(c.Client, ctx, id)
+		if err != nil {
+			return nil, fmt.Errorf("failed to monitor job: %v", err)
+		} else if job == nil {
+			return nil, errors.New("invalid job ID")
+		}
+
+		var taskString string
+		for _, task := range job.Tasks {
+			taskString += fmt.Sprintf("%s %s ", taskStatusIcon(task.Status), task.Name)
+		}
+		fmt.Printf("\x1b[1K\r#%d: %s %s with %s", job.Id,
+			jobStatusIcon(job.Status), job.Status.TermString(), taskString)
+
+		if jobStatusDone(job.Status) {
+			fmt.Print("\x1b[1K\r")
+			return job, nil
+		}
+
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-ticker.C:
+			// Continue looping
+		}
+	}
 }
