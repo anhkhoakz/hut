@@ -303,8 +303,17 @@ type WebhookSubscriptionCursor struct {
 	Cursor  *Cursor               `json:"cursor,omitempty"`
 }
 
+func FetchMe(client *gqlclient.Client, ctx context.Context) (me *User, err error) {
+	op := gqlclient.NewOperation("query fetchMe {\n\tme {\n\t\t... user\n\t}\n}\nfragment user on User {\n\tcanonicalName\n\temail\n\turl\n\tlocation\n\tbio\n}\n")
+	var respData struct {
+		Me *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Me, err
+}
+
 func FetchUser(client *gqlclient.Client, ctx context.Context, username string) (userByName *User, err error) {
-	op := gqlclient.NewOperation("query fetchUser ($username: String!) {\n\tuserByName(username: $username) {\n\t\tcanonicalName\n\t\temail\n\t\turl\n\t\tlocation\n\t\tbio\n\t}\n}\n")
+	op := gqlclient.NewOperation("query fetchUser ($username: String!) {\n\tuserByName(username: $username) {\n\t\t... user\n\t}\n}\nfragment user on User {\n\tcanonicalName\n\temail\n\turl\n\tlocation\n\tbio\n}\n")
 	op.Var("username", username)
 	var respData struct {
 		UserByName *User

@@ -113,8 +113,10 @@ hut is a CLI companion utility to interact with sr.ht.
 
 ## meta
 
-*show* <username>
+*show* [username]
 	Show a user's profile.
+
+	If _username_ is not specified, your profile is displayed.
 
 *ssh-key create* [path]
 	Upload an SSH public key and associate it with your account.

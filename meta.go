@@ -30,12 +30,20 @@ func newMetaCommand() *cobra.Command {
 
 func newMetaShowCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
-		username := strings.TrimLeft(args[0], "~")
 
 		ctx := cmd.Context()
 		c := createClient("meta")
 
-		user, err := metasrht.FetchUser(c.Client, ctx, username)
+		var (
+			user *metasrht.User
+			err  error
+		)
+		if len(args) > 0 {
+			username := strings.TrimLeft(args[0], "~")
+			user, err = metasrht.FetchUser(c.Client, ctx, username)
+		} else {
+			user, err = metasrht.FetchMe(c.Client, ctx)
+		}
 		if err != nil {
 			log.Fatal(err)
 		} else if user == nil {
@@ -55,9 +63,9 @@ func newMetaShowCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:   "show <user>",
+		Use:   "show [user]",
 		Short: "Show a user profile",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.MaximumNArgs(1),
 		Run:   run,
 	}
 	return cmd

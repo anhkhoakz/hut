@@ -1,11 +1,21 @@
+query fetchMe {
+    me {
+        ...user
+    }
+}
+
 query fetchUser($username: String!) {
     userByName(username: $username) {
-        canonicalName
-        email
-        url
-        location
-        bio
+        ...user
     }
+}
+
+fragment user on User {
+    canonicalName
+    email
+    url
+    location
+    bio
 }
 
 mutation createSSHKey($key: String!) {
