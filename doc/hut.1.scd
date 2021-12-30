@@ -111,6 +111,9 @@ hut is a CLI companion utility to interact with sr.ht.
 *secrets*
 	List secrets.
 
+*ssh* <ID>
+	Connect with SSH to a job.
+
 ## meta
 
 *show* [username]

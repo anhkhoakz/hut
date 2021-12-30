@@ -297,3 +297,13 @@ func Secrets(client *gqlclient.Client, ctx context.Context) (secrets *SecretCurs
 	err = client.Execute(ctx, op, &respData)
 	return respData.Secrets, err
 }
+
+func GetSSHInfo(client *gqlclient.Client, ctx context.Context, id int32) (job *Job, err error) {
+	op := gqlclient.NewOperation("query getSSHInfo ($id: Int!) {\n\tjob(id: $id) {\n\t\tid\n\t\trunner\n\t}\n}\n")
+	op.Var("id", id)
+	var respData struct {
+		Job *Job
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Job, err
+}

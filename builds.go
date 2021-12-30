@@ -31,6 +31,7 @@ func newBuildsCommand() *cobra.Command {
 	cmd.AddCommand(newBuildsShowCommand())
 	cmd.AddCommand(newBuildsListCommand())
 	cmd.AddCommand(newBuildsSecretsCommand())
+	cmd.AddCommand(newBuildsSSHCommand())
 	return cmd
 }
 
@@ -317,6 +318,36 @@ func newBuildsListCommand() *cobra.Command {
 	return cmd
 }
 
+func newBuildsSSHCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("builds")
+
+		id, err := parseInt32(args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		job, err := buildssrht.GetSSHInfo(c.Client, ctx, id)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		err = sshConnection(job)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	cmd := &cobra.Command{
+		Use:   "ssh <ID>",
+		Short: "SSH into job",
+		Args:  cobra.ExactArgs(1),
+		Run:   run,
+	}
+	return cmd
+}
+
 func printJob(job *buildssrht.Job) {
 	fmt.Printf("#%d", job.Id)
 	if tagString := formatJobTags(job); tagString != "" {
@@ -562,4 +593,18 @@ func formatJobTags(job *buildssrht.Job) string {
 		s += *tag
 	}
 	return s
+}
+
+func sshConnection(job *buildssrht.Job) error {
+	if job.Runner == nil {
+		return errors.New("job has no runner assigned yet")
+	}
+
+	cmd := exec.Command("ssh", "-t", fmt.Sprintf("builds@%s", *job.Runner),
+		"connect", fmt.Sprint(job.Id))
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	return cmd.Run()
 }

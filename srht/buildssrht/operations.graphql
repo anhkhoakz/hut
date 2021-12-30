@@ -83,3 +83,10 @@ query secrets {
         }
     }
 }
+
+query getSSHInfo($id: Int!) {
+    job(id: $id) {
+        id
+        runner
+    }
+}
