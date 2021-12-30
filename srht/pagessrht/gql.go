@@ -72,13 +72,13 @@ type Version struct {
 	DeprecationDate time.Time `json:"deprecationDate,omitempty"`
 }
 
-func Publish(client *gqlclient.Client, ctx context.Context, domain string, content gqlclient.Upload, protocol Protocol) (publish Site, err error) {
+func Publish(client *gqlclient.Client, ctx context.Context, domain string, content gqlclient.Upload, protocol Protocol) (publish *Site, err error) {
 	op := gqlclient.NewOperation("mutation publish ($domain: String!, $content: Upload!, $protocol: Protocol!) {\n\tpublish(domain: $domain, content: $content, protocol: $protocol) {\n\t\tdomain\n\t}\n}\n")
 	op.Var("domain", domain)
 	op.Var("content", content)
 	op.Var("protocol", protocol)
 	var respData struct {
-		Publish Site
+		Publish *Site
 	}
 	err = client.Execute(ctx, op, &respData)
 	return respData.Publish, err
@@ -95,10 +95,10 @@ func Unpublish(client *gqlclient.Client, ctx context.Context, domain string, pro
 	return respData.Unpublish, err
 }
 
-func Sites(client *gqlclient.Client, ctx context.Context) (sites SiteCursor, err error) {
+func Sites(client *gqlclient.Client, ctx context.Context) (sites *SiteCursor, err error) {
 	op := gqlclient.NewOperation("query sites {\n\tsites {\n\t\tresults {\n\t\t\tdomain\n\t\t\tprotocol\n\t\t}\n\t}\n}\n")
 	var respData struct {
-		Sites SiteCursor
+		Sites *SiteCursor
 	}
 	err = client.Execute(ctx, op, &respData)
 	return respData.Sites, err

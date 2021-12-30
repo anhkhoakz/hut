@@ -25,6 +25,11 @@ const (
 	AccessScopeProfile  AccessScope = "PROFILE"
 )
 
+// A cursor for enumerating a list of audit log entries
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
 type AuditLogCursor struct {
 	Results []AuditLogEntry `json:"results"`
 	Cursor  *Cursor         `json:"cursor,omitempty"`
@@ -41,10 +46,12 @@ type AuditLogEntry struct {
 type Cursor string
 
 type Entity struct {
-	Id            int32     `json:"id"`
-	Created       time.Time `json:"created"`
-	Updated       time.Time `json:"updated"`
-	CanonicalName string    `json:"canonicalName"`
+	Id      int32     `json:"id"`
+	Created time.Time `json:"created"`
+	Updated time.Time `json:"updated"`
+	// The canonical name of this entity. For users, this is their username
+	// prefixed with '~'. Additional entity types will be supported in the future.
+	CanonicalName string `json:"canonicalName"`
 }
 
 type Invoice struct {
@@ -55,6 +62,11 @@ type Invoice struct {
 	Source    *string   `json:"source,omitempty"`
 }
 
+// A cursor for enumerating a list of invoices
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
 type InvoiceCursor struct {
 	Results []Invoice `json:"results"`
 	Cursor  *Cursor   `json:"cursor,omitempty"`
@@ -67,26 +79,26 @@ type OAuthClient struct {
 	Name        string  `json:"name"`
 	Description *string `json:"description,omitempty"`
 	Url         *string `json:"url,omitempty"`
-	Owner       Entity  `json:"owner"`
+	Owner       *Entity `json:"owner"`
 }
 
 type OAuthClientRegistration struct {
-	Client OAuthClient `json:"client"`
-	Secret string      `json:"secret"`
+	Client *OAuthClient `json:"client"`
+	Secret string       `json:"secret"`
 }
 
 type OAuthGrant struct {
-	Id        int32       `json:"id"`
-	Client    OAuthClient `json:"client"`
-	Issued    time.Time   `json:"issued"`
-	Expires   time.Time   `json:"expires"`
-	TokenHash string      `json:"tokenHash"`
+	Id        int32        `json:"id"`
+	Client    *OAuthClient `json:"client"`
+	Issued    time.Time    `json:"issued"`
+	Expires   time.Time    `json:"expires"`
+	TokenHash string       `json:"tokenHash"`
 }
 
 type OAuthGrantRegistration struct {
-	Grant  OAuthGrant `json:"grant"`
-	Grants string     `json:"grants"`
-	Secret string     `json:"secret"`
+	Grant  *OAuthGrant `json:"grant"`
+	Grants string      `json:"grants"`
+	Secret string      `json:"secret"`
 }
 
 type OAuthPersonalToken struct {
@@ -97,18 +109,23 @@ type OAuthPersonalToken struct {
 }
 
 type OAuthPersonalTokenRegistration struct {
-	Token  OAuthPersonalToken `json:"token"`
-	Secret string             `json:"secret"`
+	Token  *OAuthPersonalToken `json:"token"`
+	Secret string              `json:"secret"`
 }
 
 type PGPKey struct {
 	Id          int32     `json:"id"`
 	Created     time.Time `json:"created"`
-	User        User      `json:"user"`
+	User        *User     `json:"user"`
 	Key         string    `json:"key"`
 	Fingerprint string    `json:"fingerprint"`
 }
 
+// A cursor for enumerating a list of PGP keys
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
 type PGPKeyCursor struct {
 	Results []PGPKey `json:"results"`
 	Cursor  *Cursor  `json:"cursor,omitempty"`
@@ -118,14 +135,14 @@ type PGPKeyEvent struct {
 	Uuid  string       `json:"uuid"`
 	Event WebhookEvent `json:"event"`
 	Date  time.Time    `json:"date"`
-	Key   PGPKey       `json:"key"`
+	Key   *PGPKey      `json:"key"`
 }
 
 type ProfileUpdateEvent struct {
 	Uuid    string       `json:"uuid"`
 	Event   WebhookEvent `json:"event"`
 	Date    time.Time    `json:"date"`
-	Profile User         `json:"profile"`
+	Profile *User        `json:"profile"`
 }
 
 type ProfileWebhookInput struct {
@@ -135,25 +152,30 @@ type ProfileWebhookInput struct {
 }
 
 type ProfileWebhookSubscription struct {
-	Id         int32                 `json:"id"`
-	Events     []WebhookEvent        `json:"events"`
-	Query      string                `json:"query"`
-	Url        string                `json:"url"`
-	Client     *OAuthClient          `json:"client,omitempty"`
-	Deliveries WebhookDeliveryCursor `json:"deliveries"`
-	Sample     string                `json:"sample"`
+	Id         int32                  `json:"id"`
+	Events     []WebhookEvent         `json:"events"`
+	Query      string                 `json:"query"`
+	Url        string                 `json:"url"`
+	Client     *OAuthClient           `json:"client,omitempty"`
+	Deliveries *WebhookDeliveryCursor `json:"deliveries"`
+	Sample     string                 `json:"sample"`
 }
 
 type SSHKey struct {
 	Id          int32     `json:"id"`
 	Created     time.Time `json:"created"`
 	LastUsed    time.Time `json:"lastUsed,omitempty"`
-	User        User      `json:"user"`
+	User        *User     `json:"user"`
 	Key         string    `json:"key"`
 	Fingerprint string    `json:"fingerprint"`
 	Comment     *string   `json:"comment,omitempty"`
 }
 
+// A cursor for enumerating a list of SSH keys
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
 type SSHKeyCursor struct {
 	Results []SSHKey `json:"results"`
 	Cursor  *Cursor  `json:"cursor,omitempty"`
@@ -163,30 +185,34 @@ type SSHKeyEvent struct {
 	Uuid  string       `json:"uuid"`
 	Event WebhookEvent `json:"event"`
 	Date  time.Time    `json:"date"`
-	Key   SSHKey       `json:"key"`
+	Key   *SSHKey      `json:"key"`
 }
 
 type User struct {
-	Id               int32        `json:"id"`
-	Created          time.Time    `json:"created"`
-	Updated          time.Time    `json:"updated"`
-	CanonicalName    string       `json:"canonicalName"`
-	Username         string       `json:"username"`
-	Email            string       `json:"email"`
-	Url              *string      `json:"url,omitempty"`
-	Location         *string      `json:"location,omitempty"`
-	Bio              *string      `json:"bio,omitempty"`
-	UserType         UserType     `json:"userType"`
-	SuspensionNotice *string      `json:"suspensionNotice,omitempty"`
-	SshKeys          SSHKeyCursor `json:"sshKeys"`
-	PgpKeys          PGPKeyCursor `json:"pgpKeys"`
+	Id               int32         `json:"id"`
+	Created          time.Time     `json:"created"`
+	Updated          time.Time     `json:"updated"`
+	CanonicalName    string        `json:"canonicalName"`
+	Username         string        `json:"username"`
+	Email            string        `json:"email"`
+	Url              *string       `json:"url,omitempty"`
+	Location         *string       `json:"location,omitempty"`
+	Bio              *string       `json:"bio,omitempty"`
+	UserType         UserType      `json:"userType"`
+	SuspensionNotice *string       `json:"suspensionNotice,omitempty"`
+	SshKeys          *SSHKeyCursor `json:"sshKeys"`
+	PgpKeys          *PGPKeyCursor `json:"pgpKeys"`
 }
 
+// Omit these fields to leave them unchanged, or set them to null to clear
+// their value.
 type UserInput struct {
 	Url      *string `json:"url,omitempty"`
 	Location *string `json:"location,omitempty"`
 	Bio      *string `json:"bio,omitempty"`
-	Email    *string `json:"email,omitempty"`
+	// Note: changing the user's email address will not take effect immediately;
+	// the user is sent an email to confirm the change first.
+	Email *string `json:"email,omitempty"`
 }
 
 type UserType string
@@ -202,23 +228,35 @@ const (
 )
 
 type Version struct {
-	Major           int32     `json:"major"`
-	Minor           int32     `json:"minor"`
-	Patch           int32     `json:"patch"`
+	Major int32 `json:"major"`
+	Minor int32 `json:"minor"`
+	Patch int32 `json:"patch"`
+	// If this API version is scheduled for deprecation, this is the date on which
+	// it will stop working; or null if this API version is not scheduled for
+	// deprecation.
 	DeprecationDate time.Time `json:"deprecationDate,omitempty"`
 }
 
 type WebhookDelivery struct {
-	Uuid            string              `json:"uuid"`
-	Date            time.Time           `json:"date"`
-	Event           WebhookEvent        `json:"event"`
-	Subscription    WebhookSubscription `json:"subscription"`
-	RequestBody     string              `json:"requestBody"`
-	ResponseBody    *string             `json:"responseBody,omitempty"`
-	ResponseHeaders *string             `json:"responseHeaders,omitempty"`
-	ResponseStatus  *int32              `json:"responseStatus,omitempty"`
+	Uuid         string               `json:"uuid"`
+	Date         time.Time            `json:"date"`
+	Event        WebhookEvent         `json:"event"`
+	Subscription *WebhookSubscription `json:"subscription"`
+	RequestBody  string               `json:"requestBody"`
+	// These details are provided only after a response is received from the
+	// remote server. If a response is sent whose Content-Type is not text/*, or
+	// cannot be decoded as UTF-8, the response body will be null. It will be
+	// truncated after 64 KiB.
+	ResponseBody    *string `json:"responseBody,omitempty"`
+	ResponseHeaders *string `json:"responseHeaders,omitempty"`
+	ResponseStatus  *int32  `json:"responseStatus,omitempty"`
 }
 
+// A cursor for enumerating a list of webhook deliveries
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
 type WebhookDeliveryCursor struct {
 	Results []WebhookDelivery `json:"results"`
 	Cursor  *Cursor           `json:"cursor,omitempty"`
@@ -227,6 +265,7 @@ type WebhookDeliveryCursor struct {
 type WebhookEvent string
 
 const (
+	// Used for user profile webhooks
 	WebhookEventProfileUpdate WebhookEvent = "PROFILE_UPDATE"
 	WebhookEventPgpKeyAdded   WebhookEvent = "PGP_KEY_ADDED"
 	WebhookEventPgpKeyRemoved WebhookEvent = "PGP_KEY_REMOVED"
@@ -241,15 +280,24 @@ type WebhookPayload struct {
 }
 
 type WebhookSubscription struct {
-	Id         int32                 `json:"id"`
-	Events     []WebhookEvent        `json:"events"`
-	Query      string                `json:"query"`
-	Url        string                `json:"url"`
-	Client     *OAuthClient          `json:"client,omitempty"`
-	Deliveries WebhookDeliveryCursor `json:"deliveries"`
-	Sample     string                `json:"sample"`
+	Id     int32          `json:"id"`
+	Events []WebhookEvent `json:"events"`
+	Query  string         `json:"query"`
+	Url    string         `json:"url"`
+	// If this webhook was registered by an authorized OAuth 2.0 client, this
+	// field is non-null.
+	Client *OAuthClient `json:"client,omitempty"`
+	// All deliveries which have been sent to this webhook.
+	Deliveries *WebhookDeliveryCursor `json:"deliveries"`
+	// Returns a sample payload for this subscription, for testing purposes
+	Sample string `json:"sample"`
 }
 
+// A cursor for enumerating a list of webhook subscriptions
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
 type WebhookSubscriptionCursor struct {
 	Results []WebhookSubscription `json:"results"`
 	Cursor  *Cursor               `json:"cursor,omitempty"`
@@ -265,11 +313,11 @@ func FetchUser(client *gqlclient.Client, ctx context.Context, username string) (
 	return respData.UserByName, err
 }
 
-func CreateSSHKey(client *gqlclient.Client, ctx context.Context, key string) (createSSHKey SSHKey, err error) {
+func CreateSSHKey(client *gqlclient.Client, ctx context.Context, key string) (createSSHKey *SSHKey, err error) {
 	op := gqlclient.NewOperation("mutation createSSHKey ($key: String!) {\n\tcreateSSHKey(key: $key) {\n\t\tfingerprint\n\t\tcomment\n\t}\n}\n")
 	op.Var("key", key)
 	var respData struct {
-		CreateSSHKey SSHKey
+		CreateSSHKey *SSHKey
 	}
 	err = client.Execute(ctx, op, &respData)
 	return respData.CreateSSHKey, err

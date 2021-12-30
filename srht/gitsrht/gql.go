@@ -11,8 +11,8 @@ import (
 type ACL struct {
 	Id         int32       `json:"id"`
 	Created    time.Time   `json:"created"`
-	Repository Repository  `json:"repository"`
-	Entity     Entity      `json:"entity"`
+	Repository *Repository `json:"repository"`
+	Entity     *Entity     `json:"entity"`
 	Mode       *AccessMode `json:"mode,omitempty"`
 }
 
@@ -75,10 +75,10 @@ type Commit struct {
 	Id        string     `json:"id"`
 	ShortId   string     `json:"shortId"`
 	Raw       string     `json:"raw"`
-	Author    Signature  `json:"author"`
-	Committer Signature  `json:"committer"`
+	Author    *Signature `json:"author"`
+	Committer *Signature `json:"committer"`
 	Message   string     `json:"message"`
-	Tree      Tree       `json:"tree"`
+	Tree      *Tree      `json:"tree"`
 	Parents   []Commit   `json:"parents"`
 	Diff      string     `json:"diff"`
 }
@@ -91,11 +91,11 @@ type CommitCursor struct {
 type Cursor string
 
 type Entity struct {
-	Id            int32            `json:"id"`
-	Created       time.Time        `json:"created"`
-	Updated       time.Time        `json:"updated"`
-	CanonicalName string           `json:"canonicalName"`
-	Repositories  RepositoryCursor `json:"repositories"`
+	Id            int32             `json:"id"`
+	Created       time.Time         `json:"created"`
+	Updated       time.Time         `json:"updated"`
+	CanonicalName string            `json:"canonicalName"`
+	Repositories  *RepositoryCursor `json:"repositories"`
 }
 
 type Features struct {
@@ -124,10 +124,10 @@ const (
 )
 
 type Reference struct {
-	Name      string         `json:"name"`
-	Target    string         `json:"target"`
-	Follow    *Object        `json:"follow,omitempty"`
-	Artifacts ArtifactCursor `json:"artifacts"`
+	Name      string          `json:"name"`
+	Target    string          `json:"target"`
+	Follow    *Object         `json:"follow,omitempty"`
+	Artifacts *ArtifactCursor `json:"artifacts"`
 }
 
 type ReferenceCursor struct {
@@ -143,22 +143,22 @@ type RepoInput struct {
 }
 
 type Repository struct {
-	Id                int32           `json:"id"`
-	Created           time.Time       `json:"created"`
-	Updated           time.Time       `json:"updated"`
-	Owner             Entity          `json:"owner"`
-	Name              string          `json:"name"`
-	Description       *string         `json:"description,omitempty"`
-	Visibility        Visibility      `json:"visibility"`
-	Readme            *string         `json:"readme,omitempty"`
-	UpstreamUrl       *string         `json:"upstreamUrl,omitempty"`
-	AccessControlList ACLCursor       `json:"accessControlList"`
-	Objects           []*Object       `json:"objects"`
-	References        ReferenceCursor `json:"references"`
-	HEAD              *Reference      `json:"HEAD,omitempty"`
-	Log               CommitCursor    `json:"log"`
-	Path              *TreeEntry      `json:"path,omitempty"`
-	Revparse_single   *Commit         `json:"revparse_single,omitempty"`
+	Id                int32            `json:"id"`
+	Created           time.Time        `json:"created"`
+	Updated           time.Time        `json:"updated"`
+	Owner             *Entity          `json:"owner"`
+	Name              string           `json:"name"`
+	Description       *string          `json:"description,omitempty"`
+	Visibility        Visibility       `json:"visibility"`
+	Readme            *string          `json:"readme,omitempty"`
+	UpstreamUrl       *string          `json:"upstreamUrl,omitempty"`
+	AccessControlList *ACLCursor       `json:"accessControlList"`
+	Objects           []*Object        `json:"objects"`
+	References        *ReferenceCursor `json:"references"`
+	HEAD              *Reference       `json:"HEAD,omitempty"`
+	Log               *CommitCursor    `json:"log"`
+	Path              *TreeEntry       `json:"path,omitempty"`
+	Revparse_single   *Commit          `json:"revparse_single,omitempty"`
 }
 
 type RepositoryCursor struct {
@@ -177,9 +177,9 @@ type Tag struct {
 	Id      string     `json:"id"`
 	ShortId string     `json:"shortId"`
 	Raw     string     `json:"raw"`
-	Target  Object     `json:"target"`
+	Target  *Object    `json:"target"`
 	Name    string     `json:"name"`
-	Tagger  Signature  `json:"tagger"`
+	Tagger  *Signature `json:"tagger"`
 	Message *string    `json:"message,omitempty"`
 }
 
@@ -192,19 +192,19 @@ type TextBlob struct {
 }
 
 type Tree struct {
-	Type    ObjectType      `json:"type"`
-	Id      string          `json:"id"`
-	ShortId string          `json:"shortId"`
-	Raw     string          `json:"raw"`
-	Entries TreeEntryCursor `json:"entries"`
-	Entry   *TreeEntry      `json:"entry,omitempty"`
+	Type    ObjectType       `json:"type"`
+	Id      string           `json:"id"`
+	ShortId string           `json:"shortId"`
+	Raw     string           `json:"raw"`
+	Entries *TreeEntryCursor `json:"entries"`
+	Entry   *TreeEntry       `json:"entry,omitempty"`
 }
 
 type TreeEntry struct {
-	Id     string `json:"id"`
-	Name   string `json:"name"`
-	Object Object `json:"object"`
-	Mode   int32  `json:"mode"`
+	Id     string  `json:"id"`
+	Name   string  `json:"name"`
+	Object *Object `json:"object"`
+	Mode   int32   `json:"mode"`
 }
 
 type TreeEntryCursor struct {
@@ -213,16 +213,16 @@ type TreeEntryCursor struct {
 }
 
 type User struct {
-	Id            int32            `json:"id"`
-	Created       time.Time        `json:"created"`
-	Updated       time.Time        `json:"updated"`
-	CanonicalName string           `json:"canonicalName"`
-	Username      string           `json:"username"`
-	Email         string           `json:"email"`
-	Url           *string          `json:"url,omitempty"`
-	Location      *string          `json:"location,omitempty"`
-	Bio           *string          `json:"bio,omitempty"`
-	Repositories  RepositoryCursor `json:"repositories"`
+	Id            int32             `json:"id"`
+	Created       time.Time         `json:"created"`
+	Updated       time.Time         `json:"updated"`
+	CanonicalName string            `json:"canonicalName"`
+	Username      string            `json:"username"`
+	Email         string            `json:"email"`
+	Url           *string           `json:"url,omitempty"`
+	Location      *string           `json:"location,omitempty"`
+	Bio           *string           `json:"bio,omitempty"`
+	Repositories  *RepositoryCursor `json:"repositories"`
 }
 
 type Version struct {
@@ -230,7 +230,7 @@ type Version struct {
 	Minor           int32     `json:"minor"`
 	Patch           int32     `json:"patch"`
 	DeprecationDate time.Time `json:"deprecationDate,omitempty"`
-	Features        Features  `json:"features"`
+	Features        *Features `json:"features"`
 }
 
 type Visibility string
@@ -261,13 +261,13 @@ func ListArtifacts(client *gqlclient.Client, ctx context.Context, name string) (
 	return respData.RepositoryByName, err
 }
 
-func UploadArtifact(client *gqlclient.Client, ctx context.Context, repoId int32, revspec string, file gqlclient.Upload) (uploadArtifact Artifact, err error) {
+func UploadArtifact(client *gqlclient.Client, ctx context.Context, repoId int32, revspec string, file gqlclient.Upload) (uploadArtifact *Artifact, err error) {
 	op := gqlclient.NewOperation("mutation uploadArtifact ($repoId: Int!, $revspec: String!, $file: Upload!) {\n\tuploadArtifact(repoId: $repoId, revspec: $revspec, file: $file) {\n\t\tfilename\n\t}\n}\n")
 	op.Var("repoId", repoId)
 	op.Var("revspec", revspec)
 	op.Var("file", file)
 	var respData struct {
-		UploadArtifact Artifact
+		UploadArtifact *Artifact
 	}
 	err = client.Execute(ctx, op, &respData)
 	return respData.UploadArtifact, err

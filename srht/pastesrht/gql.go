@@ -25,10 +25,10 @@ const (
 type Cursor string
 
 type Entity struct {
-	Id            int32       `json:"id"`
-	Created       time.Time   `json:"created"`
-	CanonicalName string      `json:"canonicalName"`
-	Pastes        PasteCursor `json:"pastes"`
+	Id            int32        `json:"id"`
+	Created       time.Time    `json:"created"`
+	CanonicalName string       `json:"canonicalName"`
+	Pastes        *PasteCursor `json:"pastes"`
 }
 
 type File struct {
@@ -42,7 +42,7 @@ type Paste struct {
 	Created    time.Time  `json:"created"`
 	Visibility Visibility `json:"visibility"`
 	Files      []*File    `json:"files"`
-	User       Entity     `json:"user"`
+	User       *Entity    `json:"user"`
 }
 
 type PasteCursor struct {
@@ -53,11 +53,11 @@ type PasteCursor struct {
 type URL string
 
 type User struct {
-	Id            int32       `json:"id"`
-	Created       time.Time   `json:"created"`
-	CanonicalName string      `json:"canonicalName"`
-	Pastes        PasteCursor `json:"pastes"`
-	Username      string      `json:"username"`
+	Id            int32        `json:"id"`
+	Created       time.Time    `json:"created"`
+	CanonicalName string       `json:"canonicalName"`
+	Pastes        *PasteCursor `json:"pastes"`
+	Username      string       `json:"username"`
 }
 
 type Version struct {
@@ -75,12 +75,12 @@ const (
 	VisibilityPrivate  Visibility = "PRIVATE"
 )
 
-func CreatePaste(client *gqlclient.Client, ctx context.Context, files []gqlclient.Upload, visibility Visibility) (create Paste, err error) {
+func CreatePaste(client *gqlclient.Client, ctx context.Context, files []gqlclient.Upload, visibility Visibility) (create *Paste, err error) {
 	op := gqlclient.NewOperation("mutation createPaste ($files: [Upload!]!, $visibility: Visibility!) {\n\tcreate(files: $files, visibility: $visibility) {\n\t\tid\n\t\tuser {\n\t\t\tcanonicalName\n\t\t}\n\t}\n}\n")
 	op.Var("files", files)
 	op.Var("visibility", visibility)
 	var respData struct {
-		Create Paste
+		Create *Paste
 	}
 	err = client.Execute(ctx, op, &respData)
 	return respData.Create, err

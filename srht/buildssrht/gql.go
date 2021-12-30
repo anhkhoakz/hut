@@ -68,7 +68,7 @@ type Job struct {
 	Tags      []*string   `json:"tags"`
 	Image     string      `json:"image"`
 	Runner    *string     `json:"runner,omitempty"`
-	Owner     Entity      `json:"owner"`
+	Owner     *Entity     `json:"owner"`
 	Group     *JobGroup   `json:"group,omitempty"`
 	Tasks     []*Task     `json:"tasks"`
 	Artifacts []*Artifact `json:"artifacts"`
@@ -85,7 +85,7 @@ type JobGroup struct {
 	Id       int32      `json:"id"`
 	Created  time.Time  `json:"created"`
 	Note     *string    `json:"note,omitempty"`
-	Owner    Entity     `json:"owner"`
+	Owner    *Entity    `json:"owner"`
 	Jobs     []*Job     `json:"jobs"`
 	Triggers []*Trigger `json:"triggers"`
 }
@@ -152,7 +152,7 @@ type Task struct {
 	Name    string     `json:"name"`
 	Status  TaskStatus `json:"status"`
 	Log     *Log       `json:"log,omitempty"`
-	Job     Job        `json:"job"`
+	Job     *Job       `json:"job"`
 }
 
 type TaskStatus string
@@ -192,16 +192,16 @@ const (
 )
 
 type User struct {
-	Id            int32     `json:"id"`
-	Created       time.Time `json:"created"`
-	Updated       time.Time `json:"updated"`
-	CanonicalName string    `json:"canonicalName"`
-	Username      string    `json:"username"`
-	Email         string    `json:"email"`
-	Url           *string   `json:"url,omitempty"`
-	Location      *string   `json:"location,omitempty"`
-	Bio           *string   `json:"bio,omitempty"`
-	Jobs          JobCursor `json:"jobs"`
+	Id            int32      `json:"id"`
+	Created       time.Time  `json:"created"`
+	Updated       time.Time  `json:"updated"`
+	CanonicalName string     `json:"canonicalName"`
+	Username      string     `json:"username"`
+	Email         string     `json:"email"`
+	Url           *string    `json:"url,omitempty"`
+	Location      *string    `json:"location,omitempty"`
+	Bio           *string    `json:"bio,omitempty"`
+	Jobs          *JobCursor `json:"jobs"`
 }
 
 type Version struct {
@@ -220,12 +220,12 @@ type WebhookTriggerInput struct {
 	Url string `json:"url"`
 }
 
-func Submit(client *gqlclient.Client, ctx context.Context, manifest string, note *string) (submit Job, err error) {
+func Submit(client *gqlclient.Client, ctx context.Context, manifest string, note *string) (submit *Job, err error) {
 	op := gqlclient.NewOperation("mutation submit ($manifest: String!, $note: String) {\n\tsubmit(manifest: $manifest, note: $note) {\n\t\tid\n\t\towner {\n\t\t\tcanonicalName\n\t\t}\n\t}\n}\n")
 	op.Var("manifest", manifest)
 	op.Var("note", note)
 	var respData struct {
-		Submit Job
+		Submit *Job
 	}
 	err = client.Execute(ctx, op, &respData)
 	return respData.Submit, err
@@ -261,19 +261,19 @@ func Manifest(client *gqlclient.Client, ctx context.Context, id int32) (job *Job
 	return respData.Job, err
 }
 
-func JobIDs(client *gqlclient.Client, ctx context.Context) (jobs JobCursor, err error) {
+func JobIDs(client *gqlclient.Client, ctx context.Context) (jobs *JobCursor, err error) {
 	op := gqlclient.NewOperation("query jobIDs {\n\tjobs {\n\t\tresults {\n\t\t\tid\n\t\t}\n\t}\n}\n")
 	var respData struct {
-		Jobs JobCursor
+		Jobs *JobCursor
 	}
 	err = client.Execute(ctx, op, &respData)
 	return respData.Jobs, err
 }
 
-func Jobs(client *gqlclient.Client, ctx context.Context) (jobs JobCursor, err error) {
+func Jobs(client *gqlclient.Client, ctx context.Context) (jobs *JobCursor, err error) {
 	op := gqlclient.NewOperation("query jobs {\n\tjobs {\n\t\tresults {\n\t\t\tid\n\t\t\tstatus\n\t\t\tnote\n\t\t\ttags\n\t\t\ttasks {\n\t\t\t\tname\n\t\t\t\tstatus\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	var respData struct {
-		Jobs JobCursor
+		Jobs *JobCursor
 	}
 	err = client.Execute(ctx, op, &respData)
 	return respData.Jobs, err
@@ -289,10 +289,10 @@ func Show(client *gqlclient.Client, ctx context.Context, id int32) (job *Job, er
 	return respData.Job, err
 }
 
-func Secrets(client *gqlclient.Client, ctx context.Context) (secrets SecretCursor, err error) {
+func Secrets(client *gqlclient.Client, ctx context.Context) (secrets *SecretCursor, err error) {
 	op := gqlclient.NewOperation("query secrets {\n\tsecrets {\n\t\tresults {\n\t\t\tuuid\n\t\t\tname\n\t\t}\n\t}\n}\n")
 	var respData struct {
-		Secrets SecretCursor
+		Secrets *SecretCursor
 	}
 	err = client.Execute(ctx, op, &respData)
 	return respData.Secrets, err
