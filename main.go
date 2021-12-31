@@ -18,6 +18,7 @@ func main() {
 		CompletionOptions: cobra.CompletionOptions{HiddenDefaultCmd: true},
 	}
 	cmd.PersistentFlags().StringVar(&instanceName, "instance", "", "srht instance to use")
+	cmd.PersistentFlags().StringVar(&configFile, "config", "", "config file to use")
 
 	cmd.AddCommand(newBuildsCommand())
 	cmd.AddCommand(newGitCommand())

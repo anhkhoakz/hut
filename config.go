@@ -15,6 +15,7 @@ import (
 )
 
 var instanceName string
+var configFile string
 
 type Client struct {
 	*gqlclient.Client
@@ -24,12 +25,16 @@ type Client struct {
 }
 
 func createClient(service string) *Client {
-	configDir, err := os.UserConfigDir()
-	if err != nil {
-		log.Fatalf("failed to get user config dir: %v", err)
+	if configFile == "" {
+		configDir, err := os.UserConfigDir()
+		if err != nil {
+			log.Fatalf("failed to get user config dir: %v", err)
+		}
+
+		configFile = filepath.Join(configDir, "hut", "config")
 	}
 
-	cfg, err := scfg.Load(filepath.Join(configDir, "hut", "config"))
+	cfg, err := scfg.Load(configFile)
 	if err != nil {
 		log.Fatalf("failed to load config file: %v", err)
 	}

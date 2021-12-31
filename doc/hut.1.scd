@@ -14,6 +14,10 @@ hut is a CLI companion utility to interact with sr.ht.
 
 # OPTIONS
 
+*--config*
+	Explicitly select a configuration file that should be used over
+	the default configuration.
+
 *-h*, *--help*
 	Show help message and quit.
 	Can be used after a command to get more information it.
