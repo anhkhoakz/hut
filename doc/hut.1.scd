@@ -18,6 +18,10 @@ hut is a CLI companion utility to interact with sr.ht.
 	Show help message and quit.
 	Can be used after a command to get more information it.
 
+*--instance*
+	Select which srht instance from the config file should be used.
+	By default the first one will be selected.
+
 # COMMANDS
 
 *help* <command>

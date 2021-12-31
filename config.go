@@ -14,6 +14,8 @@ import (
 	"golang.org/x/oauth2"
 )
 
+var instanceName string
+
 type Client struct {
 	*gqlclient.Client
 
@@ -36,7 +38,22 @@ func createClient(service string) *Client {
 	if len(instances) == 0 {
 		log.Fatalf("no sr.ht instance configured")
 	}
-	inst := instances[0]
+
+	var inst *scfg.Directive
+	if instanceName != "" {
+		for _, instance := range instances {
+			if instanceName == instance.Params[0] {
+				inst = instance
+				break
+			}
+		}
+
+		if inst == nil {
+			log.Fatalf("no instance with name %s found", instanceName)
+		}
+	} else {
+		inst = instances[0]
+	}
 
 	if len(inst.Params) == 0 {
 		log.Fatalf("missing instance hostname")

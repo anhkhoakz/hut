@@ -17,6 +17,8 @@ func main() {
 		Short:             "hut is a CLI tool for sr.ht",
 		CompletionOptions: cobra.CompletionOptions{HiddenDefaultCmd: true},
 	}
+	cmd.PersistentFlags().StringVar(&instanceName, "instance", "", "srht instance to use")
+
 	cmd.AddCommand(newBuildsCommand())
 	cmd.AddCommand(newGitCommand())
 	cmd.AddCommand(newGraphqlCommand())
