@@ -1,19 +1,81 @@
 package buildssrht
 
-import "git.sr.ht/~emersion/hut/termfmt"
+import (
+	"fmt"
+
+	"git.sr.ht/~emersion/hut/termfmt"
+)
+
+func (status JobStatus) Icon() string {
+	switch status {
+	case JobStatusPending, JobStatusQueued:
+		return "○"
+	case JobStatusRunning:
+		return "●"
+	case JobStatusSuccess:
+		return "✔"
+	case JobStatusFailed:
+		return "✗"
+	case JobStatusTimeout:
+		return "⏱️"
+	case JobStatusCancelled:
+		return "🛑"
+	default:
+		panic(fmt.Sprintf("unknown job status: %q", status))
+	}
+}
+
+func (status JobStatus) TermStyle() termfmt.Style {
+	switch status {
+	case JobStatusPending, JobStatusQueued, JobStatusRunning:
+		return termfmt.Blue
+	case JobStatusSuccess:
+		return termfmt.Green
+	case JobStatusFailed, JobStatusTimeout:
+		return termfmt.Red
+	case JobStatusCancelled:
+		return termfmt.Yellow
+	default:
+		panic(fmt.Sprintf("unknown job status: %q", status))
+	}
+}
 
 func (status JobStatus) TermString() string {
-	var color termfmt.Style
-	switch status {
-	case JobStatusSuccess:
-		color = termfmt.Green
-	case JobStatusFailed:
-		color = termfmt.Red
-	case JobStatusRunning:
-		color = termfmt.Blue
-	case JobStatusCancelled:
-		color = termfmt.Yellow
-	}
+	return termfmt.String(fmt.Sprintf("%s %s", status.Icon(), string(status)), status.TermStyle())
+}
 
-	return termfmt.String(string(status), color)
+func (status TaskStatus) Icon() string {
+	switch status {
+	case TaskStatusPending:
+		return "○"
+	case TaskStatusRunning:
+		return "●"
+	case TaskStatusSuccess:
+		return "✔"
+	case TaskStatusFailed:
+		return "✗"
+	case TaskStatusSkipped:
+		return "⏩"
+	default:
+		panic(fmt.Sprintf("unknown task status: %q", status))
+	}
+}
+
+func (status TaskStatus) TermStyle() termfmt.Style {
+	switch status {
+	case TaskStatusPending, TaskStatusRunning:
+		return termfmt.Blue
+	case TaskStatusSuccess:
+		return termfmt.Green
+	case TaskStatusFailed:
+		return termfmt.Red
+	case TaskStatusSkipped:
+		return termfmt.Yellow
+	default:
+		panic(fmt.Sprintf("unknown task status: %q", status))
+	}
+}
+
+func (status TaskStatus) TermIcon() string {
+	return termfmt.String(status.Icon(), status.TermStyle())
 }

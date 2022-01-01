@@ -367,10 +367,10 @@ func printJob(job *buildssrht.Job) {
 	if tagString := formatJobTags(job); tagString != "" {
 		fmt.Printf(" - %s", tagString)
 	}
-	fmt.Printf(": %s %s\n", jobStatusIcon(job.Status), job.Status.TermString())
+	fmt.Printf(": %s\n", job.Status.TermString())
 
 	for _, task := range job.Tasks {
-		fmt.Printf("%s %s  ", taskStatusIcon(task.Status), task.Name)
+		fmt.Printf("%s %s  ", task.Status.TermIcon(), task.Name)
 	}
 	fmt.Println()
 
@@ -443,7 +443,7 @@ func (c *Client) followJob(ctx context.Context, id int32) (*buildssrht.Job, erro
 		}
 
 		if jobStatusDone(job.Status) {
-			fmt.Printf("%v %v\n", jobStatusIcon(job.Status), job.Status)
+			fmt.Println(job.Status.TermString())
 			return job, nil
 		}
 
@@ -540,42 +540,6 @@ func jobStatusDone(status buildssrht.JobStatus) bool {
 	}
 }
 
-func jobStatusIcon(status buildssrht.JobStatus) string {
-	switch status {
-	case buildssrht.JobStatusPending, buildssrht.JobStatusQueued:
-		return "○"
-	case buildssrht.JobStatusRunning:
-		return "●"
-	case buildssrht.JobStatusSuccess:
-		return "✔"
-	case buildssrht.JobStatusFailed:
-		return "✗"
-	case buildssrht.JobStatusTimeout:
-		return "⏱️"
-	case buildssrht.JobStatusCancelled:
-		return "🛑"
-	default:
-		panic(fmt.Sprintf("unknown job status: %q", status))
-	}
-}
-
-func taskStatusIcon(status buildssrht.TaskStatus) string {
-	switch status {
-	case buildssrht.TaskStatusPending:
-		return "○"
-	case buildssrht.TaskStatusRunning:
-		return "●"
-	case buildssrht.TaskStatusSuccess:
-		return "✔"
-	case buildssrht.TaskStatusFailed:
-		return "✗"
-	case buildssrht.TaskStatusSkipped:
-		return "⏩"
-	default:
-		panic(fmt.Sprintf("unknown task status: %q", status))
-	}
-}
-
 func getSSHCommand(job *buildssrht.Job) (string, error) {
 	// TODO: compare timestamps and check if ssh access is still possible
 	if job.Runner == nil {
@@ -637,10 +601,10 @@ func (c *Client) followJobShow(ctx context.Context, id int32) (*buildssrht.Job, 
 
 		var taskString string
 		for _, task := range job.Tasks {
-			taskString += fmt.Sprintf("%s %s ", taskStatusIcon(task.Status), task.Name)
+			taskString += fmt.Sprintf("%s %s ", task.Status.TermIcon(), task.Name)
 		}
-		fmt.Printf("\x1b[1K\r#%d: %s %s with %s", job.Id,
-			jobStatusIcon(job.Status), job.Status.TermString(), taskString)
+		fmt.Printf("\x1b[1K\r#%d: %s with %s", job.Id,
+			job.Status.TermString(), taskString)
 
 		if jobStatusDone(job.Status) {
 			fmt.Print("\x1b[1K\r")
