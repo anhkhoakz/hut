@@ -266,6 +266,15 @@ func ListArtifacts(client *gqlclient.Client, ctx context.Context, name string) (
 	return respData.RepositoryByName, err
 }
 
+func SshSettings(client *gqlclient.Client, ctx context.Context) (version *Version, err error) {
+	op := gqlclient.NewOperation("query sshSettings {\n\tversion {\n\t\tsettings {\n\t\t\tsshUser\n\t\t}\n\t}\n}\n")
+	var respData struct {
+		Version *Version
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Version, err
+}
+
 func UploadArtifact(client *gqlclient.Client, ctx context.Context, repoId int32, revspec string, file gqlclient.Upload) (uploadArtifact *Artifact, err error) {
 	op := gqlclient.NewOperation("mutation uploadArtifact ($repoId: Int!, $revspec: String!, $file: Upload!) {\n\tuploadArtifact(repoId: $repoId, revspec: $revspec, file: $file) {\n\t\tfilename\n\t}\n}\n")
 	op.Var("repoId", repoId)

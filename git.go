@@ -50,7 +50,12 @@ func newGitCreateCommand() *cobra.Command {
 		fmt.Printf("Created repository %s\n", repo.Name)
 
 		if clone {
-			cloneURL := fmt.Sprintf("git@git.%s:%s/%s", c.Hostname,
+			ver, err := gitsrht.SshSettings(c.Client, ctx)
+			if err != nil {
+				log.Fatalf("failed to retrieve settings: %v", err)
+			}
+
+			cloneURL := fmt.Sprintf("%s@git.%s:%s/%s", ver.Settings.SshUser, c.Hostname,
 				repo.Owner.CanonicalName, repo.Name)
 			cloneCmd := exec.Command("git", "clone", cloneURL)
 			cloneCmd.Stdin = os.Stdin

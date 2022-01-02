@@ -20,6 +20,14 @@ query listArtifacts($name: String!) {
     }
 }
 
+query sshSettings {
+    version {
+        settings {
+            sshUser
+        }
+    }
+}
+
 mutation uploadArtifact($repoId: Int!, $revspec: String!, $file: Upload!) {
     uploadArtifact(repoId: $repoId, revspec: $revspec, file: $file) {
         filename
