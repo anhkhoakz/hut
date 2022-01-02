@@ -342,12 +342,12 @@ func newBuildsSSHCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		job, err := buildssrht.GetSSHInfo(c.Client, ctx, id)
+		job, ver, err := buildssrht.GetSSHInfo(c.Client, ctx, id)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		err = sshConnection(job)
+		err = sshConnection(job, ver.Settings.SshUser)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -573,12 +573,12 @@ func formatJobTags(job *buildssrht.Job) string {
 	return s
 }
 
-func sshConnection(job *buildssrht.Job) error {
+func sshConnection(job *buildssrht.Job, user string) error {
 	if job.Runner == nil {
 		return errors.New("job has no runner assigned yet")
 	}
 
-	cmd := exec.Command("ssh", "-t", fmt.Sprintf("builds@%s", *job.Runner),
+	cmd := exec.Command("ssh", "-t", fmt.Sprintf("%s@%s", user, *job.Runner),
 		"connect", fmt.Sprint(job.Id))
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout

@@ -334,12 +334,13 @@ func Secrets(client *gqlclient.Client, ctx context.Context) (secrets *SecretCurs
 	return respData.Secrets, err
 }
 
-func GetSSHInfo(client *gqlclient.Client, ctx context.Context, id int32) (job *Job, err error) {
-	op := gqlclient.NewOperation("query getSSHInfo ($id: Int!) {\n\tjob(id: $id) {\n\t\tid\n\t\trunner\n\t}\n}\n")
+func GetSSHInfo(client *gqlclient.Client, ctx context.Context, id int32) (job *Job, version *Version, err error) {
+	op := gqlclient.NewOperation("query getSSHInfo ($id: Int!) {\n\tjob(id: $id) {\n\t\tid\n\t\trunner\n\t}\n\tversion {\n\t\tsettings {\n\t\t\tsshUser\n\t\t}\n\t}\n}\n")
 	op.Var("id", id)
 	var respData struct {
-		Job *Job
+		Job     *Job
+		Version *Version
 	}
 	err = client.Execute(ctx, op, &respData)
-	return respData.Job, err
+	return respData.Job, respData.Version, err
 }

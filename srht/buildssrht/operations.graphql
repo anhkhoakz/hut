@@ -89,4 +89,10 @@ query getSSHInfo($id: Int!) {
         id
         runner
     }
+
+    version {
+        settings {
+            sshUser
+        }
+    }
 }
