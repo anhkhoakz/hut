@@ -36,11 +36,19 @@ type Version {
 
   # Optional features
   features: Features!
+
+  # Config settings
+  settings: Settings!
 }
 
 # Describes the status of optional features
 type Features {
   artifacts: Boolean!
+}
+
+# Instance specific settings
+type Settings {
+  sshUser: String!
 }
 
 enum AccessMode {

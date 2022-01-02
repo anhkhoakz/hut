@@ -332,11 +332,11 @@ func CreateSSHKey(client *gqlclient.Client, ctx context.Context, key string) (cr
 	return respData.CreateSSHKey, err
 }
 
-func CreatePGPKey(client *gqlclient.Client, ctx context.Context, key string) (createPGPKey PGPKey, err error) {
+func CreatePGPKey(client *gqlclient.Client, ctx context.Context, key string) (createPGPKey *PGPKey, err error) {
 	op := gqlclient.NewOperation("mutation createPGPKey ($key: String!) {\n\tcreatePGPKey(key: $key) {\n\t\tfingerprint\n\t}\n}\n")
 	op.Var("key", key)
 	var respData struct {
-		CreatePGPKey PGPKey
+		CreatePGPKey *PGPKey
 	}
 	err = client.Execute(ctx, op, &respData)
 	return respData.CreatePGPKey, err

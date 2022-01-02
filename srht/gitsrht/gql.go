@@ -166,6 +166,10 @@ type RepositoryCursor struct {
 	Cursor  *Cursor      `json:"cursor,omitempty"`
 }
 
+type Settings struct {
+	SshUser string `json:"sshUser"`
+}
+
 type Signature struct {
 	Name  string    `json:"name"`
 	Email string    `json:"email"`
@@ -231,6 +235,7 @@ type Version struct {
 	Patch           int32     `json:"patch"`
 	DeprecationDate time.Time `json:"deprecationDate,omitempty"`
 	Features        *Features `json:"features"`
+	Settings        *Settings `json:"settings"`
 }
 
 type Visibility string
