@@ -266,6 +266,25 @@ func ListArtifacts(client *gqlclient.Client, ctx context.Context, name string) (
 	return respData.RepositoryByName, err
 }
 
+func Repositories(client *gqlclient.Client, ctx context.Context) (repositories *RepositoryCursor, err error) {
+	op := gqlclient.NewOperation("query repositories {\n\trepositories {\n\t\t... repos\n\t}\n}\nfragment repos on RepositoryCursor {\n\tresults {\n\t\tid\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t}\n}\n")
+	var respData struct {
+		Repositories *RepositoryCursor
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Repositories, err
+}
+
+func RepositoriesByUser(client *gqlclient.Client, ctx context.Context, username string) (user *User, err error) {
+	op := gqlclient.NewOperation("query repositoriesByUser ($username: String!) {\n\tuser(username: $username) {\n\t\trepositories {\n\t\t\t... repos\n\t\t}\n\t}\n}\nfragment repos on RepositoryCursor {\n\tresults {\n\t\tid\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t}\n}\n")
+	op.Var("username", username)
+	var respData struct {
+		User *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.User, err
+}
+
 func SshSettings(client *gqlclient.Client, ctx context.Context) (version *Version, err error) {
 	op := gqlclient.NewOperation("query sshSettings {\n\tversion {\n\t\tsettings {\n\t\t\tsshUser\n\t\t}\n\t}\n}\n")
 	var respData struct {

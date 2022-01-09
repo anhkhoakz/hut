@@ -67,6 +67,9 @@ hut is a CLI companion utility to interact with sr.ht.
 	*-c*, *--clone*
 		Clone repository to _CWD_.
 
+*list* [username]
+	List repositories.
+
 *artifact upload* <filename> [options...]
 	Upload an artifact.
 
