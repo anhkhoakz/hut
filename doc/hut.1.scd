@@ -150,6 +150,9 @@ hut is a CLI companion utility to interact with sr.ht.
 	If _path_ is not specified, the default public key from the local GPG
 	keyring is used.
 
+*pgp-key delete* <ID>
+	Delete a PGP key from your account.
+
 ## paste
 
 *create* <filenames...>

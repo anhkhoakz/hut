@@ -188,6 +188,7 @@ func newMetaPGPKeyCommand() *cobra.Command {
 		Short: "Manage PGP keys",
 	}
 	cmd.AddCommand(newMetaPGPKeyCreateCommand())
+	cmd.AddCommand(newMetaPGPKeyDeleteCommand())
 	return cmd
 }
 
@@ -262,4 +263,32 @@ func exportDefaultPGPKey(ctx context.Context) ([]byte, error) {
 	}
 
 	return out, nil
+}
+
+func newMetaPGPKeyDeleteCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("meta")
+
+		id, err := parseInt32(args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		key, err := metasrht.DeletePGPKey(c.Client, ctx, id)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf("Deleted PGP key %s\n", key.Fingerprint)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "delete <ID>",
+		Short:             "Delete a PGP key",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	return cmd
 }
