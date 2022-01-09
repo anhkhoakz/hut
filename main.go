@@ -18,6 +18,7 @@ func main() {
 		CompletionOptions: cobra.CompletionOptions{HiddenDefaultCmd: true},
 	}
 	cmd.PersistentFlags().StringVar(&instanceName, "instance", "", "srht instance to use")
+	cmd.RegisterFlagCompletionFunc("instance", cobra.NoFileCompletions)
 	cmd.PersistentFlags().StringVar(&configFile, "config", "", "config file to use")
 
 	cmd.AddCommand(newBuildsCommand())
@@ -30,4 +31,8 @@ func main() {
 	if err := cmd.ExecuteContext(ctx); err != nil {
 		os.Exit(1)
 	}
+}
+
+func completeVisibility(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return []string{"public", "unlisted", "private"}, cobra.ShellCompDirectiveNoFileComp
 }

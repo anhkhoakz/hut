@@ -63,10 +63,11 @@ func newMetaShowCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:   "show [user]",
-		Short: "Show a user profile",
-		Args:  cobra.MaximumNArgs(1),
-		Run:   run,
+		Use:               "show [user]",
+		Short:             "Show a user profile",
+		Args:              cobra.MaximumNArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
 	}
 	return cmd
 }

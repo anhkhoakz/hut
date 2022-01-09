@@ -81,6 +81,7 @@ func newPasteCreateCommand() *cobra.Command {
 		Run:   run,
 	}
 	cmd.Flags().StringVarP(&visibility, "visibility", "v", "unlisted", "paste visibility")
+	cmd.RegisterFlagCompletionFunc("visibility", completeVisibility)
 	return cmd
 }
 
@@ -104,10 +105,11 @@ func newPasteDeleteCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:   "delete <ID...>",
-		Short: "Delete pastes",
-		Args:  cobra.MinimumNArgs(1),
-		Run:   run,
+		Use:               "delete <ID...>",
+		Short:             "Delete pastes",
+		Args:              cobra.MinimumNArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
 	}
 	return cmd
 }

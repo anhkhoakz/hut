@@ -26,6 +26,7 @@ func newGitCommand() *cobra.Command {
 	cmd.AddCommand(newGitArtifactCommand())
 	cmd.AddCommand(newGitCreateCommand())
 	cmd.PersistentFlags().StringVarP(&repoName, "repo", "r", "", "name of repository")
+	cmd.RegisterFlagCompletionFunc("repo", cobra.NoFileCompletions)
 	return cmd
 }
 
@@ -70,13 +71,16 @@ func newGitCreateCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:   "create <name>",
-		Short: "Create a repository",
-		Args:  cobra.ExactArgs(1),
-		Run:   run,
+		Use:               "create <name>",
+		Short:             "Create a repository",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
 	}
 	cmd.Flags().StringVarP(&visibility, "visibility", "v", "unlisted", "repo visibility")
+	cmd.RegisterFlagCompletionFunc("visibility", completeVisibility)
 	cmd.Flags().StringVarP(&desc, "description", "d", "", "repo description")
+	cmd.RegisterFlagCompletionFunc("description", cobra.NoFileCompletions)
 	cmd.Flags().BoolVarP(&clone, "clone", "c", false, "autoclone repo")
 	return cmd
 }
@@ -140,6 +144,7 @@ func newGitArtifactUploadCommand() *cobra.Command {
 		Run:   run,
 	}
 	cmd.Flags().StringVar(&rev, "rev", "", "revision tag")
+	cmd.RegisterFlagCompletionFunc("rev", completeRev)
 	return cmd
 }
 
@@ -200,10 +205,11 @@ func newGitArtifactDeleteCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:   "delete <ID>",
-		Short: "Delete an artifact",
-		Args:  cobra.ExactArgs(1),
-		Run:   run,
+		Use:               "delete <ID>",
+		Short:             "Delete an artifact",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
 	}
 	return cmd
 }
@@ -288,4 +294,14 @@ func getGitVisibility(visibility string) (gitsrht.Visibility, error) {
 	default:
 		return "", fmt.Errorf("invalid visibility: %s", visibility)
 	}
+}
+
+func completeRev(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	output, err := exec.Command("git", "tag").Output()
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	revs := strings.Split(string(output), "\n")
+	return revs, cobra.ShellCompDirectiveNoFileComp
 }

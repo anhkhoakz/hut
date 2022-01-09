@@ -92,7 +92,10 @@ func newBuildsSubmitCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "submit [manifest...]",
 		Short: "Submit a build manifest",
-		Run:   run,
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			return []string{"yml", "yaml"}, cobra.ShellCompDirectiveFilterFileExt
+		},
+		Run: run,
 	}
 	cmd.Flags().BoolVarP(&follow, "follow", "f", false, "follow build logs")
 	return cmd
@@ -182,10 +185,11 @@ func newBuildsResubmitCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:   "resubmit <ID>",
-		Short: "Resubmit a build",
-		Args:  cobra.ExactArgs(1),
-		Run:   run,
+		Use:               "resubmit <ID>",
+		Short:             "Resubmit a build",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
 	}
 	cmd.Flags().BoolVarP(&follow, "follow", "f", false, "follow build logs")
 	cmd.Flags().BoolVarP(&edit, "edit", "e", false, "edit manifest")
@@ -213,10 +217,11 @@ func newBuildsCancelCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:   "cancel <ID...>",
-		Short: "Cancel jobs",
-		Args:  cobra.MinimumNArgs(1),
-		Run:   run,
+		Use:               "cancel <ID...>",
+		Short:             "Cancel jobs",
+		Args:              cobra.MinimumNArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
 	}
 	return cmd
 }
@@ -300,10 +305,11 @@ func newBuildsShowCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:   "show [ID]",
-		Short: "Show job status",
-		Args:  cobra.MaximumNArgs(1),
-		Run:   run,
+		Use:               "show [ID]",
+		Short:             "Show job status",
+		Args:              cobra.MaximumNArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
 	}
 	cmd.Flags().BoolVarP(&follow, "follow", "f", false, "follow job status")
 	return cmd
@@ -354,10 +360,11 @@ func newBuildsSSHCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:   "ssh <ID>",
-		Short: "SSH into job",
-		Args:  cobra.ExactArgs(1),
-		Run:   run,
+		Use:               "ssh <ID>",
+		Short:             "SSH into job",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
 	}
 	return cmd
 }

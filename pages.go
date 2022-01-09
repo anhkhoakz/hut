@@ -66,8 +66,10 @@ func newPagesPublishCommand() *cobra.Command {
 		Run:   run,
 	}
 	cmd.Flags().StringVarP(&domain, "domain", "d", "", "domain name")
+	cmd.RegisterFlagCompletionFunc("domain", cobra.NoFileCompletions)
 	cmd.Flags().StringVarP(&protocol, "protocol", "p", "HTTPS",
 		"protocol (HTTPS or GEMINI)")
+	cmd.RegisterFlagCompletionFunc("protocol", completeProtocol)
 	return cmd
 }
 
@@ -101,8 +103,10 @@ func newPagesUnpublishCommand() *cobra.Command {
 		Run:   run,
 	}
 	cmd.Flags().StringVarP(&domain, "domain", "d", "", "domain name")
+	cmd.RegisterFlagCompletionFunc("domain", cobra.NoFileCompletions)
 	cmd.Flags().StringVarP(&protocol, "protocol", "p", "HTTPS",
 		"protocol (HTTPS or GEMINI)")
+	cmd.RegisterFlagCompletionFunc("protocol", completeProtocol)
 	return cmd
 }
 
@@ -139,4 +143,9 @@ func getProtocol(protocol string) (pagessrht.Protocol, error) {
 	default:
 		return "", fmt.Errorf("invalid protocol: %s", protocol)
 	}
+}
+
+func completeProtocol(cmd *cobra.Command, args []string, toComplete string) (
+	[]string, cobra.ShellCompDirective) {
+	return []string{"https", "gemini"}, cobra.ShellCompDirectiveNoFileComp
 }
