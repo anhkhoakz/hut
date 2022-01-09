@@ -96,6 +96,17 @@ func Delete(client *gqlclient.Client, ctx context.Context, id string) (delete *P
 	return respData.Delete, err
 }
 
+func Update(client *gqlclient.Client, ctx context.Context, id string, visibility Visibility) (update *Paste, err error) {
+	op := gqlclient.NewOperation("mutation update ($id: String!, $visibility: Visibility!) {\n\tupdate(id: $id, visibility: $visibility) {\n\t\tid\n\t}\n}\n")
+	op.Var("id", id)
+	op.Var("visibility", visibility)
+	var respData struct {
+		Update *Paste
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Update, err
+}
+
 func Pastes(client *gqlclient.Client, ctx context.Context) (pastes *PasteCursor, err error) {
 	op := gqlclient.NewOperation("query pastes {\n\tpastes {\n\t\tresults {\n\t\t\tid\n\t\t\tcreated\n\t\t\tvisibility\n\t\t\tfiles {\n\t\t\t\tfilename\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	var respData struct {

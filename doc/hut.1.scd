@@ -169,6 +169,14 @@ hut is a CLI companion utility to interact with sr.ht.
 *list*
 	List pastes.
 
+*update* <ID> [options...]
+	Update a paste's visibility.
+
+	Options are:
+
+	*-v*, *--visibility* <string>
+		Visibility to use (public, unlisted, private)
+
 ## pages
 
 *publish* <tarball> [options...]

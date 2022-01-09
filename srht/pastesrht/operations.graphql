@@ -13,6 +13,12 @@ mutation delete($id: String!) {
     }
 }
 
+mutation update($id: String!, $visibility: Visibility!) {
+    update(id: $id, visibility: $visibility) {
+        id
+    }
+}
+
 query pastes {
     pastes {
         results {
