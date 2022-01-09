@@ -139,6 +139,9 @@ hut is a CLI companion utility to interact with sr.ht.
 
 	If _path_ is not specified, the default SSH public key is used.
 
+*ssh-key delete* <ID>
+	Delete an SSH public key from your account.
+
 *pgp-key create* [path]
 	Upload a PGP public key and associate it with your account.
 

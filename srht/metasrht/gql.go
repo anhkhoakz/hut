@@ -341,3 +341,13 @@ func CreatePGPKey(client *gqlclient.Client, ctx context.Context, key string) (cr
 	err = client.Execute(ctx, op, &respData)
 	return respData.CreatePGPKey, err
 }
+
+func DeleteSSHKey(client *gqlclient.Client, ctx context.Context, id int32) (deleteSSHKey *SSHKey, err error) {
+	op := gqlclient.NewOperation("mutation deleteSSHKey ($id: Int!) {\n\tdeleteSSHKey(id: $id) {\n\t\tfingerprint\n\t}\n}\n")
+	op.Var("id", id)
+	var respData struct {
+		DeleteSSHKey *SSHKey
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.DeleteSSHKey, err
+}

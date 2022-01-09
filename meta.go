@@ -78,6 +78,7 @@ func newMetaSSHKeyCommand() *cobra.Command {
 		Short: "Manage SSH keys",
 	}
 	cmd.AddCommand(newMetaSSHKeyCreateCommand())
+	cmd.AddCommand(newMetaSSHKeyDeleteCommand())
 	return cmd
 }
 
@@ -151,6 +152,34 @@ func guessSSHPubKeyFilename() (string, error) {
 	}
 
 	return match, nil
+}
+
+func newMetaSSHKeyDeleteCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("meta")
+
+		id, err := parseInt32(args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		key, err := metasrht.DeleteSSHKey(c.Client, ctx, id)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf("Deleted SSH key %s\n", key.Fingerprint)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "delete <ID>",
+		Short:             "Delete an SSH key",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	return cmd
 }
 
 func newMetaPGPKeyCommand() *cobra.Command {

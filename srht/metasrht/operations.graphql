@@ -30,3 +30,9 @@ mutation createPGPKey($key: String!) {
         fingerprint
     }
 }
+
+mutation deleteSSHKey($id: Int!) {
+    deleteSSHKey(id: $id) {
+        fingerprint
+    }
+}
