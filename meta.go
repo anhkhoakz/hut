@@ -79,6 +79,7 @@ func newMetaSSHKeyCommand() *cobra.Command {
 	}
 	cmd.AddCommand(newMetaSSHKeyCreateCommand())
 	cmd.AddCommand(newMetaSSHKeyDeleteCommand())
+	cmd.AddCommand(newMetaSSHKeyListCommand())
 	return cmd
 }
 
@@ -179,6 +180,63 @@ func newMetaSSHKeyDeleteCommand() *cobra.Command {
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
+	return cmd
+}
+
+func newMetaSSHKeyListCommand() *cobra.Command {
+	var raw bool
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("meta")
+
+		var (
+			user *metasrht.User
+			err  error
+		)
+
+		if len(args) > 0 {
+			username := strings.TrimLeft(args[0], "~")
+			if raw {
+				user, err = metasrht.ListRawSSHKeysByUser(c.Client, ctx, username)
+			} else {
+				user, err = metasrht.ListSSHKeysByUser(c.Client, ctx, username)
+			}
+		} else {
+			if raw {
+				user, err = metasrht.ListRawSSHKeys(c.Client, ctx)
+			} else {
+				user, err = metasrht.ListSSHKeys(c.Client, ctx)
+			}
+		}
+		if err != nil {
+			log.Fatal(err)
+		} else if user == nil {
+			log.Fatal("no such user")
+		}
+
+		if raw {
+			for _, key := range user.SshKeys.Results {
+				fmt.Println(key.Key)
+			}
+		} else {
+			for _, key := range user.SshKeys.Results {
+				fmt.Printf("#%d: %s\n", key.Id, key.Fingerprint)
+				if key.Comment != nil {
+					fmt.Printf("  %s\n", *key.Comment)
+				}
+				fmt.Println()
+			}
+		}
+	}
+
+	cmd := &cobra.Command{
+		Use:               "list [user]",
+		Short:             "List SSH keys",
+		Args:              cobra.MaximumNArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	cmd.Flags().BoolVarP(&raw, "raw", "r", false, "print raw public keys")
 	return cmd
 }
 

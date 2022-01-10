@@ -18,6 +18,48 @@ fragment user on User {
     bio
 }
 
+query listSSHKeys {
+    me {
+        ...sshKeys
+    }
+}
+
+query listSSHKeysByUser($username: String!) {
+    userByName(username: $username) {
+        ...sshKeys
+    }
+}
+
+fragment sshKeys on User {
+    sshKeys {
+        results {
+            id
+            fingerprint
+            comment
+        }
+    }
+}
+
+query listRawSSHKeys {
+    me {
+        ...sshKeysRaw
+    }
+}
+
+query listRawSSHKeysByUser($username: String!) {
+    userByName(username: $username) {
+        ...sshKeysRaw
+    }
+}
+
+fragment sshKeysRaw on User {
+    sshKeys {
+        results {
+            key
+        }
+    }
+}
+
 mutation createSSHKey($key: String!) {
     createSSHKey(key: $key) {
         fingerprint
