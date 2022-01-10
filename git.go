@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"git.sr.ht/~emersion/hut/srht/gitsrht"
+	"git.sr.ht/~emersion/hut/termfmt"
 )
 
 var repoName string
@@ -111,7 +112,7 @@ func newGitListCommand() *cobra.Command {
 		}
 
 		for _, repo := range repos.Results {
-			fmt.Printf("#%d %s (%s)\n", repo.Id, repo.Name, repo.Visibility.TermString())
+			fmt.Printf("#%d %s (%s)\n", repo.Id, termfmt.String(repo.Name, termfmt.Bold), repo.Visibility.TermString())
 			if repo.Description != nil && *repo.Description != "" {
 				fmt.Printf("  %s\n", *repo.Description)
 			}
