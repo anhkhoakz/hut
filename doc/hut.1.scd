@@ -167,6 +167,14 @@ hut is a CLI companion utility to interact with sr.ht.
 *pgp-key delete* <ID>
 	Delete a PGP key from your account.
 
+*pgp-key list* [username] [options...]
+	List PGP public keys.
+
+	Options are:
+
+	*-r*, *--raw*
+		Only print raw public key
+
 ## paste
 
 *create* <filenames...>

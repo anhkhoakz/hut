@@ -60,6 +60,47 @@ fragment sshKeysRaw on User {
     }
 }
 
+query listPGPKeys {
+    me {
+        ...pgpKeys
+    }
+}
+
+query listPGPKeysByUser($username: String!) {
+    userByName(username: $username) {
+        ...pgpKeys
+    }
+}
+
+fragment pgpKeys on User {
+    pgpKeys {
+        results {
+            id
+            fingerprint
+        }
+    }
+}
+
+query listRawPGPKeys {
+    me {
+        ...pgpKeysRaw
+    }
+}
+
+query listRawPGPKeysByUser($username: String!) {
+    userByName(username: $username) {
+        ...pgpKeysRaw
+    }
+}
+
+fragment pgpKeysRaw on User {
+    pgpKeys {
+        results {
+            key
+        }
+    }
+}
+
 mutation createSSHKey($key: String!) {
     createSSHKey(key: $key) {
         fingerprint

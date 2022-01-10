@@ -247,6 +247,7 @@ func newMetaPGPKeyCommand() *cobra.Command {
 	}
 	cmd.AddCommand(newMetaPGPKeyCreateCommand())
 	cmd.AddCommand(newMetaPGPKeyDeleteCommand())
+	cmd.AddCommand(newMetaPGPKeyListCommand())
 	return cmd
 }
 
@@ -349,4 +350,59 @@ func newMetaPGPKeyDeleteCommand() *cobra.Command {
 		Run:               run,
 	}
 	return cmd
+}
+
+func newMetaPGPKeyListCommand() *cobra.Command {
+	var raw bool
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("meta")
+
+		var (
+			user *metasrht.User
+			err  error
+		)
+
+		if len(args) > 0 {
+			username := strings.TrimLeft(args[0], "~")
+			if raw {
+				user, err = metasrht.ListRawPGPKeysByUser(c.Client, ctx, username)
+			} else {
+				user, err = metasrht.ListPGPKeysByUser(c.Client, ctx, username)
+			}
+		} else {
+			if raw {
+				user, err = metasrht.ListRawPGPKeys(c.Client, ctx)
+			} else {
+				user, err = metasrht.ListPGPKeys(c.Client, ctx)
+			}
+		}
+		if err != nil {
+			log.Fatal(err)
+		} else if user == nil {
+			log.Fatal("no such user")
+		}
+
+		if raw {
+			for _, key := range user.PgpKeys.Results {
+				fmt.Println(key.Key)
+			}
+		} else {
+			for _, key := range user.PgpKeys.Results {
+				fmt.Printf("#%d: %s\n", key.Id, key.Fingerprint)
+				fmt.Println()
+			}
+		}
+	}
+
+	cmd := &cobra.Command{
+		Use:               "list [user]",
+		Short:             "List PGP keys",
+		Args:              cobra.MaximumNArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	cmd.Flags().BoolVarP(&raw, "raw", "r", false, "print raw public keys")
+	return cmd
+
 }

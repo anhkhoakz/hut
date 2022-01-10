@@ -360,6 +360,44 @@ func ListRawSSHKeysByUser(client *gqlclient.Client, ctx context.Context, usernam
 	return respData.UserByName, err
 }
 
+func ListPGPKeys(client *gqlclient.Client, ctx context.Context) (me *User, err error) {
+	op := gqlclient.NewOperation("query listPGPKeys {\n\tme {\n\t\t... pgpKeys\n\t}\n}\nfragment pgpKeys on User {\n\tpgpKeys {\n\t\tresults {\n\t\t\tid\n\t\t\tfingerprint\n\t\t}\n\t}\n}\n")
+	var respData struct {
+		Me *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Me, err
+}
+
+func ListPGPKeysByUser(client *gqlclient.Client, ctx context.Context, username string) (userByName *User, err error) {
+	op := gqlclient.NewOperation("query listPGPKeysByUser ($username: String!) {\n\tuserByName(username: $username) {\n\t\t... pgpKeys\n\t}\n}\nfragment pgpKeys on User {\n\tpgpKeys {\n\t\tresults {\n\t\t\tid\n\t\t\tfingerprint\n\t\t}\n\t}\n}\n")
+	op.Var("username", username)
+	var respData struct {
+		UserByName *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.UserByName, err
+}
+
+func ListRawPGPKeys(client *gqlclient.Client, ctx context.Context) (me *User, err error) {
+	op := gqlclient.NewOperation("query listRawPGPKeys {\n\tme {\n\t\t... pgpKeysRaw\n\t}\n}\nfragment pgpKeysRaw on User {\n\tpgpKeys {\n\t\tresults {\n\t\t\tkey\n\t\t}\n\t}\n}\n")
+	var respData struct {
+		Me *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Me, err
+}
+
+func ListRawPGPKeysByUser(client *gqlclient.Client, ctx context.Context, username string) (userByName *User, err error) {
+	op := gqlclient.NewOperation("query listRawPGPKeysByUser ($username: String!) {\n\tuserByName(username: $username) {\n\t\t... pgpKeysRaw\n\t}\n}\nfragment pgpKeysRaw on User {\n\tpgpKeys {\n\t\tresults {\n\t\t\tkey\n\t\t}\n\t}\n}\n")
+	op.Var("username", username)
+	var respData struct {
+		UserByName *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.UserByName, err
+}
+
 func CreateSSHKey(client *gqlclient.Client, ctx context.Context, key string) (createSSHKey *SSHKey, err error) {
 	op := gqlclient.NewOperation("mutation createSSHKey ($key: String!) {\n\tcreateSSHKey(key: $key) {\n\t\tfingerprint\n\t\tcomment\n\t}\n}\n")
 	op.Var("key", key)
