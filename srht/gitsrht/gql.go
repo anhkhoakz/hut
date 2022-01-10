@@ -327,3 +327,13 @@ func CreateRepository(client *gqlclient.Client, ctx context.Context, name string
 	err = client.Execute(ctx, op, &respData)
 	return respData.CreateRepository, err
 }
+
+func DeleteRepository(client *gqlclient.Client, ctx context.Context, id int32) (deleteRepository *Repository, err error) {
+	op := gqlclient.NewOperation("mutation deleteRepository ($id: Int!) {\n\tdeleteRepository(id: $id) {\n\t\tname\n\t}\n}\n")
+	op.Var("id", id)
+	var respData struct {
+		DeleteRepository *Repository
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.DeleteRepository, err
+}

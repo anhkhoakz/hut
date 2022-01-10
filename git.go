@@ -27,6 +27,7 @@ func newGitCommand() *cobra.Command {
 	cmd.AddCommand(newGitArtifactCommand())
 	cmd.AddCommand(newGitCreateCommand())
 	cmd.AddCommand(newGitListCommand())
+	cmd.AddCommand(newGitDeleteCommand())
 	cmd.PersistentFlags().StringVarP(&repoName, "repo", "r", "", "name of repository")
 	cmd.RegisterFlagCompletionFunc("repo", cobra.NoFileCompletions)
 	return cmd
@@ -125,6 +126,47 @@ func newGitListCommand() *cobra.Command {
 		Short: "List repos",
 		Args:  cobra.MaximumNArgs(1),
 		Run:   run,
+	}
+	return cmd
+}
+
+func newGitDeleteCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("git")
+
+		var id int32
+		if len(args) > 0 {
+			var err error
+			id, err = parseInt32(args[0])
+			if err != nil {
+				log.Fatal(err)
+			}
+		} else {
+			getRepoName(ctx, c)
+			repo, err := gitsrht.RepositoryByName(c.Client, ctx, repoName)
+			if err != nil {
+				log.Fatalf("failed to get repository ID: %v", err)
+			} else if repo == nil {
+				log.Fatalf("repository %s does not exist", repoName)
+			}
+			id = repo.Id
+		}
+
+		repo, err := gitsrht.DeleteRepository(c.Client, ctx, id)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf("Deleted repository %s\n", repo.Name)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "delete [ID]",
+		Short:             "Delete a repository",
+		Args:              cobra.MaximumNArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
 	}
 	return cmd
 }

@@ -79,3 +79,9 @@ mutation createRepository(
         name
     }
 }
+
+mutation deleteRepository($id: Int!) {
+    deleteRepository(id: $id) {
+        name
+    }
+}
