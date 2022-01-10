@@ -18,6 +18,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"git.sr.ht/~emersion/hut/srht/buildssrht"
+	"git.sr.ht/~emersion/hut/termfmt"
 )
 
 func newBuildsCommand() *cobra.Command {
@@ -370,9 +371,9 @@ func newBuildsSSHCommand() *cobra.Command {
 }
 
 func printJob(job *buildssrht.Job) {
-	fmt.Printf("#%d", job.Id)
+	fmt.Printf(termfmt.String(fmt.Sprintf("#%d", job.Id), termfmt.DarkYellow))
 	if tagString := formatJobTags(job); tagString != "" {
-		fmt.Printf(" - %s", tagString)
+		fmt.Printf(" - %s", termfmt.String(tagString, termfmt.Bold))
 	}
 	fmt.Printf(": %s\n", job.Status.TermString())
 
