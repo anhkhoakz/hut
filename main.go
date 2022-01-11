@@ -46,18 +46,23 @@ func completeVisibility(cmd *cobra.Command, args []string, toComplete string) ([
 }
 
 func getConfirmation(msg string) bool {
-	fmt.Printf("%s [y/N]: ", msg)
-
 	reader := bufio.NewReader(os.Stdin)
-	input, err := reader.ReadString('\n')
-	if err != nil {
-		log.Fatal(err)
-	}
 
-	input = strings.ToLower(strings.TrimSpace(input))
-	if input == "yes" || input == "y" {
-		return true
-	}
+	for {
+		fmt.Printf("%s [y/N]: ", msg)
 
-	return false
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		switch strings.ToLower(strings.TrimSpace(input)) {
+		case "yes", "y":
+			return true
+		case "no", "n":
+			return false
+		default:
+			fmt.Println(`Expected "yes" or "no"`)
+		}
+	}
 }
