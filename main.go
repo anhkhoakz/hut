@@ -1,8 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"context"
+	"fmt"
+	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -35,4 +39,21 @@ func main() {
 
 func completeVisibility(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	return []string{"public", "unlisted", "private"}, cobra.ShellCompDirectiveNoFileComp
+}
+
+func getConfirmation(msg string) bool {
+	fmt.Printf("%s [y/N]: ", msg)
+
+	reader := bufio.NewReader(os.Stdin)
+	input, err := reader.ReadString('\n')
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	input = strings.ToLower(strings.TrimSpace(input))
+	if input == "yes" || input == "y" {
+		return true
+	}
+
+	return false
 }
