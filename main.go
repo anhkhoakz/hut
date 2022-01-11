@@ -12,6 +12,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// ownerPrefixes is the set of characters used to prefix sr.ht owners. "~" is
+// used to indicate users.
+const ownerPrefixes = "~"
+
 func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()

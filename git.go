@@ -96,7 +96,7 @@ func newGitListCommand() *cobra.Command {
 		var repos *gitsrht.RepositoryCursor
 
 		if len(args) > 0 {
-			username := strings.TrimLeft(args[0], "~")
+			username := strings.TrimLeft(args[0], ownerPrefixes)
 			user, err := gitsrht.RepositoriesByUser(c.Client, ctx, username)
 			if err != nil {
 				log.Fatal(err)

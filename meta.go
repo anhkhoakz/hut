@@ -39,7 +39,7 @@ func newMetaShowCommand() *cobra.Command {
 			err  error
 		)
 		if len(args) > 0 {
-			username := strings.TrimLeft(args[0], "~")
+			username := strings.TrimLeft(args[0], ownerPrefixes)
 			user, err = metasrht.FetchUser(c.Client, ctx, username)
 		} else {
 			user, err = metasrht.FetchMe(c.Client, ctx)
@@ -195,7 +195,7 @@ func newMetaSSHKeyListCommand() *cobra.Command {
 		)
 
 		if len(args) > 0 {
-			username := strings.TrimLeft(args[0], "~")
+			username := strings.TrimLeft(args[0], ownerPrefixes)
 			if raw {
 				user, err = metasrht.ListRawSSHKeysByUser(c.Client, ctx, username)
 			} else {
@@ -364,7 +364,7 @@ func newMetaPGPKeyListCommand() *cobra.Command {
 		)
 
 		if len(args) > 0 {
-			username := strings.TrimLeft(args[0], "~")
+			username := strings.TrimLeft(args[0], ownerPrefixes)
 			if raw {
 				user, err = metasrht.ListRawPGPKeysByUser(c.Client, ctx, username)
 			} else {
