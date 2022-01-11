@@ -131,6 +131,7 @@ func newGitListCommand() *cobra.Command {
 }
 
 func newGitDeleteCommand() *cobra.Command {
+	var autoConfirm bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("git")
@@ -153,6 +154,10 @@ func newGitDeleteCommand() *cobra.Command {
 			id = repo.Id
 		}
 
+		if !autoConfirm && !getConfirmation(fmt.Sprintf("Do you really want to delete the repo %d", id)) {
+			fmt.Println("Aborted")
+			return
+		}
 		repo, err := gitsrht.DeleteRepository(c.Client, ctx, id)
 		if err != nil {
 			log.Fatal(err)
@@ -168,6 +173,7 @@ func newGitDeleteCommand() *cobra.Command {
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
+	cmd.Flags().BoolVarP(&autoConfirm, "yes", "y", false, "auto confirm")
 	return cmd
 }
 

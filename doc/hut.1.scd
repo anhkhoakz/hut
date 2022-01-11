@@ -70,8 +70,13 @@ hut is a CLI companion utility to interact with sr.ht.
 *list* [username]
 	List repositories.
 
-*delete* [ID]
+*delete* [ID] [options...]
 	Delete a repository. By default the current repo will be deleted.
+
+	Options are:
+
+	*-y*, *--yes*
+		Confirm deletion without prompt.
 
 *artifact upload* <filename> [options...]
 	Upload an artifact.
