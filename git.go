@@ -136,29 +136,26 @@ func newGitDeleteCommand() *cobra.Command {
 		ctx := cmd.Context()
 		c := createClient("git")
 
-		var id int32
+		var name string
 		if len(args) > 0 {
-			var err error
-			id, err = parseInt32(args[0])
-			if err != nil {
-				log.Fatal(err)
-			}
+			name = args[0]
 		} else {
 			getRepoName(ctx, c)
-			repo, err := gitsrht.RepositoryByName(c.Client, ctx, repoName)
-			if err != nil {
-				log.Fatalf("failed to get repository ID: %v", err)
-			} else if repo == nil {
-				log.Fatalf("repository %s does not exist", repoName)
-			}
-			id = repo.Id
+			name = repoName
 		}
 
-		if !autoConfirm && !getConfirmation(fmt.Sprintf("Do you really want to delete the repo %d", id)) {
+		repo, err := gitsrht.RepositoryByName(c.Client, ctx, name)
+		if err != nil {
+			log.Fatalf("failed to get repository ID: %v", err)
+		} else if repo == nil {
+			log.Fatalf("repository %s does not exist", name)
+		}
+
+		if !autoConfirm && !getConfirmation(fmt.Sprintf("Do you really want to delete the repo %s", name)) {
 			fmt.Println("Aborted")
 			return
 		}
-		repo, err := gitsrht.DeleteRepository(c.Client, ctx, id)
+		repo, err = gitsrht.DeleteRepository(c.Client, ctx, repo.Id)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -167,7 +164,7 @@ func newGitDeleteCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:               "delete [ID]",
+		Use:               "delete [repo]",
 		Short:             "Delete a repository",
 		Args:              cobra.MaximumNArgs(1),
 		ValidArgsFunction: cobra.NoFileCompletions,
