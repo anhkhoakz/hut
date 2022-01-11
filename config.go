@@ -47,14 +47,14 @@ func createClient(service string) *Client {
 	var inst *scfg.Directive
 	if instanceName != "" {
 		for _, instance := range instances {
-			if instanceName == instance.Params[0] {
+			if instanceName == instance.Params[0] || strings.HasSuffix(instanceName, "."+instance.Params[0]) {
 				inst = instance
 				break
 			}
 		}
 
 		if inst == nil {
-			log.Fatalf("no instance with name %s found", instanceName)
+			log.Fatalf("no instance for %s found", instanceName)
 		}
 	} else {
 		inst = instances[0]
