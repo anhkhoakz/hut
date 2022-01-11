@@ -17,8 +17,6 @@ import (
 	"git.sr.ht/~emersion/hut/termfmt"
 )
 
-var repoName string
-
 func newGitCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "git",
@@ -28,7 +26,7 @@ func newGitCommand() *cobra.Command {
 	cmd.AddCommand(newGitCreateCommand())
 	cmd.AddCommand(newGitListCommand())
 	cmd.AddCommand(newGitDeleteCommand())
-	cmd.PersistentFlags().StringVarP(&repoName, "repo", "r", "", "name of repository")
+	cmd.PersistentFlags().StringP("repo", "r", "", "name of repository")
 	cmd.RegisterFlagCompletionFunc("repo", cobra.NoFileCompletions)
 	return cmd
 }
@@ -140,8 +138,7 @@ func newGitDeleteCommand() *cobra.Command {
 		if len(args) > 0 {
 			name = args[0]
 		} else {
-			getRepoName(ctx, c)
-			name = repoName
+			name = getRepoName(ctx, cmd, c)
 		}
 
 		repo, err := gitsrht.RepositoryByName(c.Client, ctx, name)
@@ -190,8 +187,7 @@ func newGitArtifactUploadCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("git")
-
-		getRepoName(ctx, c)
+		repoName := getRepoName(ctx, cmd, c)
 
 		if rev == "" {
 			var err error
@@ -243,8 +239,7 @@ func newGitArtifactListCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("git")
-
-		getRepoName(ctx, c)
+		repoName := getRepoName(ctx, cmd, c)
 
 		repo, err := gitsrht.ListArtifacts(c.Client, ctx, repoName)
 		if err != nil {
@@ -303,14 +298,19 @@ func newGitArtifactDeleteCommand() *cobra.Command {
 	return cmd
 }
 
-func getRepoName(ctx context.Context, c *Client) {
-	if repoName == "" {
-		var err error
-		repoName, err = guessGitRepoName(ctx, c)
-		if err != nil {
-			log.Fatal(err)
-		}
+func getRepoName(ctx context.Context, cmd *cobra.Command, c *Client) string {
+	if repoName, err := cmd.Flags().GetString("repo"); err != nil {
+		log.Fatal(err)
+	} else if repoName != "" {
+		return repoName
 	}
+
+	repoName, err := guessGitRepoName(ctx, c)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return repoName
 }
 
 func guessGitRepoName(ctx context.Context, c *Client) (string, error) {
