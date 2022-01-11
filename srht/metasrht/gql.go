@@ -398,6 +398,15 @@ func ListRawPGPKeysByUser(client *gqlclient.Client, ctx context.Context, usernam
 	return respData.UserByName, err
 }
 
+func AuditLog(client *gqlclient.Client, ctx context.Context) (auditLog *AuditLogCursor, err error) {
+	op := gqlclient.NewOperation("query auditLog {\n\tauditLog {\n\t\tresults {\n\t\t\tcreated\n\t\t\tipAddress\n\t\t\teventType\n\t\t\tdetails\n\t\t}\n\t}\n}\n")
+	var respData struct {
+		AuditLog *AuditLogCursor
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.AuditLog, err
+}
+
 func CreateSSHKey(client *gqlclient.Client, ctx context.Context, key string) (createSSHKey *SSHKey, err error) {
 	op := gqlclient.NewOperation("mutation createSSHKey ($key: String!) {\n\tcreateSSHKey(key: $key) {\n\t\tfingerprint\n\t\tcomment\n\t}\n}\n")
 	op.Var("key", key)

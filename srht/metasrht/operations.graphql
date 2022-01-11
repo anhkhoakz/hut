@@ -101,6 +101,17 @@ fragment pgpKeysRaw on User {
     }
 }
 
+query auditLog {
+    auditLog {
+        results {
+            created
+            ipAddress
+            eventType
+            details
+        }
+    }
+}
+
 mutation createSSHKey($key: String!) {
     createSSHKey(key: $key) {
         fingerprint

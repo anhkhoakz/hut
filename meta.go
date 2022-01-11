@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -23,6 +24,7 @@ func newMetaCommand() *cobra.Command {
 		Short: "Use the meta API",
 	}
 	cmd.AddCommand(newMetaShowCommand())
+	cmd.AddCommand(newMetaAuditLogCommand())
 	cmd.AddCommand(newMetaSSHKeyCommand())
 	cmd.AddCommand(newMetaPGPKeyCommand())
 	return cmd
@@ -68,6 +70,37 @@ func newMetaShowCommand() *cobra.Command {
 		Args:              cobra.MaximumNArgs(1),
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
+	}
+	return cmd
+}
+
+func newMetaAuditLogCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("meta", cmd)
+
+		logs, err := metasrht.AuditLog(c.Client, ctx)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for _, log := range logs.Results {
+			entry := log.IpAddress
+			if log.Details != nil {
+				entry += fmt.Sprintf(" %s ", *log.Details)
+			} else {
+				entry += fmt.Sprintf(" %s ", log.EventType)
+			}
+			entry += fmt.Sprintf("%s ago", timeDelta(time.Since(log.Created)))
+			fmt.Println(entry)
+		}
+	}
+
+	cmd := &cobra.Command{
+		Use:   "audit-log",
+		Short: "Display your audit log",
+		Args:  cobra.ExactArgs(0),
+		Run:   run,
 	}
 	return cmd
 }

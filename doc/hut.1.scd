@@ -145,6 +145,9 @@ hut is a CLI companion utility to interact with sr.ht.
 
 	If _username_ is not specified, your profile is displayed.
 
+*audit-log*
+	Display your audit log.
+
 *ssh-key create* [path]
 	Upload an SSH public key and associate it with your account.
 
