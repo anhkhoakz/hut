@@ -12,11 +12,9 @@ import (
 
 	"git.sr.ht/~emersion/go-scfg"
 	"git.sr.ht/~emersion/gqlclient"
+	"github.com/spf13/cobra"
 	"golang.org/x/oauth2"
 )
-
-var instanceName string
-var configFile string
 
 type Client struct {
 	*gqlclient.Client
@@ -25,7 +23,12 @@ type Client struct {
 	BaseURL  string
 }
 
-func createClient(service string) *Client {
+func createClient(service string, cmd *cobra.Command) *Client {
+	configFile, err := cmd.Flags().GetString("config")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	customConfigFile := true
 	if configFile == "" {
 		configDir, err := os.UserConfigDir()
@@ -52,6 +55,11 @@ func createClient(service string) *Client {
 	instances := cfg.GetAll("instance")
 	if len(instances) == 0 {
 		log.Fatalf("no sr.ht instance configured")
+	}
+
+	instanceName, err := cmd.Flags().GetString("instance")
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	var inst *scfg.Directive

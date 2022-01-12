@@ -40,7 +40,7 @@ func newBuildsSubmitCommand() *cobra.Command {
 	var follow bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("builds")
+		c := createClient("builds", cmd)
 
 		filenames := args
 		if len(args) == 0 {
@@ -106,7 +106,7 @@ func newBuildsResubmitCommand() *cobra.Command {
 	var follow, edit bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("builds")
+		c := createClient("builds", cmd)
 
 		id, err := parseInt32(args[0])
 		if err != nil {
@@ -200,7 +200,7 @@ func newBuildsResubmitCommand() *cobra.Command {
 func newBuildsCancelCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("builds")
+		c := createClient("builds", cmd)
 
 		for _, id := range args {
 			id, err := parseInt32(id)
@@ -231,7 +231,7 @@ func newBuildsShowCommand() *cobra.Command {
 	var follow bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("builds")
+		c := createClient("builds", cmd)
 
 		// get last build
 		var id int32
@@ -319,7 +319,7 @@ func newBuildsShowCommand() *cobra.Command {
 func newBuildsListCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("builds")
+		c := createClient("builds", cmd)
 
 		jobs, err := buildssrht.Jobs(c.Client, ctx)
 		if err != nil {
@@ -342,7 +342,7 @@ func newBuildsListCommand() *cobra.Command {
 func newBuildsSSHCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("builds")
+		c := createClient("builds", cmd)
 
 		id, err := parseInt32(args[0])
 		if err != nil {
@@ -392,7 +392,7 @@ func printJob(job *buildssrht.Job) {
 func newBuildsSecretsCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("builds")
+		c := createClient("builds", cmd)
 
 		secrets, err := buildssrht.Secrets(c.Client, ctx)
 		if err != nil {

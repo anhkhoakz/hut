@@ -38,7 +38,7 @@ func newPasteCreateCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		c := createClient("paste")
+		c := createClient("paste", cmd)
 
 		var files []gqlclient.Upload
 		for _, filename := range args {
@@ -89,7 +89,7 @@ func newPasteCreateCommand() *cobra.Command {
 func newPasteDeleteCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("paste")
+		c := createClient("paste", cmd)
 
 		for _, id := range args {
 			paste, err := pastesrht.Delete(c.Client, ctx, id)
@@ -118,7 +118,7 @@ func newPasteDeleteCommand() *cobra.Command {
 func newPasteListCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("paste")
+		c := createClient("paste", cmd)
 
 		pastes, err := pastesrht.Pastes(c.Client, ctx)
 		if err != nil {
@@ -151,7 +151,7 @@ func newPasteUpdateCommand() *cobra.Command {
 	var visibility string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("paste")
+		c := createClient("paste", cmd)
 
 		pasteVisibility, err := getVisibility(visibility)
 		if err != nil {

@@ -32,7 +32,7 @@ func newMetaShowCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 
 		ctx := cmd.Context()
-		c := createClient("meta")
+		c := createClient("meta", cmd)
 
 		var (
 			user *metasrht.User
@@ -86,7 +86,7 @@ func newMetaSSHKeyCommand() *cobra.Command {
 func newMetaSSHKeyCreateCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("meta")
+		c := createClient("meta", cmd)
 
 		var filename string
 		if len(args) > 0 {
@@ -158,7 +158,7 @@ func guessSSHPubKeyFilename() (string, error) {
 func newMetaSSHKeyDeleteCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("meta")
+		c := createClient("meta", cmd)
 
 		id, err := parseInt32(args[0])
 		if err != nil {
@@ -187,7 +187,7 @@ func newMetaSSHKeyListCommand() *cobra.Command {
 	var raw bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("meta")
+		c := createClient("meta", cmd)
 
 		var (
 			user *metasrht.User
@@ -254,7 +254,7 @@ func newMetaPGPKeyCommand() *cobra.Command {
 func newMetaPGPKeyCreateCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("meta")
+		c := createClient("meta", cmd)
 
 		var (
 			keyBytes []byte
@@ -327,7 +327,7 @@ func exportDefaultPGPKey(ctx context.Context) ([]byte, error) {
 func newMetaPGPKeyDeleteCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("meta")
+		c := createClient("meta", cmd)
 
 		id, err := parseInt32(args[0])
 		if err != nil {
@@ -356,7 +356,7 @@ func newMetaPGPKeyListCommand() *cobra.Command {
 	var raw bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("meta")
+		c := createClient("meta", cmd)
 
 		var (
 			user *metasrht.User

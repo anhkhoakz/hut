@@ -41,7 +41,7 @@ func newPagesPublishCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		c := createClient("pages")
+		c := createClient("pages", cmd)
 
 		f, err := os.Open(filename)
 		if err != nil {
@@ -87,7 +87,7 @@ func newPagesUnpublishCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		c := createClient("pages")
+		c := createClient("pages", cmd)
 
 		site, err := pagessrht.Unpublish(c.Client, ctx, domain, pagesProtocol)
 		if err != nil {
@@ -114,7 +114,7 @@ func newPagesListCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
-		c := createClient("pages")
+		c := createClient("pages", cmd)
 
 		sites, err := pagessrht.Sites(c.Client, ctx)
 		if err != nil {

@@ -15,7 +15,7 @@ func newGraphqlCommand() *cobra.Command {
 		service := args[0]
 
 		ctx := cmd.Context()
-		c := createClient(service)
+		c := createClient(service, cmd)
 
 		b, err := io.ReadAll(os.Stdin)
 		if err != nil {

@@ -36,7 +36,7 @@ func newGitCreateCommand() *cobra.Command {
 	var clone bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("git")
+		c := createClient("git", cmd)
 
 		gitVisibility, err := getGitVisibility(visibility)
 		if err != nil {
@@ -89,7 +89,7 @@ func newGitCreateCommand() *cobra.Command {
 func newGitListCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("git")
+		c := createClient("git", cmd)
 
 		var repos *gitsrht.RepositoryCursor
 
@@ -132,7 +132,7 @@ func newGitDeleteCommand() *cobra.Command {
 	var autoConfirm bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("git")
+		c := createClient("git", cmd)
 
 		var name string
 		if len(args) > 0 {
@@ -186,7 +186,7 @@ func newGitArtifactUploadCommand() *cobra.Command {
 	var rev string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("git")
+		c := createClient("git", cmd)
 		repoName := getRepoName(ctx, cmd, c)
 
 		if rev == "" {
@@ -238,7 +238,7 @@ func newGitArtifactListCommand() *cobra.Command {
 
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("git")
+		c := createClient("git", cmd)
 		repoName := getRepoName(ctx, cmd, c)
 
 		repo, err := gitsrht.ListArtifacts(c.Client, ctx, repoName)
@@ -273,7 +273,7 @@ func newGitArtifactListCommand() *cobra.Command {
 func newGitArtifactDeleteCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("git")
+		c := createClient("git", cmd)
 
 		id, err := parseInt32(args[0])
 		if err != nil {
