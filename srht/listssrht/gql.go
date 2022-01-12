@@ -2,7 +2,11 @@
 
 package listssrht
 
-import "time"
+import (
+	"context"
+	gqlclient "git.sr.ht/~emersion/gqlclient"
+	"time"
+)
 
 type ACL struct {
 	// Permission to browse or subscribe to emails
@@ -343,4 +347,24 @@ type Version struct {
 	// it will stop working; or null if this API version is not scheduled for
 	// deprecation.
 	DeprecationDate time.Time `json:"deprecationDate,omitempty"`
+}
+
+func MailingListByName(client *gqlclient.Client, ctx context.Context, name string) (mailingListByName *MailingList, err error) {
+	op := gqlclient.NewOperation("query mailingListByName ($name: String!) {\n\tmailingListByName(name: $name) {\n\t\tid\n\t}\n}\n")
+	op.Var("name", name)
+	var respData struct {
+		MailingListByName *MailingList
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.MailingListByName, err
+}
+
+func DeleteMailingList(client *gqlclient.Client, ctx context.Context, id int32) (deleteMailingList *MailingList, err error) {
+	op := gqlclient.NewOperation("mutation deleteMailingList ($id: Int!) {\n\tdeleteMailingList(id: $id) {\n\t\tname\n\t}\n}\n")
+	op.Var("id", id)
+	var respData struct {
+		DeleteMailingList *MailingList
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.DeleteMailingList, err
 }

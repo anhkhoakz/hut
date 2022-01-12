@@ -1,0 +1,11 @@
+query mailingListByName($name: String!) {
+    mailingListByName(name: $name) {
+        id
+    }
+}
+
+mutation deleteMailingList($id: Int!) {
+    deleteMailingList(id: $id) {
+        name
+    }
+}
