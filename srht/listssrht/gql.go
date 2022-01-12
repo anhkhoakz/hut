@@ -368,3 +368,22 @@ func DeleteMailingList(client *gqlclient.Client, ctx context.Context, id int32) 
 	err = client.Execute(ctx, op, &respData)
 	return respData.DeleteMailingList, err
 }
+
+func MailingLists(client *gqlclient.Client, ctx context.Context) (mailingLists *MailingListCursor, err error) {
+	op := gqlclient.NewOperation("query mailingLists {\n\tmailingLists {\n\t\t... lists\n\t}\n}\nfragment lists on MailingListCursor {\n\tresults {\n\t\tname\n\t\tdescription\n\t}\n}\n")
+	var respData struct {
+		MailingLists *MailingListCursor
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.MailingLists, err
+}
+
+func MailingListsByUser(client *gqlclient.Client, ctx context.Context, username string) (userByName *User, err error) {
+	op := gqlclient.NewOperation("query mailingListsByUser ($username: String!) {\n\tuserByName(username: $username) {\n\t\tlists {\n\t\t\t... lists\n\t\t}\n\t}\n}\nfragment lists on MailingListCursor {\n\tresults {\n\t\tname\n\t\tdescription\n\t}\n}\n")
+	op.Var("username", username)
+	var respData struct {
+		UserByName *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.UserByName, err
+}

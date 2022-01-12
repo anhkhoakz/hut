@@ -244,6 +244,9 @@ hut is a CLI companion utility to interact with sr.ht.
 	*-y*, *--yes*
 		Confirm deletion without prompt.
 
+*list* [username]
+	List mailing lists.
+
 # CONFIGURATION
 
 Generate a new OAuth2 access token on _meta.sr.ht_.

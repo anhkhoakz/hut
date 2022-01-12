@@ -9,3 +9,24 @@ mutation deleteMailingList($id: Int!) {
         name
     }
 }
+
+query mailingLists {
+    mailingLists {
+        ...lists
+    }
+}
+
+query mailingListsByUser($username: String!) {
+    userByName(username: $username) {
+        lists {
+            ...lists
+        }
+    }
+}
+
+fragment lists on MailingListCursor {
+    results {
+        name
+        description
+    }
+}

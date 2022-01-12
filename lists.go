@@ -3,9 +3,12 @@ package main
 import (
 	"fmt"
 	"log"
+	"strings"
+
+	"github.com/spf13/cobra"
 
 	"git.sr.ht/~emersion/hut/srht/listssrht"
-	"github.com/spf13/cobra"
+	"git.sr.ht/~emersion/hut/termfmt"
 )
 
 func newListsCommand() *cobra.Command {
@@ -13,8 +16,8 @@ func newListsCommand() *cobra.Command {
 		Use:   "lists",
 		Short: "Use the lists API",
 	}
-
 	cmd.AddCommand(newListsDeleteCommand())
+	cmd.AddCommand(newListsListCommand())
 	return cmd
 }
 
@@ -52,5 +55,44 @@ func newListsDeleteCommand() *cobra.Command {
 		Run:               run,
 	}
 	cmd.Flags().BoolVarP(&autoConfirm, "yes", "y", false, "auto confirm")
+	return cmd
+}
+
+func newListsListCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:               "list [username]",
+		Short:             "List mailing lists",
+		Args:              cobra.MaximumNArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+	}
+	cmd.Run = func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("lists", cmd)
+
+		var lists *listssrht.MailingListCursor
+		if len(args) > 0 {
+			username := strings.TrimLeft(args[0], ownerPrefixes)
+			user, err := listssrht.MailingListsByUser(c.Client, ctx, username)
+			if err != nil {
+				log.Fatal(err)
+			} else if user == nil {
+				log.Fatal("no such user")
+			}
+			lists = user.Lists
+		} else {
+			var err error
+			lists, err = listssrht.MailingLists(c.Client, ctx)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
+		for _, list := range lists.Results {
+			fmt.Println(termfmt.String(list.Name, termfmt.Bold))
+			if list.Description != nil && *list.Description != "" {
+				fmt.Println("\n" + indent(*list.Description, "  ") + "\n")
+			}
+		}
+	}
 	return cmd
 }
