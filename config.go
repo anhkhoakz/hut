@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -25,6 +26,7 @@ type Client struct {
 }
 
 func createClient(service string) *Client {
+	customConfigFile := true
 	if configFile == "" {
 		configDir, err := os.UserConfigDir()
 		if err != nil {
@@ -32,10 +34,18 @@ func createClient(service string) *Client {
 		}
 
 		configFile = filepath.Join(configDir, "hut", "config")
+		customConfigFile = false
 	}
 
 	cfg, err := scfg.Load(configFile)
 	if err != nil {
+		// This error message doesn't make sense if a config was
+		// provided with "--config". In that case, the normal log
+		// message is always desired.
+		if !customConfigFile && errors.Is(err, os.ErrNotExist) {
+			os.Stderr.WriteString("Looks like you haven't created a config file yet.\nSee `man hut` for an example that you can copy.\n")
+			os.Exit(1)
+		}
 		log.Fatalf("failed to load config file: %v", err)
 	}
 
