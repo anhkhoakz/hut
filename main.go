@@ -49,7 +49,7 @@ func getConfirmation(msg string) bool {
 	reader := bufio.NewReader(os.Stdin)
 
 	for {
-		fmt.Printf("%s [y/N]: ", msg)
+		fmt.Printf("%s [y/n]: ", msg)
 
 		input, err := reader.ReadString('\n')
 		if err != nil {
