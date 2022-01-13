@@ -27,7 +27,7 @@ func newGitCommand() *cobra.Command {
 	cmd.AddCommand(newGitListCommand())
 	cmd.AddCommand(newGitDeleteCommand())
 	cmd.PersistentFlags().StringP("repo", "r", "", "name of repository")
-	cmd.RegisterFlagCompletionFunc("repo", cobra.NoFileCompletions)
+	cmd.RegisterFlagCompletionFunc("repo", completeRepo)
 	return cmd
 }
 
@@ -164,7 +164,7 @@ func newGitDeleteCommand() *cobra.Command {
 		Use:               "delete [repo]",
 		Short:             "Delete a repository",
 		Args:              cobra.MaximumNArgs(1),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction: completeRepo,
 		Run:               run,
 	}
 	cmd.Flags().BoolVarP(&autoConfirm, "yes", "y", false, "auto confirm")
@@ -383,6 +383,23 @@ func getGitVisibility(visibility string) (gitsrht.Visibility, error) {
 	default:
 		return "", fmt.Errorf("invalid visibility: %s", visibility)
 	}
+}
+
+func completeRepo(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	ctx := cmd.Context()
+	c := createClient("git", cmd)
+	var repoList []string
+
+	repos, err := gitsrht.RepoNames(c.Client, ctx)
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	for _, repo := range repos.Results {
+		repoList = append(repoList, repo.Name)
+	}
+
+	return repoList, cobra.ShellCompDirectiveNoFileComp
 }
 
 func completeRev(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

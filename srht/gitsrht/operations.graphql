@@ -51,6 +51,14 @@ query sshSettings {
     }
 }
 
+query repoNames {
+    repositories {
+        results {
+            name
+        }
+    }
+}
+
 mutation uploadArtifact($repoId: Int!, $revspec: String!, $file: Upload!) {
     uploadArtifact(repoId: $repoId, revspec: $revspec, file: $file) {
         filename
