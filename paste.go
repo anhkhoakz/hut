@@ -109,7 +109,7 @@ func newPasteDeleteCommand() *cobra.Command {
 		Use:               "delete <ID...>",
 		Short:             "Delete pastes",
 		Args:              cobra.MinimumNArgs(1),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction: completePasteID,
 		Run:               run,
 	}
 	return cmd
@@ -194,4 +194,37 @@ func getVisibility(visibility string) (pastesrht.Visibility, error) {
 	default:
 		return "", fmt.Errorf("invalid visibility: %s", visibility)
 	}
+}
+
+func completePasteID(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	ctx := cmd.Context()
+	c := createClient("paste", cmd)
+	var pasteList []string
+
+	pastes, err := pastesrht.PasteCompletionList(c.Client, ctx)
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	for _, paste := range pastes.Results {
+		str := paste.Id
+		var files string
+
+		for i, file := range paste.Files {
+			if *file.Filename != "" {
+				if i != 0 {
+					files += ", "
+				}
+				files += *file.Filename
+			}
+		}
+
+		if files != "" {
+			str += fmt.Sprintf("\t%s", files)
+		}
+
+		pasteList = append(pasteList, str)
+	}
+
+	return pasteList, cobra.ShellCompDirectiveNoFileComp
 }
