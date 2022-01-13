@@ -195,18 +195,3 @@ func getVisibility(visibility string) (pastesrht.Visibility, error) {
 		return "", fmt.Errorf("invalid visibility: %s", visibility)
 	}
 }
-
-func timeDelta(d time.Duration) string {
-	switch {
-	case d > time.Hour*24*30:
-		return fmt.Sprintf("%.f months", d.Hours()/(24*30))
-	case d > time.Hour*24:
-		return fmt.Sprintf("%.f days", d.Hours()/24)
-	case d > time.Hour:
-		return fmt.Sprintf("%.f hours", d.Hours())
-	case d > time.Minute:
-		return fmt.Sprintf("%.f minutes", d.Minutes())
-	}
-
-	return fmt.Sprintf("%.f seconds", d.Seconds())
-}
