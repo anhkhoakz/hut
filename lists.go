@@ -88,7 +88,7 @@ func newListsListCommand() *cobra.Command {
 		}
 
 		for _, list := range lists.Results {
-			fmt.Println(termfmt.String(list.Name, termfmt.Bold))
+			fmt.Println(termfmt.Bold.String(list.Name))
 			if list.Description != nil && *list.Description != "" {
 				fmt.Println("\n" + indent(*list.Description, "  ") + "\n")
 			}

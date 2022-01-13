@@ -20,5 +20,5 @@ func (visibility Visibility) TermString() string {
 		panic(fmt.Sprintf("unknown visibility: %q", visibility))
 	}
 
-	return termfmt.String(strings.ToLower(string(visibility)), style)
+	return style.String(strings.ToLower(string(visibility)))
 }

@@ -23,7 +23,7 @@ const (
 	DarkYellow Style = "dark-yellow"
 )
 
-func String(s string, style Style) string {
+func (style Style) String(s string) string {
 	if !isTerminal {
 		return s
 	}
@@ -43,7 +43,15 @@ func String(s string, style Style) string {
 		return fmt.Sprintf("\033[94m%s\033[0m", s)
 	case DarkYellow:
 		return fmt.Sprintf("\033[33m%s\033[0m", s)
+	default:
+		return s
 	}
+}
 
-	return s
+func (style Style) Sprint(args ...interface{}) string {
+	return style.String(fmt.Sprint(args...))
+}
+
+func (style Style) Sprintf(format string, args ...interface{}) string {
+	return style.String(fmt.Sprintf(format, args...))
 }

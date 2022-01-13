@@ -371,9 +371,9 @@ func newBuildsSSHCommand() *cobra.Command {
 }
 
 func printJob(job *buildssrht.Job) {
-	fmt.Printf(termfmt.String(fmt.Sprintf("#%d", job.Id), termfmt.DarkYellow))
+	fmt.Print(termfmt.DarkYellow.Sprintf("#%d", job.Id))
 	if tagString := formatJobTags(job); tagString != "" {
-		fmt.Printf(" - %s", termfmt.String(tagString, termfmt.Bold))
+		fmt.Printf(" - %s", termfmt.Bold.String(tagString))
 	}
 	fmt.Printf(": %s\n", job.Status.TermString())
 

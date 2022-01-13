@@ -52,7 +52,7 @@ func newMetaShowCommand() *cobra.Command {
 			log.Fatal("no such user")
 		}
 
-		fmt.Printf("%v <%v>\n", termfmt.String(user.CanonicalName, termfmt.Bold), user.Email)
+		fmt.Printf("%v <%v>\n", termfmt.Bold.String(user.CanonicalName), user.Email)
 		if user.Url != nil {
 			fmt.Println(*user.Url)
 		}

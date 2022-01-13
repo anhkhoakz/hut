@@ -41,7 +41,7 @@ func (status JobStatus) TermStyle() termfmt.Style {
 }
 
 func (status JobStatus) TermString() string {
-	return termfmt.String(fmt.Sprintf("%s %s", status.Icon(), string(status)), status.TermStyle())
+	return status.TermStyle().Sprintf("%s %s", status.Icon(), string(status))
 }
 
 func (status TaskStatus) Icon() string {
@@ -77,5 +77,5 @@ func (status TaskStatus) TermStyle() termfmt.Style {
 }
 
 func (status TaskStatus) TermIcon() string {
-	return termfmt.String(status.Icon(), status.TermStyle())
+	return status.TermStyle().String(status.Icon())
 }

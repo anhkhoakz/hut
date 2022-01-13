@@ -122,7 +122,7 @@ func newPagesListCommand() *cobra.Command {
 		}
 
 		for _, site := range sites.Results {
-			fmt.Printf("%s (%s)\n", termfmt.String(site.Domain, termfmt.Bold), site.Protocol)
+			fmt.Printf("%s (%s)\n", termfmt.Bold.Sprintf(site.Domain), site.Protocol)
 		}
 	}
 
