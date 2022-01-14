@@ -83,3 +83,28 @@ func timeDelta(d time.Duration) string {
 
 	return fmt.Sprintf("%.f seconds", d.Seconds())
 }
+
+func parseResourceName(name string) (resource, owner, instance string) {
+	i := strings.Index(name, "://")
+	if i != -1 {
+		name = name[i+3:]
+	}
+
+	parsed := strings.Split(name, "/")
+	if len(parsed) == 1 {
+		return strings.TrimLeft(parsed[0], "#"), owner, instance
+	}
+
+	if len(parsed) > 2 && strings.IndexAny(parsed[1], ownerPrefixes) == 0 {
+		instance = parsed[0]
+		owner = parsed[1]
+		resource = strings.Join(parsed[2:], "/")
+	} else if strings.IndexAny(parsed[0], ownerPrefixes) == 0 {
+		owner = parsed[0]
+		resource = strings.Join(parsed[1:], "/")
+	} else {
+		resource = strings.Join(parsed, "/")
+	}
+
+	return resource, owner, instance
+}
