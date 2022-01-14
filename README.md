@@ -14,7 +14,7 @@ A CLI tool for sr.ht.
            access-token "<token>"
        }
 
-3. `hut -h`
+3. `man hut`
 
 ## Building
 
