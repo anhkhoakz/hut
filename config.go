@@ -24,6 +24,10 @@ type Client struct {
 }
 
 func createClient(service string, cmd *cobra.Command) *Client {
+	return createClientWithInstance(service, cmd, "")
+}
+
+func createClientWithInstance(service string, cmd *cobra.Command, instanceName string) *Client {
 	configFile, err := cmd.Flags().GetString("config")
 	if err != nil {
 		log.Fatal(err)
@@ -57,15 +61,19 @@ func createClient(service string, cmd *cobra.Command) *Client {
 		log.Fatalf("no sr.ht instance configured")
 	}
 
-	instanceName, err := cmd.Flags().GetString("instance")
-	if err != nil {
+	if instanceFlag, err := cmd.Flags().GetString("instance"); err != nil {
 		log.Fatal(err)
+	} else if instanceFlag != "" {
+		if instanceName != "" && !instancesEqual(instanceName, instanceFlag) {
+			log.Fatalf("conflicting instances: %v and --instance=%v", instanceName, instanceFlag)
+		}
+		instanceName = instanceFlag
 	}
 
 	var inst *scfg.Directive
 	if instanceName != "" {
 		for _, instance := range instances {
-			if instanceName == instance.Params[0] || strings.HasSuffix(instanceName, "."+instance.Params[0]) {
+			if instancesEqual(instanceName, instance.Params[0]) {
 				inst = instance
 				break
 			}
@@ -112,4 +120,8 @@ func createClient(service string, cmd *cobra.Command) *Client {
 		Hostname: hostname,
 		BaseURL:  baseURL,
 	}
+}
+
+func instancesEqual(a, b string) bool {
+	return a == b || strings.HasSuffix(a, "."+b) || strings.HasSuffix(b, "."+a)
 }
