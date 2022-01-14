@@ -1,0 +1,273 @@
+scalar Cursor
+scalar Time
+scalar Upload
+
+# Used to provide a human-friendly description of an access scope
+directive @scopehelp(details: String!) on ENUM_VALUE
+
+enum AccessScope {
+    PROFILE @scopehelp(details: "profile information")
+    REPOSITORIES @scopehelp(details: "repository metadata")
+    REVISIONS @scopehelp(details: "hg revisions & data")
+    ACLS @scopehelp(details: "access control lists")
+}
+
+enum AccessKind {
+    RO @scopehelp(details: "read")
+    RW @scopehelp(details: "read and write")
+}
+
+# Decorates fields for which access requires a particular OAuth 2.0 scope with
+# read or write access. For the meta.sr.ht API, you have access to all public
+# information without any special permissions - user profile information,
+# public keys, and so on.
+directive @access(scope: AccessScope!, kind: AccessKind!) on FIELD_DEFINITION
+
+# https://semver.org
+type Version {
+    major: Int!
+    minor: Int!
+    patch: Int!
+
+    # If this API version is scheduled for deprecation, this is the date on which
+    # it will stop working; or null if this API version is not scheduled for
+    # deprecation.
+    deprecationDate: Time
+
+    # Optional features
+    features: Features!
+}
+
+# Describes the status of optional features
+type Features {
+    artifacts: Boolean!
+}
+
+enum AccessMode {
+    # Read-only
+    RO
+    # Read/write
+    RW
+}
+
+enum Visibility {
+    # Visible to everyone, listed on your profile
+    PUBLIC
+    # Visible to everyone (if they know the URL), not listed on your profile
+    UNLISTED
+    # Not visible to anyone except those explicitly added to the access list
+    PRIVATE
+}
+
+interface Entity {
+    id: Int!
+    created: Time!
+    updated: Time!
+    # The canonical name of this entity. For users, this is their username
+    # prefixed with '~'. Additional entity types will be supported in the future.
+    canonicalName: String!
+
+    repositories(cursor: Cursor): RepositoryCursor!
+        @access(scope: REPOSITORIES, kind: RO)
+}
+
+type User implements Entity {
+    id: Int!
+    created: Time!
+    updated: Time!
+    canonicalName: String!
+    username: String!
+    email: String!
+    url: String
+    location: String
+    bio: String
+
+    repositories(cursor: Cursor): RepositoryCursor!
+        @access(scope: REPOSITORIES, kind: RO)
+}
+
+type Repository {
+    id: Int!
+    created: Time!
+    updated: Time!
+    owner: Entity! @access(scope: PROFILE, kind: RO)
+    name: String!
+    description: String
+    visibility: Visibility!
+
+    # The repository's custom README, if set.
+    #
+    # NOTICE: This returns unsanitized HTML. It is the client's responsibility to
+    # sanitize this for display on the web, if so desired.
+    readme: String
+
+    # If this repository was cloned from another, this is set to the original
+    # clone URL.
+    upstreamUrl: String
+
+    accessControlList(cursor: Cursor): ACLCursor! @access(scope: ACLS, kind: RO)
+
+    # Mercurial API
+
+    # The tip reference for this repository (latest commit)
+    tip: Revision @access(scope: REVISIONS, kind: RO)
+
+    # Returns the list of open heads in the repository (like `hg heads`)
+    # If `rev` is specified, return only open heads on the branch associated with
+    # the given revision (like `hg heads REV`)
+    heads(cursor: Cursor, rev: String): RevisionCursor!
+        @access(scope: REVISIONS, kind: RO)
+
+    # Returns a list of commits (like `hg log`)
+    # If `rev` is specified, only show the given commit (like `hg log --rev REV`)
+    log(cursor: Cursor, rev: String): RevisionCursor!
+        @access(scope: REVISIONS, kind: RO)
+
+    # Returns a list of bookmarks
+    bookmarks(cursor: Cursor): NamedRevisionCursor!
+        @access(scope: REVISIONS, kind: RO)
+
+    # Returns a list of branches
+    branches(cursor: Cursor): NamedRevisionCursor!
+        @access(scope: REVISIONS, kind: RO)
+
+    # Returns a list of tags
+    tags(cursor: Cursor): NamedRevisionCursor!
+        @access(scope: REVISIONS, kind: RO)
+}
+
+# A cursor for enumerating a list of repositories
+#
+# If there are additional results available, the cursor object may be passed
+# back into the same endpoint to retrieve another page. If the cursor is null,
+# there are no remaining results to return.
+type RepositoryCursor {
+    results: [Repository]!
+    cursor: Cursor
+}
+
+# A cursor for enumerating access control list entries
+#
+# If there are additional results available, the cursor object may be passed
+# back into the same endpoint to retrieve another page. If the cursor is null,
+# there are no remaining results to return.
+type ACLCursor {
+    results: [ACL]!
+    cursor: Cursor
+}
+
+# A cursor for enumerating revisions
+#
+# If there are additional results available, the cursor object may be passed
+# back into the same endpoint to retrieve another page. If the cursor is null,
+# there are no remaining results to return.
+type RevisionCursor {
+    results: [Revision]!
+    cursor: Cursor
+}
+
+# A cursor for enumerating bookmarks, tags, and branches
+#
+# If there are additional results available, the cursor object may be passed
+# back into the same endpoint to retrieve another page. If the cursor is null,
+# there are no remaining results to return.
+type NamedRevisionCursor {
+    results: [NamedRevision]!
+    cursor: Cursor
+}
+
+type ACL {
+    id: Int!
+    created: Time!
+    repository: Repository!
+    entity: Entity! @access(scope: PROFILE, kind: RO)
+    mode: AccessMode
+}
+
+type Revision {
+    id: String!
+    branch: String!
+    tags: [String]!
+    author: String!
+    description: String!
+}
+
+type NamedRevision {
+    name: String!
+    id: String!
+}
+
+type Tag {
+    name: String!
+    id: String!
+}
+
+type Query {
+    # Returns API version information.
+    version: Version!
+
+    # Returns the authenticated user.
+    me: User! @access(scope: PROFILE, kind: RO)
+
+    # Returns a specific user.
+    user(username: String!): User @access(scope: PROFILE, kind: RO)
+
+    # Returns repositories that the authenticated user has access to.
+    #
+    # NOTE: in this version of the API, only repositories owned by the
+    # authenticated user are returned, but in the future the default behavior
+    # will be to return all repositories that the user either (1) has been given
+    # explicit access to via ACLs or (2) has implicit access to either by
+    # ownership or group membership.
+    repositories(cursor: Cursor): RepositoryCursor
+        @access(scope: REPOSITORIES, kind: RO)
+
+    # Returns a specific repository by ID.
+    repository(id: Int!): Repository @access(scope: REPOSITORIES, kind: RO)
+
+    # Returns a specific repository, owned by the authenticated user.
+    repositoryByName(name: String!): Repository
+        @access(scope: REPOSITORIES, kind: RO)
+
+    # Returns a specific repository, owned by the given canonical name (e.g.
+    # "~sircmpwn").
+    repositoryByOwner(owner: String!, repo: String!): Repository
+        @access(scope: REPOSITORIES, kind: RO)
+}
+
+input RepoInput {
+    # Omit these fields to leave them unchanged, or set them to null to clear
+    # their value.
+    name: String
+    description: String
+    visibility: Visibility
+
+    # Updates the custom README associated with this repository. Note that the
+    # provided HTML will be sanitized when displayed on the web; see
+    # https://man.sr.ht/markdown/#post-processing
+    readme: String
+}
+
+type Mutation {
+    # Creates a new git repository
+    createRepository(
+        name: String!
+        visibility: Visibility!
+        description: String
+    ): Repository! @access(scope: REPOSITORIES, kind: RW)
+
+    # Updates the metadata for a git repository
+    updateRepository(id: Int!, input: RepoInput!): Repository!
+        @access(scope: REPOSITORIES, kind: RW)
+
+    # Deletes a git repository
+    deleteRepository(id: Int!): Repository!
+        @access(scope: REPOSITORIES, kind: RW)
+
+    # Adds or updates a user in the access control list
+    updateACL(repoId: Int!, mode: AccessMode!, entity: ID!): ACL!
+        @access(scope: ACLS, kind: RW)
+
+    # Deletes an entry from the access control list
+    deleteACL(id: Int!): ACL! @access(scope: ACLS, kind: RW)
+}

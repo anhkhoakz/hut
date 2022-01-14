@@ -13,3 +13,4 @@ import (
 //go:generate go run git.sr.ht/~emersion/gqlclient/cmd/gqlclientgen -s pagessrht/schema.graphqls -q pagessrht/operations.graphql -n pagessrht -o pagessrht/gql.go
 //go:generate go run git.sr.ht/~emersion/gqlclient/cmd/gqlclientgen -s metasrht/schema.graphqls -q metasrht/operations.graphql -n metasrht -o metasrht/gql.go
 //go:generate go run git.sr.ht/~emersion/gqlclient/cmd/gqlclientgen -s listssrht/schema.graphqls -q listssrht/operations.graphql -n listssrht -o listssrht/gql.go
+//go:generate go run git.sr.ht/~emersion/gqlclient/cmd/gqlclientgen -s hgsrht/schema.graphqls -q hgsrht/operations.graphql -n hgsrht -o hgsrht/gql.go
