@@ -387,3 +387,24 @@ func MailingListsByUser(client *gqlclient.Client, ctx context.Context, username 
 	err = client.Execute(ctx, op, &respData)
 	return respData.UserByName, err
 }
+
+func MailingListIDByOwner(client *gqlclient.Client, ctx context.Context, ownerName string, listName string) (mailingListByOwner *MailingList, err error) {
+	op := gqlclient.NewOperation("query mailingListIDByOwner ($ownerName: String!, $listName: String!) {\n\tmailingListByOwner(ownerName: $ownerName, listName: $listName) {\n\t\tid\n\t}\n}\n")
+	op.Var("ownerName", ownerName)
+	op.Var("listName", listName)
+	var respData struct {
+		MailingListByOwner *MailingList
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.MailingListByOwner, err
+}
+
+func MailingListSubscribe(client *gqlclient.Client, ctx context.Context, listID int32) (mailingListSubscribe *MailingListSubscription, err error) {
+	op := gqlclient.NewOperation("mutation mailingListSubscribe ($listID: Int!) {\n\tmailingListSubscribe(listID: $listID) {\n\t\tlist {\n\t\t\tname\n\t\t\towner {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op.Var("listID", listID)
+	var respData struct {
+		MailingListSubscribe *MailingListSubscription
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.MailingListSubscribe, err
+}

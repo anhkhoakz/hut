@@ -30,3 +30,20 @@ fragment lists on MailingListCursor {
         description
     }
 }
+
+query mailingListIDByOwner($ownerName: String!, $listName: String!) {
+    mailingListByOwner(ownerName: $ownerName, listName: $listName) {
+        id
+    }
+}
+
+mutation mailingListSubscribe($listID: Int!) {
+    mailingListSubscribe(listID: $listID) {
+        list {
+            name
+            owner {
+                canonicalName
+            }
+        }
+    }
+}
