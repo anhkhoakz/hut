@@ -303,6 +303,16 @@ func RepoNames(client *gqlclient.Client, ctx context.Context) (repositories *Rep
 	return respData.Repositories, err
 }
 
+func RevsByRepoName(client *gqlclient.Client, ctx context.Context, name string) (repositoryByName *Repository, err error) {
+	op := gqlclient.NewOperation("query revsByRepoName ($name: String!) {\n\trepositoryByName(name: $name) {\n\t\treferences {\n\t\t\tresults {\n\t\t\t\tname\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op.Var("name", name)
+	var respData struct {
+		RepositoryByName *Repository
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.RepositoryByName, err
+}
+
 func UploadArtifact(client *gqlclient.Client, ctx context.Context, repoId int32, revspec string, file gqlclient.Upload) (uploadArtifact *Artifact, err error) {
 	op := gqlclient.NewOperation("mutation uploadArtifact ($repoId: Int!, $revspec: String!, $file: Upload!) {\n\tuploadArtifact(repoId: $repoId, revspec: $revspec, file: $file) {\n\t\tfilename\n\t}\n}\n")
 	op.Var("repoId", repoId)

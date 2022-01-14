@@ -403,6 +403,19 @@ func completeRepo(cmd *cobra.Command, args []string, toComplete string) ([]strin
 }
 
 func completeRev(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	repo, err := cmd.Flags().GetString("repo")
+	if err == nil && repo != "" {
+		ctx := cmd.Context()
+		c := createClient("git", cmd)
+
+		repo, err := gitsrht.RevsByRepoName(c.Client, ctx, repo)
+		if err != nil {
+			return nil, cobra.ShellCompDirectiveNoFileComp
+		}
+
+		return repo.References.Tags(), cobra.ShellCompDirectiveNoFileComp
+	}
+
 	output, err := exec.Command("git", "tag").Output()
 	if err != nil {
 		return nil, cobra.ShellCompDirectiveNoFileComp

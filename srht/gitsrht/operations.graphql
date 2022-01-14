@@ -59,6 +59,16 @@ query repoNames {
     }
 }
 
+query revsByRepoName($name: String!) {
+    repositoryByName(name: $name) {
+        references {
+            results {
+                name
+            }
+        }
+    }
+}
+
 mutation uploadArtifact($repoId: Int!, $revspec: String!, $file: Upload!) {
     uploadArtifact(repoId: $repoId, revspec: $revspec, file: $file) {
         filename
