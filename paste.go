@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"io"
 	"log"
 	"mime"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -24,6 +27,7 @@ func newPasteCommand() *cobra.Command {
 	cmd.AddCommand(newPasteCreateCommand())
 	cmd.AddCommand(newPasteDeleteCommand())
 	cmd.AddCommand(newPasteListCommand())
+	cmd.AddCommand(newPasteShowCommand())
 	cmd.AddCommand(newPasteUpdateCommand())
 	return cmd
 }
@@ -145,6 +149,61 @@ func newPasteListCommand() *cobra.Command {
 		Run:   run,
 	}
 	return cmd
+}
+
+func newPasteShowCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:               "show <id>",
+		Short:             "Display a paste",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: completePasteID,
+	}
+	cmd.Run = func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		id, _, instance := parseResourceName(args[0])
+		c := createClientWithInstance("paste", cmd, instance)
+
+		paste, err := pastesrht.ShowPaste(c.Client, ctx, id)
+		if err != nil {
+			log.Fatal(err)
+		} else if paste == nil {
+			log.Fatalf("Paste %q does not exist", id)
+		}
+
+		time := time.Since(paste.Created)
+		fmt.Printf("%s %s %s ago\n", termfmt.DarkYellow.Sprint(paste.Id),
+			paste.Visibility.TermString(), timeDelta(time))
+
+		for _, file := range paste.Files {
+			fmt.Print("\n■ ")
+			if file.Filename != nil && *file.Filename != "" {
+				fmt.Println(termfmt.Bold.String(*file.Filename))
+			} else {
+				fmt.Println(termfmt.Dim.String("(untitled)"))
+			}
+			fmt.Println()
+
+			fetchPasteFile(ctx, c.HTTP, file)
+		}
+	}
+	return cmd
+}
+
+func fetchPasteFile(ctx context.Context, c *http.Client, file *pastesrht.File) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, string(file.Contents), nil)
+	if err != nil {
+		log.Fatalf("Failed to create request to fetch file: %v", err)
+	}
+
+	resp, err := c.Do(req)
+	if err != nil {
+		log.Fatalf("Failed to fetch file: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if _, err := io.Copy(os.Stdout, resp.Body); err != nil {
+		log.Fatalf("Failed to copy to stdout: %v", err)
+	}
 }
 
 func newPasteUpdateCommand() *cobra.Command {

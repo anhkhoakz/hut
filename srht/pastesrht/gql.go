@@ -124,3 +124,13 @@ func PasteCompletionList(client *gqlclient.Client, ctx context.Context) (pastes 
 	err = client.Execute(ctx, op, &respData)
 	return respData.Pastes, err
 }
+
+func ShowPaste(client *gqlclient.Client, ctx context.Context, id string) (paste *Paste, err error) {
+	op := gqlclient.NewOperation("query showPaste ($id: String!) {\n\tpaste(id: $id) {\n\t\tid\n\t\tcreated\n\t\tvisibility\n\t\tfiles {\n\t\t\tfilename\n\t\t\tcontents\n\t\t}\n\t\tuser {\n\t\t\tcanonicalName\n\t\t}\n\t}\n}\n")
+	op.Var("id", id)
+	var respData struct {
+		Paste *Paste
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Paste, err
+}

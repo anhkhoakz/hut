@@ -42,3 +42,18 @@ query pasteCompletionList {
         }
     }
 }
+
+query showPaste($id: String!) {
+    paste(id: $id) {
+        id
+        created
+        visibility
+        files {
+            filename
+            contents
+        }
+        user {
+            canonicalName
+        }
+    }
+}

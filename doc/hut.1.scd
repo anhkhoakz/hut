@@ -199,6 +199,9 @@ hut is a CLI companion utility to interact with sr.ht.
 *list*
 	List pastes.
 
+*show* <ID>
+	Display a paste.
+
 *update* <ID> [options...]
 	Update a paste's visibility.
 
