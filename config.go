@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -21,6 +22,7 @@ type Client struct {
 
 	Hostname string
 	BaseURL  string
+	HTTP     *http.Client
 }
 
 func createClient(service string, cmd *cobra.Command) *Client {
@@ -119,6 +121,7 @@ func createClientWithInstance(service string, cmd *cobra.Command, instanceName s
 		Client:   gqlclient.New(gqlEndpoint, httpClient),
 		Hostname: hostname,
 		BaseURL:  baseURL,
+		HTTP:     httpClient,
 	}
 }
 
