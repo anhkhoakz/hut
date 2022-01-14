@@ -304,7 +304,9 @@ func getRepoName(ctx context.Context, cmd *cobra.Command) (repoName, instance st
 	if repoName, err := cmd.Flags().GetString("repo"); err != nil {
 		log.Fatal(err)
 	} else if repoName != "" {
-		return repoName, ""
+		// TODO: handle owner
+		repoName, _, instance = parseResourceName(repoName)
+		return repoName, instance
 	}
 
 	repoName, instance, err := guessGitRepoName(ctx)
