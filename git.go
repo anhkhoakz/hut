@@ -132,14 +132,16 @@ func newGitDeleteCommand() *cobra.Command {
 	var autoConfirm bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("git", cmd)
 
-		var name string
+		var name, instance string
 		if len(args) > 0 {
-			name = args[0]
+			// TODO: handle owner
+			name, _, instance = parseResourceName(args[0])
 		} else {
-			name = getRepoName(ctx, cmd, c)
+			name, instance = getRepoName(ctx, cmd)
 		}
+
+		c := createClientWithInstance("git", cmd, instance)
 
 		repo, err := gitsrht.RepositoryByName(c.Client, ctx, name)
 		if err != nil {
@@ -186,8 +188,8 @@ func newGitArtifactUploadCommand() *cobra.Command {
 	var rev string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("git", cmd)
-		repoName := getRepoName(ctx, cmd, c)
+		repoName, instance := getRepoName(ctx, cmd)
+		c := createClientWithInstance("git", cmd, instance)
 
 		if rev == "" {
 			var err error
@@ -238,8 +240,8 @@ func newGitArtifactListCommand() *cobra.Command {
 
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("git", cmd)
-		repoName := getRepoName(ctx, cmd, c)
+		repoName, instance := getRepoName(ctx, cmd)
+		c := createClientWithInstance("git", cmd, instance)
 
 		repo, err := gitsrht.ListArtifacts(c.Client, ctx, repoName)
 		if err != nil {
@@ -298,40 +300,36 @@ func newGitArtifactDeleteCommand() *cobra.Command {
 	return cmd
 }
 
-func getRepoName(ctx context.Context, cmd *cobra.Command, c *Client) string {
+func getRepoName(ctx context.Context, cmd *cobra.Command) (repoName, instance string) {
 	if repoName, err := cmd.Flags().GetString("repo"); err != nil {
 		log.Fatal(err)
 	} else if repoName != "" {
-		return repoName
+		return repoName, ""
 	}
 
-	repoName, err := guessGitRepoName(ctx, c)
+	repoName, instance, err := guessGitRepoName(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return repoName
+	return repoName, instance
 }
 
-func guessGitRepoName(ctx context.Context, c *Client) (string, error) {
+func guessGitRepoName(ctx context.Context) (repoName, instance string, err error) {
 	remoteURL, err := gitRemoteURL(ctx)
 	if err != nil {
-		return "", err
-	}
-
-	// TODO: ignore port in host
-	if !strings.HasSuffix(remoteURL.Host, "."+c.Hostname) {
-		return "", fmt.Errorf("Git URL %q doesn't match hostname %q", remoteURL, c.Hostname)
+		return "", "", err
 	}
 
 	parts := strings.Split(strings.Trim(remoteURL.Path, "/"), "/")
 	if len(parts) != 2 {
-		return "", fmt.Errorf("failed to parse Git URL %q: expected 2 path components", remoteURL)
+		return "", "", fmt.Errorf("failed to parse Git URL %q: expected 2 path components", remoteURL)
 	}
-	repoName := parts[1]
+	repoName = parts[1]
 
+	// TODO: ignore port in host
 	// TODO: handle repos not belonging to authenticated user
-	return repoName, nil
+	return repoName, remoteURL.Host, nil
 }
 
 func gitRemoteURL(ctx context.Context) (*url.URL, error) {
