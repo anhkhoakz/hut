@@ -19,6 +19,7 @@ func newListsCommand() *cobra.Command {
 	cmd.AddCommand(newListsDeleteCommand())
 	cmd.AddCommand(newListsListCommand())
 	cmd.AddCommand(newListsSubscribeCommand())
+	cmd.AddCommand(newListsUnsubscribeCommand())
 	return cmd
 }
 
@@ -123,6 +124,43 @@ func newListsSubscribeCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:               "subscribe <list>",
 		Short:             "Subscribe to a mailing list",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	cmd.Flags().StringVarP(&owner, "owner", "o", "", "list owner (canonical form)")
+	cmd.RegisterFlagCompletionFunc("owner", cobra.NoFileCompletions)
+	cmd.MarkFlagRequired("owner")
+	return cmd
+}
+
+func newListsUnsubscribeCommand() *cobra.Command {
+	// TODO: Parse owner from argument
+	var owner string
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("lists", cmd)
+
+		list, err := listssrht.MailingListIDByOwner(c.Client, ctx, owner, args[0])
+		if err != nil {
+			log.Fatal(err)
+		} else if list == nil {
+			log.Fatalf("no such list %s/%s/%s", c.BaseURL, owner, args[0])
+		}
+
+		subscription, err := listssrht.MailingListUnsubscribe(c.Client, ctx, list.Id)
+		if err != nil {
+			log.Fatal(err)
+		} else if subscription == nil {
+			log.Fatalf("you were not subscribed to %s/%s/%s", c.BaseURL, owner, args[0])
+		}
+
+		fmt.Printf("Unsubscribed from %s/%s/%s\n", c.BaseURL, subscription.List.Owner.CanonicalName, subscription.List.Name)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "unsubscribe <list>",
+		Short:             "Unubscribe from a mailing list",
 		Args:              cobra.ExactArgs(1),
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,

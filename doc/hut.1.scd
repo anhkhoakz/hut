@@ -261,6 +261,14 @@ hut is a CLI companion utility to interact with sr.ht.
 	*-o*, *--owner*
 		Owner of the mailing list in canonical form (required).
 
+*unsubscribe* <list> [options...]
+	Unsubscribe from a mailing list.
+
+	Options are:
+
+	*-o*, *--owner*
+		Owner of the mailing list in canonical form (required).
+
 ## hg
 
 *list* [username]

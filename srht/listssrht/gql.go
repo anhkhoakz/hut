@@ -408,3 +408,13 @@ func MailingListSubscribe(client *gqlclient.Client, ctx context.Context, listID 
 	err = client.Execute(ctx, op, &respData)
 	return respData.MailingListSubscribe, err
 }
+
+func MailingListUnsubscribe(client *gqlclient.Client, ctx context.Context, listID int32) (mailingListUnsubscribe *MailingListSubscription, err error) {
+	op := gqlclient.NewOperation("mutation mailingListUnsubscribe ($listID: Int!) {\n\tmailingListUnsubscribe(listID: $listID) {\n\t\tlist {\n\t\t\tname\n\t\t\towner {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op.Var("listID", listID)
+	var respData struct {
+		MailingListUnsubscribe *MailingListSubscription
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.MailingListUnsubscribe, err
+}

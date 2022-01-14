@@ -47,3 +47,14 @@ mutation mailingListSubscribe($listID: Int!) {
         }
     }
 }
+
+mutation mailingListUnsubscribe($listID: Int!) {
+    mailingListUnsubscribe(listID: $listID) {
+        list {
+            name
+            owner {
+                canonicalName
+            }
+        }
+    }
+}
