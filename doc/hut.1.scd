@@ -247,6 +247,11 @@ hut is a CLI companion utility to interact with sr.ht.
 *list* [username]
 	List mailing lists.
 
+## hg
+
+*list* [username]
+	List repositories.
+
 # CONFIGURATION
 
 Generate a new OAuth2 access token on _meta.sr.ht_.

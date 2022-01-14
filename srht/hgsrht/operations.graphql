@@ -1,0 +1,22 @@
+query repositories {
+    repositories {
+        ...repos
+    }
+}
+
+query repositoriesByUser($username: String!) {
+    user(username: $username) {
+        repositories {
+            ...repos
+        }
+    }
+}
+
+fragment repos on RepositoryCursor {
+    results {
+        id
+        name
+        description
+        visibility
+    }
+}
