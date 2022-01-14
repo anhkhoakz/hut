@@ -174,7 +174,7 @@ func newPasteUpdateCommand() *cobra.Command {
 		Use:               "update <ID>",
 		Short:             "Update a paste's visibility",
 		Args:              cobra.ExactArgs(1),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction: completePasteID,
 		Run:               run,
 	}
 	cmd.Flags().StringVarP(&visibility, "visibility", "v", "", "paste visibility")
