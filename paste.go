@@ -10,7 +10,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"git.sr.ht/~emersion/gqlclient"
 	"github.com/spf13/cobra"
@@ -130,9 +129,8 @@ func newPasteListCommand() *cobra.Command {
 		}
 
 		for _, paste := range pastes.Results {
-			time := time.Since(paste.Created)
 			fmt.Printf("%s %s %s ago\n", termfmt.DarkYellow.Sprint(paste.Id),
-				paste.Visibility.TermString(), timeDelta(time))
+				paste.Visibility.TermString(), timeDelta(paste.Created))
 			for _, file := range paste.Files {
 				if *file.Filename != "" {
 					fmt.Printf("  %s\n", *file.Filename)

@@ -10,7 +10,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/spf13/cobra"
 
@@ -91,7 +90,7 @@ func newMetaAuditLogCommand() *cobra.Command {
 			} else {
 				entry += fmt.Sprintf(" %s ", log.EventType)
 			}
-			entry += fmt.Sprintf("%s ago", timeDelta(time.Since(log.Created)))
+			entry += fmt.Sprintf("%s ago", timeDelta(log.Created))
 			fmt.Println(entry)
 		}
 	}

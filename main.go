@@ -69,7 +69,8 @@ func getConfirmation(msg string) bool {
 	}
 }
 
-func timeDelta(d time.Duration) string {
+func timeDelta(t time.Time) string {
+	d := time.Since(t)
 	switch {
 	case d > time.Hour*24*30:
 		return fmt.Sprintf("%.f months", d.Hours()/(24*30))
