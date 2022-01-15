@@ -378,7 +378,7 @@ func newMetaPGPKeyDeleteCommand() *cobra.Command {
 		Use:               "delete <ID>",
 		Short:             "Delete a PGP key",
 		Args:              cobra.ExactArgs(1),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction: completePGPKeys,
 		Run:               run,
 	}
 	return cmd
@@ -454,6 +454,24 @@ func completeSSHKeys(cmd *cobra.Command, args []string, toComplete string) ([]st
 		if key.Comment != nil {
 			str += fmt.Sprintf(" %s", *key.Comment)
 		}
+		keyList = append(keyList, str)
+	}
+
+	return keyList, cobra.ShellCompDirectiveNoFileComp
+}
+
+func completePGPKeys(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	ctx := cmd.Context()
+	c := createClient("meta", cmd)
+	var keyList []string
+
+	user, err := metasrht.ListPGPKeys(c.Client, ctx)
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	for _, key := range user.PgpKeys.Results {
+		str := fmt.Sprintf("%d\t%s", key.Id, key.Fingerprint)
 		keyList = append(keyList, str)
 	}
 
