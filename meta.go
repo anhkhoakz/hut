@@ -209,7 +209,7 @@ func newMetaSSHKeyDeleteCommand() *cobra.Command {
 		Use:               "delete <ID>",
 		Short:             "Delete an SSH key",
 		Args:              cobra.ExactArgs(1),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction: completeSSHKeys,
 		Run:               run,
 	}
 	return cmd
@@ -437,4 +437,25 @@ func newMetaPGPKeyListCommand() *cobra.Command {
 	cmd.Flags().BoolVarP(&raw, "raw", "r", false, "print raw public keys")
 	return cmd
 
+}
+
+func completeSSHKeys(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	ctx := cmd.Context()
+	c := createClient("meta", cmd)
+	var keyList []string
+
+	user, err := metasrht.ListSSHKeys(c.Client, ctx)
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	for _, key := range user.SshKeys.Results {
+		str := fmt.Sprintf("%d\t%s", key.Id, key.Fingerprint)
+		if key.Comment != nil {
+			str += fmt.Sprintf(" %s", *key.Comment)
+		}
+		keyList = append(keyList, str)
+	}
+
+	return keyList, cobra.ShellCompDirectiveNoFileComp
 }
