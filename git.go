@@ -26,6 +26,7 @@ func newGitCommand() *cobra.Command {
 	cmd.AddCommand(newGitCreateCommand())
 	cmd.AddCommand(newGitListCommand())
 	cmd.AddCommand(newGitDeleteCommand())
+	cmd.AddCommand(newGitACLCommand())
 	cmd.PersistentFlags().StringP("repo", "r", "", "name of repository")
 	cmd.RegisterFlagCompletionFunc("repo", completeRepo)
 	return cmd
@@ -294,6 +295,55 @@ func newGitArtifactDeleteCommand() *cobra.Command {
 		Use:               "delete <ID>",
 		Short:             "Delete an artifact",
 		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	return cmd
+}
+
+func newGitACLCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "acl",
+		Short: "Manage access-control lists",
+	}
+	cmd.AddCommand(newGitACLListCommand())
+	return cmd
+}
+
+func newGitACLListCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		var name, instance string
+		if len(args) > 0 {
+			// TODO: handle owner
+			name, _, instance = parseResourceName(args[0])
+		} else {
+			name, instance = getRepoName(ctx, cmd)
+		}
+
+		c := createClientWithInstance("git", cmd, instance)
+
+		repo, err := gitsrht.AclByRepoName(c.Client, ctx, name)
+		if err != nil {
+			log.Fatal(err)
+		} else if repo == nil {
+			log.Fatalf("repository %s does not exist", name)
+		}
+
+		for _, acl := range repo.AccessControlList.Results {
+			var mode string
+			if acl.Mode != nil {
+				mode = string(*acl.Mode)
+			}
+			fmt.Printf("%s %s %s ago %s\n", termfmt.DarkYellow.Sprintf("#%d", acl.Id),
+				acl.Entity.CanonicalName, timeDelta(acl.Created), mode)
+		}
+	}
+
+	cmd := &cobra.Command{
+		Use:               "list",
+		Short:             "List ACL entries",
+		Args:              cobra.MaximumNArgs(1),
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}

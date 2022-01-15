@@ -69,6 +69,21 @@ query revsByRepoName($name: String!) {
     }
 }
 
+query aclByRepoName($name: String!) {
+    repositoryByName(name: $name) {
+        accessControlList {
+            results {
+                id
+                created
+                entity {
+                    canonicalName
+                }
+                mode
+            }
+        }
+    }
+}
+
 mutation uploadArtifact($repoId: Int!, $revspec: String!, $file: Upload!) {
     uploadArtifact(repoId: $repoId, revspec: $revspec, file: $file) {
         filename

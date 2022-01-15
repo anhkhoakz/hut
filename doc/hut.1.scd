@@ -92,6 +92,9 @@ hut is a CLI companion utility to interact with sr.ht.
 *artifact delete* <ID>
 	Delete an artifact.
 
+*acl list* [repo]
+	List ACL entries of a repo. Defaults to current repo.
+
 ## builds
 
 *submit* [manifest...] [options...]
