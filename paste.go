@@ -168,9 +168,8 @@ func newPasteShowCommand() *cobra.Command {
 			log.Fatalf("Paste %q does not exist", id)
 		}
 
-		time := time.Since(paste.Created)
 		fmt.Printf("%s %s %s ago\n", termfmt.DarkYellow.Sprint(paste.Id),
-			paste.Visibility.TermString(), timeDelta(time))
+			paste.Visibility.TermString(), timeDelta(paste.Created))
 
 		for _, file := range paste.Files {
 			fmt.Print("\n■ ")
