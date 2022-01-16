@@ -1,4 +1,4 @@
-query repositoryByName($name: String!) {
+query repositoryIDByName($name: String!) {
     repositoryByName(name: $name) {
         id
     }

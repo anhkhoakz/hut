@@ -246,8 +246,8 @@ const (
 	VisibilityPrivate  Visibility = "PRIVATE"
 )
 
-func RepositoryByName(client *gqlclient.Client, ctx context.Context, name string) (repositoryByName *Repository, err error) {
-	op := gqlclient.NewOperation("query repositoryByName ($name: String!) {\n\trepositoryByName(name: $name) {\n\t\tid\n\t}\n}\n")
+func RepositoryIDByName(client *gqlclient.Client, ctx context.Context, name string) (repositoryByName *Repository, err error) {
+	op := gqlclient.NewOperation("query repositoryIDByName ($name: String!) {\n\trepositoryByName(name: $name) {\n\t\tid\n\t}\n}\n")
 	op.Var("name", name)
 	var respData struct {
 		RepositoryByName *Repository

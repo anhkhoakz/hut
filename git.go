@@ -144,7 +144,7 @@ func newGitDeleteCommand() *cobra.Command {
 
 		c := createClientWithInstance("git", cmd, instance)
 
-		repo, err := gitsrht.RepositoryByName(c.Client, ctx, name)
+		repo, err := gitsrht.RepositoryIDByName(c.Client, ctx, name)
 		if err != nil {
 			log.Fatalf("failed to get repository ID: %v", err)
 		} else if repo == nil {
@@ -210,7 +210,7 @@ func newGitArtifactUploadCommand() *cobra.Command {
 
 		file := gqlclient.Upload{Filename: filepath.Base(filename), Body: f}
 
-		repo, err := gitsrht.RepositoryByName(c.Client, ctx, repoName)
+		repo, err := gitsrht.RepositoryIDByName(c.Client, ctx, repoName)
 		if err != nil {
 			log.Fatalf("failed to get repository ID: %v", err)
 		} else if repo == nil {
