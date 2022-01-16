@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -105,12 +106,13 @@ func newBuildsResubmitCommand() *cobra.Command {
 	var follow, edit bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("builds", cmd)
 
-		id, err := parseInt32(args[0])
+		id, instance, err := parseBuildID(args[0])
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		c := createClientWithInstance("builds", cmd, instance)
 
 		oldJob, err := buildssrht.Manifest(c.Client, ctx, id)
 		if err != nil {
@@ -199,13 +201,14 @@ func newBuildsResubmitCommand() *cobra.Command {
 func newBuildsCancelCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("builds", cmd)
 
-		for _, id := range args {
-			id, err := parseInt32(id)
+		for _, arg := range args {
+			id, instance, err := parseBuildID(arg)
 			if err != nil {
 				log.Fatal(err)
 			}
+
+			c := createClientWithInstance("builds", cmd, instance)
 
 			job, err := buildssrht.Cancel(c.Client, ctx, id)
 			if err != nil {
@@ -230,11 +233,14 @@ func newBuildsShowCommand() *cobra.Command {
 	var follow bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("builds", cmd)
 
-		// get last build
-		var id int32
+		var (
+			id int32
+			c  *Client
+		)
 		if len(args) == 0 {
+			// get last build
+			c = createClient("builds", cmd)
 			jobs, err := buildssrht.JobIDs(c.Client, ctx)
 			if err != nil {
 				log.Fatal(err)
@@ -242,14 +248,17 @@ func newBuildsShowCommand() *cobra.Command {
 			if len(jobs.Results) == 0 {
 				log.Fatal("cannot show last job: no jobs found")
 			}
-
 			id = jobs.Results[0].Id
 		} else {
-			var err error
-			id, err = parseInt32(args[0])
+			var (
+				instance string
+				err      error
+			)
+			id, instance, err = parseBuildID(args[0])
 			if err != nil {
 				log.Fatal(err)
 			}
+			c = createClientWithInstance("builds", cmd, instance)
 		}
 
 		var (
@@ -341,12 +350,13 @@ func newBuildsListCommand() *cobra.Command {
 func newBuildsSSHCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("builds", cmd)
 
-		id, err := parseInt32(args[0])
+		id, instance, err := parseBuildID(args[0])
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		c := createClientWithInstance("builds", cmd, instance)
 
 		job, ver, err := buildssrht.GetSSHInfo(c.Client, ctx, id)
 		if err != nil {
@@ -555,6 +565,16 @@ func getSSHCommand(job *buildssrht.Job) (string, error) {
 
 	cmd := fmt.Sprintf("ssh -t builds@%s connect %d", *job.Runner, job.Id)
 	return cmd, nil
+}
+
+func parseBuildID(s string) (id int32, instance string, err error) {
+	s, _, instance = parseResourceName(s)
+	s = strings.TrimPrefix(s, "job/")
+	id64, err := strconv.ParseInt(s, 10, 32)
+	if err != nil {
+		return 0, "", fmt.Errorf("invalid build ID: %v", err)
+	}
+	return int32(id64), instance, nil
 }
 
 func indent(s, prefix string) string {
