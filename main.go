@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -108,4 +109,9 @@ func parseResourceName(name string) (resource, owner, instance string) {
 	}
 
 	return resource, owner, instance
+}
+
+func parseInt32(s string) (int32, error) {
+	i, err := strconv.ParseInt(s, 10, 32)
+	return int32(i), err
 }

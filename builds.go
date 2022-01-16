@@ -11,7 +11,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -556,11 +555,6 @@ func getSSHCommand(job *buildssrht.Job) (string, error) {
 
 	cmd := fmt.Sprintf("ssh -t builds@%s connect %d", *job.Runner, job.Id)
 	return cmd, nil
-}
-
-func parseInt32(s string) (int32, error) {
-	i, err := strconv.ParseInt(s, 10, 32)
-	return int32(i), err
 }
 
 func indent(s, prefix string) string {
