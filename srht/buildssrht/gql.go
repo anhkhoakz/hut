@@ -344,3 +344,12 @@ func GetSSHInfo(client *gqlclient.Client, ctx context.Context, id int32) (job *J
 	err = client.Execute(ctx, op, &respData)
 	return respData.Job, respData.Version, err
 }
+
+func RunningJobs(client *gqlclient.Client, ctx context.Context) (jobs *JobCursor, err error) {
+	op := gqlclient.NewOperation("query runningJobs {\n\tjobs {\n\t\tresults {\n\t\t\tid\n\t\t\tstatus\n\t\t\tnote\n\t\t\ttags\n\t\t}\n\t}\n}\n")
+	var respData struct {
+		Jobs *JobCursor
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Jobs, err
+}

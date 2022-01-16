@@ -223,7 +223,7 @@ func newBuildsCancelCommand() *cobra.Command {
 		Use:               "cancel <ID...>",
 		Short:             "Cancel jobs",
 		Args:              cobra.MinimumNArgs(1),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction: completeRunningJobs,
 		Run:               run,
 	}
 	return cmd
@@ -373,7 +373,7 @@ func newBuildsSSHCommand() *cobra.Command {
 		Use:               "ssh <ID>",
 		Short:             "SSH into job",
 		Args:              cobra.ExactArgs(1),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction: completeRunningJobs,
 		Run:               run,
 	}
 	return cmd
@@ -640,4 +640,39 @@ func (c *Client) followJobShow(ctx context.Context, id int32) (*buildssrht.Job, 
 			// Continue looping
 		}
 	}
+}
+
+func completeRunningJobs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	ctx := cmd.Context()
+	c := createClient("builds", cmd)
+	var jobList []string
+
+	jobs, err := buildssrht.Jobs(c.Client, ctx)
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	for _, job := range jobs.Results {
+		// TODO: filter with API
+		if jobStatusDone(job.Status) {
+			continue
+		}
+
+		str := fmt.Sprintf("%d\t", job.Id)
+		if tagString := formatJobTags(&job); tagString != "" {
+			str += tagString
+		}
+
+		if len(job.Tags) > 0 && job.Note != nil {
+			str += " - "
+		}
+
+		if job.Note != nil {
+			str += *job.Note
+		}
+
+		jobList = append(jobList, str)
+	}
+
+	return jobList, cobra.ShellCompDirectiveNoFileComp
 }

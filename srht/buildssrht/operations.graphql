@@ -96,3 +96,14 @@ query getSSHInfo($id: Int!) {
         }
     }
 }
+
+query runningJobs {
+    jobs {
+        results {
+            id
+            status
+            note
+            tags
+        }
+    }
+}
