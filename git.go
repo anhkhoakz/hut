@@ -143,19 +143,13 @@ func newGitDeleteCommand() *cobra.Command {
 		}
 
 		c := createClientWithInstance("git", cmd, instance)
-
-		repo, err := gitsrht.RepositoryIDByName(c.Client, ctx, name)
-		if err != nil {
-			log.Fatalf("failed to get repository ID: %v", err)
-		} else if repo == nil {
-			log.Fatalf("repository %s does not exist", name)
-		}
+		id := getRepoID(c, ctx, name)
 
 		if !autoConfirm && !getConfirmation(fmt.Sprintf("Do you really want to delete the repo %s", name)) {
 			fmt.Println("Aborted")
 			return
 		}
-		repo, err = gitsrht.DeleteRepository(c.Client, ctx, repo.Id)
+		repo, err := gitsrht.DeleteRepository(c.Client, ctx, id)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -191,6 +185,7 @@ func newGitArtifactUploadCommand() *cobra.Command {
 		ctx := cmd.Context()
 		repoName, instance := getRepoName(ctx, cmd)
 		c := createClientWithInstance("git", cmd, instance)
+		repoID := getRepoID(c, ctx, repoName)
 
 		if rev == "" {
 			var err error
@@ -210,14 +205,7 @@ func newGitArtifactUploadCommand() *cobra.Command {
 
 		file := gqlclient.Upload{Filename: filepath.Base(filename), Body: f}
 
-		repo, err := gitsrht.RepositoryIDByName(c.Client, ctx, repoName)
-		if err != nil {
-			log.Fatalf("failed to get repository ID: %v", err)
-		} else if repo == nil {
-			log.Fatalf("repository %s does not exist", repoName)
-		}
-
-		artifact, err := gitsrht.UploadArtifact(c.Client, ctx, repo.Id, rev, file)
+		artifact, err := gitsrht.UploadArtifact(c.Client, ctx, repoID, rev, file)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -382,6 +370,16 @@ func guessGitRepoName(ctx context.Context) (repoName, instance string, err error
 	// TODO: ignore port in host
 	// TODO: handle repos not belonging to authenticated user
 	return repoName, remoteURL.Host, nil
+}
+
+func getRepoID(c *Client, ctx context.Context, name string) int32 {
+	repo, err := gitsrht.RepositoryIDByName(c.Client, ctx, name)
+	if err != nil {
+		log.Fatalf("failed to get repository ID: %v", err)
+	} else if repo == nil {
+		log.Fatalf("repository %s does not exist", name)
+	}
+	return repo.Id
 }
 
 func gitRemoteURL(ctx context.Context) (*url.URL, error) {
