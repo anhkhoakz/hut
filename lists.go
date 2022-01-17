@@ -100,17 +100,17 @@ func newListsListCommand() *cobra.Command {
 }
 
 func newListsSubscribeCommand() *cobra.Command {
-	// TODO: Parse owner from argument
-	var owner string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("lists", cmd)
 
-		list, err := listssrht.MailingListIDByOwner(c.Client, ctx, owner, args[0])
+		name, owner, instance := parseMailingListName(cmd, args[0])
+		c := createClientWithInstance("lists", cmd, instance)
+
+		list, err := listssrht.MailingListIDByOwner(c.Client, ctx, owner, name)
 		if err != nil {
 			log.Fatal(err)
 		} else if list == nil {
-			log.Fatalf("no such list %s/%s/%s", c.BaseURL, owner, args[0])
+			log.Fatalf("no such list %s/%s/%s", c.BaseURL, owner, name)
 		}
 
 		subscription, err := listssrht.MailingListSubscribe(c.Client, ctx, list.Id)
@@ -128,24 +128,23 @@ func newListsSubscribeCommand() *cobra.Command {
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
-	cmd.Flags().StringVarP(&owner, "owner", "o", "", "list owner (canonical form)")
+	cmd.Flags().StringP("owner", "o", "", "list owner (canonical form)")
 	cmd.RegisterFlagCompletionFunc("owner", cobra.NoFileCompletions)
-	cmd.MarkFlagRequired("owner")
 	return cmd
 }
 
 func newListsUnsubscribeCommand() *cobra.Command {
-	// TODO: Parse owner from argument
-	var owner string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("lists", cmd)
 
-		list, err := listssrht.MailingListIDByOwner(c.Client, ctx, owner, args[0])
+		name, owner, instance := parseMailingListName(cmd, args[0])
+		c := createClientWithInstance("lists", cmd, instance)
+
+		list, err := listssrht.MailingListIDByOwner(c.Client, ctx, owner, name)
 		if err != nil {
 			log.Fatal(err)
 		} else if list == nil {
-			log.Fatalf("no such list %s/%s/%s", c.BaseURL, owner, args[0])
+			log.Fatalf("no such list %s/%s/%s", c.BaseURL, owner, name)
 		}
 
 		subscription, err := listssrht.MailingListUnsubscribe(c.Client, ctx, list.Id)
@@ -165,8 +164,22 @@ func newListsUnsubscribeCommand() *cobra.Command {
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
-	cmd.Flags().StringVarP(&owner, "owner", "o", "", "list owner (canonical form)")
+	cmd.Flags().StringP("owner", "o", "", "list owner (canonical form)")
 	cmd.RegisterFlagCompletionFunc("owner", cobra.NoFileCompletions)
-	cmd.MarkFlagRequired("owner")
 	return cmd
+}
+
+func parseMailingListName(cmd *cobra.Command, s string) (name, owner, instance string) {
+	name, owner, instance = parseResourceName(s)
+
+	if ownerFlag, err := cmd.Flags().GetString("owner"); err != nil {
+		log.Fatal(err)
+	} else if ownerFlag != "" {
+		if owner != "" && ownerFlag != owner {
+			log.Fatalf("conflicting owners: %v and --owner=%v", owner, ownerFlag)
+		}
+		owner = ownerFlag
+	}
+
+	return name, owner, instance
 }
