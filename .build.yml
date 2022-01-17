@@ -2,6 +2,7 @@ image: alpine/latest
 packages:
   - go
   - scdoc
+  - bmake
 sources:
   - https://git.sr.ht/~emersion/hut
 tasks:
@@ -14,3 +15,7 @@ tasks:
   - gofmt: |
       cd hut
       test -z $(gofmt -l .)
+  - build-bmake: |
+      cd hut
+      make clean
+      bmake
