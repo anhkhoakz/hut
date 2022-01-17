@@ -225,8 +225,6 @@ func newListsPatchsetListCommand() *cobra.Command {
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
-	cmd.Flags().StringP("owner", "o", "", "list owner (canonical form)")
-	cmd.RegisterFlagCompletionFunc("owner", cobra.NoFileCompletions)
 	return cmd
 }
 
