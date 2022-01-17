@@ -49,6 +49,8 @@ func newListsDeleteCommand() *cobra.Command {
 		list, err := listssrht.DeleteMailingList(c.Client, ctx, id)
 		if err != nil {
 			log.Fatal(err)
+		} else if list == nil {
+			log.Fatalf("failed to delete list with ID %d", id)
 		}
 
 		fmt.Printf("Deleted mailing list %s\n", list.Name)
