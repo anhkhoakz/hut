@@ -439,3 +439,14 @@ func MailingListUnsubscribe(client *gqlclient.Client, ctx context.Context, listI
 	err = client.Execute(ctx, op, &respData)
 	return respData.MailingListUnsubscribe, err
 }
+
+func UpdatePatchset(client *gqlclient.Client, ctx context.Context, id int32, status PatchsetStatus) (updatePatchset *Patchset, err error) {
+	op := gqlclient.NewOperation("mutation updatePatchset ($id: Int!, $status: PatchsetStatus!) {\n\tupdatePatchset(id: $id, status: $status) {\n\t\tsubmitter {\n\t\t\tcanonicalName\n\t\t}\n\t\tsubject\n\t}\n}\n")
+	op.Var("id", id)
+	op.Var("status", status)
+	var respData struct {
+		UpdatePatchset *Patchset
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.UpdatePatchset, err
+}

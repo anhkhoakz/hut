@@ -271,6 +271,14 @@ Options are:
 *patchset list* [list]
 	List patchsets in list.
 
+*patchset update* <ID>
+	Update a patchset.
+
+	Options are:
+
+	*-s*, *--status* <string>
+		Patchset status to set (required).
+
 ## hg
 
 *list* [owner]

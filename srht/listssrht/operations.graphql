@@ -84,3 +84,12 @@ mutation mailingListUnsubscribe($listID: Int!) {
         }
     }
 }
+
+mutation updatePatchset($id: Int!, $status: PatchsetStatus!) {
+    updatePatchset(id: $id, status: $status) {
+        submitter {
+            canonicalName
+        }
+        subject
+    }
+}

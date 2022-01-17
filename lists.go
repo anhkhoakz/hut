@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/mail"
 	"os/exec"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -178,6 +179,7 @@ func newListsPatchsetCommand() *cobra.Command {
 		Short: "Manage patchsets",
 	}
 	cmd.AddCommand(newListsPatchsetListCommand())
+	cmd.AddCommand(newListsPatchsetUpdateCommand())
 	return cmd
 }
 
@@ -225,6 +227,45 @@ func newListsPatchsetListCommand() *cobra.Command {
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
+	return cmd
+}
+
+func newListsPatchsetUpdateCommand() *cobra.Command {
+	var status string
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		patchStatus, err := getPatchsetStatus(status)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		id, instance, err := parsePatchID(args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+		c := createClientWithInstance("lists", cmd, instance)
+
+		patch, err := listssrht.UpdatePatchset(c.Client, ctx, id, patchStatus)
+		if err != nil {
+			log.Fatal(err)
+		} else if patch == nil {
+			log.Fatalf("failed to update patchset with ID %d", id)
+		}
+
+		fmt.Printf("Updated patchset %q by %s\n", patch.Subject, patch.Submitter.CanonicalName)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "update <ID>",
+		Short:             "Update a patchset",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	cmd.Flags().StringVarP(&status, "status", "s", "", "patchset status")
+	cmd.RegisterFlagCompletionFunc("status", completePatchsetStatus)
+	cmd.MarkFlagRequired("status")
 	return cmd
 }
 
@@ -290,4 +331,42 @@ func getGitSendEmailTo(ctx context.Context) (*mail.Address, error) {
 		return nil, fmt.Errorf("failed to parse git sendemail.to: %v", err)
 	}
 	return addr, nil
+}
+
+func parsePatchID(s string) (id int32, instance string, err error) {
+	s, _, instance = parseResourceName(s)
+	split := strings.Split(s, "/")
+	s = split[len(split)-1]
+	id64, err := strconv.ParseInt(s, 10, 32)
+	if err != nil {
+		return 0, "", fmt.Errorf("invalid patchset ID: %v", err)
+	}
+
+	return int32(id64), instance, nil
+}
+
+func getPatchsetStatus(status string) (listssrht.PatchsetStatus, error) {
+	switch strings.ToLower(status) {
+	case "unknown":
+		return listssrht.PatchsetStatusUnknown, nil
+	case "proposed":
+		return listssrht.PatchsetStatusProposed, nil
+	case "needs_revision":
+		return listssrht.PatchsetStatusNeedsRevision, nil
+	case "superseded":
+		return listssrht.PatchsetStatusSuperseded, nil
+	case "approved":
+		return listssrht.PatchsetStatusApproved, nil
+	case "rejected":
+		return listssrht.PatchsetStatusRejected, nil
+	case "applied":
+		return listssrht.PatchsetStatusApplied, nil
+	default:
+		return "", fmt.Errorf("invalid patchset status: %s", status)
+	}
+}
+
+func completePatchsetStatus(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return []string{"unknown", "proposed", "needs_revision", "superseded",
+		"approved", "rejected", "applied"}, cobra.ShellCompDirectiveNoFileComp
 }
