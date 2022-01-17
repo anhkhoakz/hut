@@ -378,3 +378,13 @@ func UpdateACL(client *gqlclient.Client, ctx context.Context, repoId int32, mode
 	err = client.Execute(ctx, op, &respData)
 	return respData.UpdateACL, err
 }
+
+func DeleteACL(client *gqlclient.Client, ctx context.Context, id int32) (deleteACL *ACL, err error) {
+	op := gqlclient.NewOperation("mutation deleteACL ($id: Int!) {\n\tdeleteACL(id: $id) {\n\t\tentity {\n\t\t\tcanonicalName\n\t\t}\n\t\trepository {\n\t\t\tname\n\t\t}\n\t}\n}\n")
+	op.Var("id", id)
+	var respData struct {
+		DeleteACL *ACL
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.DeleteACL, err
+}

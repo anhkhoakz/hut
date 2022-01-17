@@ -296,6 +296,7 @@ func newGitACLCommand() *cobra.Command {
 	}
 	cmd.AddCommand(newGitACLListCommand())
 	cmd.AddCommand(newGitACLUpdateCommand())
+	cmd.AddCommand(newGitACLDeleteCommand())
 	return cmd
 }
 
@@ -375,6 +376,36 @@ func newGitACLUpdateCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&mode, "mode", "m", "", "access mode")
 	cmd.RegisterFlagCompletionFunc("mode", completeAccessMode)
 	cmd.MarkFlagRequired("mode")
+	return cmd
+}
+
+func newGitACLDeleteCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("git", cmd)
+
+		id, err := parseInt32(args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		acl, err := gitsrht.DeleteACL(c.Client, ctx, id)
+		if err != nil {
+			log.Fatal(err)
+		} else if acl == nil {
+			log.Fatalf("failed to delete ACL entry with ID %d", id)
+		}
+
+		fmt.Printf("Deleted ACL entry for %s in repository %s\n", acl.Entity.CanonicalName, acl.Repository.Name)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "delete <ID>",
+		Short:             "Delete an ACL entry",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
 	return cmd
 }
 

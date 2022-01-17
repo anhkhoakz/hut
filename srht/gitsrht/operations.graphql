@@ -126,3 +126,14 @@ mutation updateACL($repoId: Int!, $mode: AccessMode!, $entity: ID!) {
         }
     }
 }
+
+mutation deleteACL($id: Int!) {
+    deleteACL(id: $id) {
+        entity {
+            canonicalName
+        }
+        repository {
+            name
+        }
+    }
+}

@@ -119,6 +119,9 @@ Options are:
 	*-m*, *--mode* <string>
 		Access mode to set (RW, RO).
 
+*acl delete* <ID>
+	Delete an ACL entry.
+
 ## builds
 
 *submit* [manifest...] [options...]
