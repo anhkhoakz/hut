@@ -37,10 +37,11 @@ func newGraphqlCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:   "graphql <service>",
-		Short: "Execute a GraphQL query",
-		Args:  cobra.ExactArgs(1),
-		Run:   run,
+		Use:               "graphql <service>",
+		Short:             "Execute a GraphQL query",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
 	}
 	// TODO: variables
 	return cmd
