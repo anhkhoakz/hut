@@ -47,6 +47,21 @@ hut is a CLI companion utility to interact with sr.ht.
 	EOF
 	```
 
+	Options are:
+
+	*-v*, *--var* <key>=<value>
+		Set a raw variable. Example:
+
+		```
+		hut graphql meta -v username=emersion <<'EOF'
+		query($username: String!) {
+			userByName(username: $username) {
+				bio
+			}
+		}
+		EOF
+		```
+
 ## git
 
 Options are:
