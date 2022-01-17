@@ -349,16 +349,6 @@ type Version struct {
 	DeprecationDate time.Time `json:"deprecationDate,omitempty"`
 }
 
-func MailingListByName(client *gqlclient.Client, ctx context.Context, name string) (mailingListByName *MailingList, err error) {
-	op := gqlclient.NewOperation("query mailingListByName ($name: String!) {\n\tmailingListByName(name: $name) {\n\t\tid\n\t}\n}\n")
-	op.Var("name", name)
-	var respData struct {
-		MailingListByName *MailingList
-	}
-	err = client.Execute(ctx, op, &respData)
-	return respData.MailingListByName, err
-}
-
 func DeleteMailingList(client *gqlclient.Client, ctx context.Context, id int32) (deleteMailingList *MailingList, err error) {
 	op := gqlclient.NewOperation("mutation deleteMailingList ($id: Int!) {\n\tdeleteMailingList(id: $id) {\n\t\tname\n\t}\n}\n")
 	op.Var("id", id)
@@ -386,6 +376,16 @@ func MailingListsByUser(client *gqlclient.Client, ctx context.Context, username 
 	}
 	err = client.Execute(ctx, op, &respData)
 	return respData.UserByName, err
+}
+
+func MailingListIDByName(client *gqlclient.Client, ctx context.Context, name string) (mailingListByName *MailingList, err error) {
+	op := gqlclient.NewOperation("query mailingListIDByName ($name: String!) {\n\tmailingListByName(name: $name) {\n\t\tid\n\t}\n}\n")
+	op.Var("name", name)
+	var respData struct {
+		MailingListByName *MailingList
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.MailingListByName, err
 }
 
 func MailingListIDByOwner(client *gqlclient.Client, ctx context.Context, ownerName string, listName string) (mailingListByOwner *MailingList, err error) {

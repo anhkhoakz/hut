@@ -1,9 +1,3 @@
-query mailingListByName($name: String!) {
-    mailingListByName(name: $name) {
-        id
-    }
-}
-
 mutation deleteMailingList($id: Int!) {
     deleteMailingList(id: $id) {
         name
@@ -28,6 +22,12 @@ fragment lists on MailingListCursor {
     results {
         name
         description
+    }
+}
+
+query mailingListIDByName($name: String!) {
+    mailingListByName(name: $name) {
+        id
     }
 }
 

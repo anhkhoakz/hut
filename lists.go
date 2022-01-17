@@ -29,7 +29,7 @@ func newListsDeleteCommand() *cobra.Command {
 		ctx := cmd.Context()
 		c := createClient("lists", cmd)
 
-		list, err := listssrht.MailingListByName(c.Client, ctx, args[0])
+		list, err := listssrht.MailingListIDByName(c.Client, ctx, args[0])
 		if err != nil {
 			log.Fatalf("failed to get list ID: %v", err)
 		} else if list == nil {
