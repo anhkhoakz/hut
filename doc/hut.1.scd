@@ -273,6 +273,14 @@ selected.
 	*-o*, *--owner*
 		Owner of the mailing list in canonical form (required).
 
+*patchset list* [list] [options...]
+	List patchsets in list.
+
+	Options are:
+
+	*-o*, *--owner*
+		Owner of the mailing list in canonical form.
+
 ## hg
 
 *list* [owner]

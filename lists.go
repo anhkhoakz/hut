@@ -24,6 +24,7 @@ func newListsCommand() *cobra.Command {
 	cmd.AddCommand(newListsListCommand())
 	cmd.AddCommand(newListsSubscribeCommand())
 	cmd.AddCommand(newListsUnsubscribeCommand())
+	cmd.AddCommand(newListsPatchsetCommand())
 	return cmd
 }
 
@@ -189,6 +190,64 @@ func parseMailingListName(cmd *cobra.Command, s string) (name, owner, instance s
 	}
 
 	return name, owner, instance
+}
+
+func newListsPatchsetCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "patchset",
+		Short: "Manage patchsets",
+	}
+	cmd.AddCommand(newListsPatchsetListCommand())
+	return cmd
+}
+
+func newListsPatchsetListCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		var name, owner, instance string
+		if len(args) > 0 {
+			name, owner, instance = parseMailingListName(cmd, args[0])
+		} else {
+			name, owner, instance = guessMailingListName(ctx)
+		}
+		c := createClientWithInstance("lists", cmd, instance)
+
+		var (
+			err  error
+			list *listssrht.MailingList
+		)
+
+		if owner != "" {
+			list, err = listssrht.PatchesByOwner(c.Client, ctx, owner, name)
+		} else {
+			list, err = listssrht.Patches(c.Client, ctx, name)
+		}
+
+		if err != nil {
+			log.Fatal(err)
+		} else if list == nil {
+			log.Fatal("no such list")
+		}
+
+		for _, patchset := range list.Patches.Results {
+			// TODO: Improve formatting (version)
+			fmt.Printf("%s %s %s (%s %s ago)\n", termfmt.DarkYellow.Sprintf("#%d", patchset.Id),
+				patchset.Status.TermString(), patchset.Subject, patchset.Submitter.CanonicalName,
+				timeDelta(patchset.Created))
+		}
+	}
+
+	cmd := &cobra.Command{
+		Use:               "list [list]",
+		Short:             "List patchsets",
+		Args:              cobra.MaximumNArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	cmd.Flags().StringP("owner", "o", "", "list owner (canonical form)")
+	cmd.RegisterFlagCompletionFunc("owner", cobra.NoFileCompletions)
+	return cmd
 }
 
 func getMailingListID(c *Client, ctx context.Context, name, owner string) int32 {
