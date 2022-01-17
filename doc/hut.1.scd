@@ -243,7 +243,10 @@ Options are:
 
 ## lists
 
-*delete* <list> [options...]
+By default, the mailing list configured for the current Git repository will be
+selected.
+
+*delete* [list] [options...]
 	Delete a mailing list.
 
 	Options are:
@@ -254,7 +257,7 @@ Options are:
 *list* [owner]
 	List mailing lists.
 
-*subscribe* <list> [options...]
+*subscribe* [list] [options...]
 	Subscribe to a mailing list.
 
 	Options are:
@@ -262,7 +265,7 @@ Options are:
 	*-o*, *--owner*
 		Owner of the mailing list in canonical form (required).
 
-*unsubscribe* <list> [options...]
+*unsubscribe* [list] [options...]
 	Unsubscribe from a mailing list.
 
 	Options are:

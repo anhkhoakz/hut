@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"log"
+	"net/mail"
+	"os/exec"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -29,7 +32,12 @@ func newListsDeleteCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
-		name, owner, instance := parseMailingListName(cmd, args[0])
+		var name, owner, instance string
+		if len(args) > 0 {
+			name, owner, instance = parseMailingListName(cmd, args[0])
+		} else {
+			name, owner, instance = guessMailingListName(ctx)
+		}
 		c := createClientWithInstance("lists", cmd, instance)
 		id := getMailingListID(c, ctx, name, owner)
 
@@ -47,9 +55,9 @@ func newListsDeleteCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:               "delete <list>",
+		Use:               "delete [list]",
 		Short:             "Delete a mailing list",
-		Args:              cobra.ExactArgs(1),
+		Args:              cobra.MaximumNArgs(1),
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
@@ -102,7 +110,12 @@ func newListsSubscribeCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
-		name, owner, instance := parseMailingListName(cmd, args[0])
+		var name, owner, instance string
+		if len(args) > 0 {
+			name, owner, instance = parseMailingListName(cmd, args[0])
+		} else {
+			name, owner, instance = guessMailingListName(ctx)
+		}
 		c := createClientWithInstance("lists", cmd, instance)
 		id := getMailingListID(c, ctx, name, owner)
 
@@ -115,9 +128,9 @@ func newListsSubscribeCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:               "subscribe <list>",
+		Use:               "subscribe [list]",
 		Short:             "Subscribe to a mailing list",
-		Args:              cobra.ExactArgs(1),
+		Args:              cobra.MaximumNArgs(1),
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
@@ -130,7 +143,12 @@ func newListsUnsubscribeCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
-		name, owner, instance := parseMailingListName(cmd, args[0])
+		var name, owner, instance string
+		if len(args) > 0 {
+			name, owner, instance = parseMailingListName(cmd, args[0])
+		} else {
+			name, owner, instance = guessMailingListName(ctx)
+		}
 		c := createClientWithInstance("lists", cmd, instance)
 		id := getMailingListID(c, ctx, name, owner)
 
@@ -145,9 +163,9 @@ func newListsUnsubscribeCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:               "unsubscribe <list>",
+		Use:               "unsubscribe [list]",
 		Short:             "Unubscribe from a mailing list",
-		Args:              cobra.ExactArgs(1),
+		Args:              cobra.MaximumNArgs(1),
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
@@ -190,4 +208,38 @@ func getMailingListID(c *Client, ctx context.Context, name, owner string) int32 
 		log.Fatalf("no such mailing list %s/%s/%s", c.BaseURL, owner, name)
 	}
 	return list.Id
+}
+
+func guessMailingListName(ctx context.Context) (name, owner, instance string) {
+	addr, err := getGitSendEmailTo(ctx)
+	if err != nil {
+		log.Fatal(err)
+	} else if addr == nil {
+		log.Fatal("no mailing list specified and no mailing list configured for current Git repository")
+	}
+
+	parts := strings.SplitN(addr.Address, "@", 2)
+	if len(parts) != 2 {
+		log.Fatalf("invalid email address %q", addr.Address)
+	}
+
+	name, owner, _ = parseResourceName(parts[0])
+	instance = parts[1]
+	return name, owner, instance
+}
+
+func getGitSendEmailTo(ctx context.Context) (*mail.Address, error) {
+	out, err := exec.CommandContext(ctx, "git", "config", "--default=", "sendemail.to").Output()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get git sendemail.to config: %v", err)
+	}
+	out = bytes.TrimSpace(out)
+	if len(out) == 0 {
+		return nil, nil
+	}
+	addr, err := mail.ParseAddress(string(out))
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse git sendemail.to: %v", err)
+	}
+	return addr, nil
 }
