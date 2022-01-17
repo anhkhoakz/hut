@@ -48,12 +48,13 @@ hut is a CLI companion utility to interact with sr.ht.
 	```
 
 ## git
-	Options are:
+
+Options are:
 
 	*-r*, *--repo* <string>
 		Name of repository.
 
-*create* <repoName> [options...]
+*create* <name> [options...]
 	Create a repository.
 
 	Options are:
@@ -67,7 +68,7 @@ hut is a CLI companion utility to interact with sr.ht.
 	*-c*, *--clone*
 		Clone repository to _CWD_.
 
-*list* [username]
+*list* [owner]
 	List repositories.
 
 *delete* [repo] [options...]
@@ -250,7 +251,7 @@ hut is a CLI companion utility to interact with sr.ht.
 	*-y*, *--yes*
 		Confirm deletion without prompt.
 
-*list* [username]
+*list* [owner]
 	List mailing lists.
 
 *subscribe* <list> [options...]
@@ -271,7 +272,7 @@ hut is a CLI companion utility to interact with sr.ht.
 
 ## hg
 
-*list* [username]
+*list* [owner]
 	List repositories.
 
 # CONFIGURATION
