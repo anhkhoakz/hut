@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -27,21 +28,17 @@ func newListsDeleteCommand() *cobra.Command {
 	var autoConfirm bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("lists", cmd)
 
-		list, err := listssrht.MailingListIDByName(c.Client, ctx, args[0])
-		if err != nil {
-			log.Fatalf("failed to get list ID: %v", err)
-		} else if list == nil {
-			log.Fatalf("mailing list %s does not exist", args[0])
-		}
+		name, owner, instance := parseMailingListName(cmd, args[0])
+		c := createClientWithInstance("lists", cmd, instance)
+		id := getMailingListID(c, ctx, name, owner)
 
-		if !autoConfirm && !getConfirmation(fmt.Sprintf("Do you really want to delete the list %s", args[0])) {
+		if !autoConfirm && !getConfirmation(fmt.Sprintf("Do you really want to delete the list %s", name)) {
 			fmt.Println("Aborted")
 			return
 		}
 
-		list, err = listssrht.DeleteMailingList(c.Client, ctx, list.Id)
+		list, err := listssrht.DeleteMailingList(c.Client, ctx, id)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -57,6 +54,8 @@ func newListsDeleteCommand() *cobra.Command {
 		Run:               run,
 	}
 	cmd.Flags().BoolVarP(&autoConfirm, "yes", "y", false, "auto confirm")
+	cmd.Flags().StringP("owner", "o", "", "list owner (canonical form)")
+	cmd.RegisterFlagCompletionFunc("owner", cobra.NoFileCompletions)
 	return cmd
 }
 
@@ -105,15 +104,9 @@ func newListsSubscribeCommand() *cobra.Command {
 
 		name, owner, instance := parseMailingListName(cmd, args[0])
 		c := createClientWithInstance("lists", cmd, instance)
+		id := getMailingListID(c, ctx, name, owner)
 
-		list, err := listssrht.MailingListIDByOwner(c.Client, ctx, owner, name)
-		if err != nil {
-			log.Fatal(err)
-		} else if list == nil {
-			log.Fatalf("no such list %s/%s/%s", c.BaseURL, owner, name)
-		}
-
-		subscription, err := listssrht.MailingListSubscribe(c.Client, ctx, list.Id)
+		subscription, err := listssrht.MailingListSubscribe(c.Client, ctx, id)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -139,15 +132,9 @@ func newListsUnsubscribeCommand() *cobra.Command {
 
 		name, owner, instance := parseMailingListName(cmd, args[0])
 		c := createClientWithInstance("lists", cmd, instance)
+		id := getMailingListID(c, ctx, name, owner)
 
-		list, err := listssrht.MailingListIDByOwner(c.Client, ctx, owner, name)
-		if err != nil {
-			log.Fatal(err)
-		} else if list == nil {
-			log.Fatalf("no such list %s/%s/%s", c.BaseURL, owner, name)
-		}
-
-		subscription, err := listssrht.MailingListUnsubscribe(c.Client, ctx, list.Id)
+		subscription, err := listssrht.MailingListUnsubscribe(c.Client, ctx, id)
 		if err != nil {
 			log.Fatal(err)
 		} else if subscription == nil {
@@ -182,4 +169,25 @@ func parseMailingListName(cmd *cobra.Command, s string) (name, owner, instance s
 	}
 
 	return name, owner, instance
+}
+
+func getMailingListID(c *Client, ctx context.Context, name, owner string) int32 {
+	var (
+		list *listssrht.MailingList
+		err  error
+	)
+	if owner == "" {
+		list, err = listssrht.MailingListIDByName(c.Client, ctx, name)
+	} else {
+		list, err = listssrht.MailingListIDByOwner(c.Client, ctx, owner, name)
+	}
+	if err != nil {
+		log.Fatal(err)
+	} else if list == nil {
+		if owner == "" {
+			log.Fatalf("no such mailing list %s", name)
+		}
+		log.Fatalf("no such mailing list %s/%s/%s", c.BaseURL, owner, name)
+	}
+	return list.Id
 }
