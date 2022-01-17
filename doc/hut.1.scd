@@ -243,8 +243,13 @@ Options are:
 
 ## lists
 
-By default, the mailing list configured for the current Git repository will be
-selected.
+Options are:
+
+	*-l*, *--mailing-list* <name>
+		Select a mailing list.
+
+		By default, the mailing list configured for the current Git repository
+		will be selected.
 
 *delete* [list] [options...]
 	Delete a mailing list.
@@ -257,29 +262,14 @@ selected.
 *list* [owner]
 	List mailing lists.
 
-*subscribe* [list] [options...]
+*subscribe* [list]
 	Subscribe to a mailing list.
 
-	Options are:
-
-	*-o*, *--owner*
-		Owner of the mailing list in canonical form (required).
-
-*unsubscribe* [list] [options...]
+*unsubscribe* [list]
 	Unsubscribe from a mailing list.
 
-	Options are:
-
-	*-o*, *--owner*
-		Owner of the mailing list in canonical form (required).
-
-*patchset list* [list] [options...]
+*patchset list* [list]
 	List patchsets in list.
-
-	Options are:
-
-	*-o*, *--owner*
-		Owner of the mailing list in canonical form.
 
 ## hg
 

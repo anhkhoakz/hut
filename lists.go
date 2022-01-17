@@ -25,6 +25,7 @@ func newListsCommand() *cobra.Command {
 	cmd.AddCommand(newListsSubscribeCommand())
 	cmd.AddCommand(newListsUnsubscribeCommand())
 	cmd.AddCommand(newListsPatchsetCommand())
+	cmd.PersistentFlags().StringP("mailing-list", "l", "", "mailing list name")
 	return cmd
 }
 
@@ -35,9 +36,9 @@ func newListsDeleteCommand() *cobra.Command {
 
 		var name, owner, instance string
 		if len(args) > 0 {
-			name, owner, instance = parseMailingListName(cmd, args[0])
+			name, owner, instance = parseResourceName(args[0])
 		} else {
-			name, owner, instance = guessMailingListName(ctx)
+			name, owner, instance = getMailingListName(ctx, cmd)
 		}
 		c := createClientWithInstance("lists", cmd, instance)
 		id := getMailingListID(c, ctx, name, owner)
@@ -65,8 +66,6 @@ func newListsDeleteCommand() *cobra.Command {
 		Run:               run,
 	}
 	cmd.Flags().BoolVarP(&autoConfirm, "yes", "y", false, "auto confirm")
-	cmd.Flags().StringP("owner", "o", "", "list owner (canonical form)")
-	cmd.RegisterFlagCompletionFunc("owner", cobra.NoFileCompletions)
 	return cmd
 }
 
@@ -115,9 +114,9 @@ func newListsSubscribeCommand() *cobra.Command {
 
 		var name, owner, instance string
 		if len(args) > 0 {
-			name, owner, instance = parseMailingListName(cmd, args[0])
+			name, owner, instance = parseResourceName(args[0])
 		} else {
-			name, owner, instance = guessMailingListName(ctx)
+			name, owner, instance = getMailingListName(ctx, cmd)
 		}
 		c := createClientWithInstance("lists", cmd, instance)
 		id := getMailingListID(c, ctx, name, owner)
@@ -137,8 +136,6 @@ func newListsSubscribeCommand() *cobra.Command {
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
-	cmd.Flags().StringP("owner", "o", "", "list owner (canonical form)")
-	cmd.RegisterFlagCompletionFunc("owner", cobra.NoFileCompletions)
 	return cmd
 }
 
@@ -148,9 +145,9 @@ func newListsUnsubscribeCommand() *cobra.Command {
 
 		var name, owner, instance string
 		if len(args) > 0 {
-			name, owner, instance = parseMailingListName(cmd, args[0])
+			name, owner, instance = parseResourceName(args[0])
 		} else {
-			name, owner, instance = guessMailingListName(ctx)
+			name, owner, instance = getMailingListName(ctx, cmd)
 		}
 		c := createClientWithInstance("lists", cmd, instance)
 		id := getMailingListID(c, ctx, name, owner)
@@ -172,24 +169,7 @@ func newListsUnsubscribeCommand() *cobra.Command {
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
-	cmd.Flags().StringP("owner", "o", "", "list owner (canonical form)")
-	cmd.RegisterFlagCompletionFunc("owner", cobra.NoFileCompletions)
 	return cmd
-}
-
-func parseMailingListName(cmd *cobra.Command, s string) (name, owner, instance string) {
-	name, owner, instance = parseResourceName(s)
-
-	if ownerFlag, err := cmd.Flags().GetString("owner"); err != nil {
-		log.Fatal(err)
-	} else if ownerFlag != "" {
-		if owner != "" && ownerFlag != owner {
-			log.Fatalf("conflicting owners: %v and --owner=%v", owner, ownerFlag)
-		}
-		owner = ownerFlag
-	}
-
-	return name, owner, instance
 }
 
 func newListsPatchsetCommand() *cobra.Command {
@@ -207,9 +187,9 @@ func newListsPatchsetListCommand() *cobra.Command {
 
 		var name, owner, instance string
 		if len(args) > 0 {
-			name, owner, instance = parseMailingListName(cmd, args[0])
+			name, owner, instance = parseResourceName(args[0])
 		} else {
-			name, owner, instance = guessMailingListName(ctx)
+			name, owner, instance = getMailingListName(ctx, cmd)
 		}
 		c := createClientWithInstance("lists", cmd, instance)
 
@@ -269,6 +249,15 @@ func getMailingListID(c *Client, ctx context.Context, name, owner string) int32 
 		log.Fatalf("no such mailing list %s/%s/%s", c.BaseURL, owner, name)
 	}
 	return list.Id
+}
+
+func getMailingListName(ctx context.Context, cmd *cobra.Command) (name, owner, instance string) {
+	if s, err := cmd.Flags().GetString("mailing-list"); err != nil {
+		log.Fatal(err)
+	} else if s != "" {
+		return parseResourceName(s)
+	}
+	return guessMailingListName(ctx)
 }
 
 func guessMailingListName(ctx context.Context) (name, owner, instance string) {
