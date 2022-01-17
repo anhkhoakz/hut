@@ -111,6 +111,14 @@ Options are:
 *acl list* [repo]
 	List ACL entries of a repo. Defaults to current repo.
 
+*acl update* <user> [options...]
+	Update or add an ACL entry for user.
+
+	Options are:
+
+	*-m*, *--mode* <string>
+		Access mode to set (RW, RO).
+
 ## builds
 
 *submit* [manifest...] [options...]

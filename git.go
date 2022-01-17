@@ -295,6 +295,7 @@ func newGitACLCommand() *cobra.Command {
 		Short: "Manage access-control lists",
 	}
 	cmd.AddCommand(newGitACLListCommand())
+	cmd.AddCommand(newGitACLUpdateCommand())
 	return cmd
 }
 
@@ -335,6 +336,45 @@ func newGitACLListCommand() *cobra.Command {
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
+	return cmd
+}
+
+func newGitACLUpdateCommand() *cobra.Command {
+	var mode string
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		accessMode, err := getAccessMode(mode)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if strings.IndexAny(args[0], ownerPrefixes) != 0 {
+			log.Fatal("user must be in canonical form")
+		}
+
+		name, instance := getRepoName(ctx, cmd)
+		c := createClientWithInstance("git", cmd, instance)
+		id := getRepoID(c, ctx, name)
+
+		acl, err := gitsrht.UpdateACL(c.Client, ctx, id, accessMode, args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf("Updated access rights for %s\n", acl.Entity.CanonicalName)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "update <user>",
+		Short:             "Update/add ACL entries",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	cmd.Flags().StringVarP(&mode, "mode", "m", "", "access mode")
+	cmd.RegisterFlagCompletionFunc("mode", completeAccessMode)
+	cmd.MarkFlagRequired("mode")
 	return cmd
 }
 
@@ -471,4 +511,19 @@ func completeRev(cmd *cobra.Command, args []string, toComplete string) ([]string
 
 	revs := strings.Split(string(output), "\n")
 	return revs, cobra.ShellCompDirectiveNoFileComp
+}
+
+func getAccessMode(mode string) (gitsrht.AccessMode, error) {
+	switch strings.ToLower(mode) {
+	case "ro":
+		return gitsrht.AccessModeRo, nil
+	case "rw":
+		return gitsrht.AccessModeRw, nil
+	default:
+		return "", fmt.Errorf("invalid access mode: %s", mode)
+	}
+}
+
+func completeAccessMode(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return []string{"RO", "RW"}, cobra.ShellCompDirectiveNoFileComp
 }
