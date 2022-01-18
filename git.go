@@ -245,9 +245,9 @@ func newGitArtifactListCommand() *cobra.Command {
 			}
 
 			name := ref.Name[strings.LastIndex(ref.Name, "/")+1:]
-			fmt.Printf("Tag %s:\n", name)
+			fmt.Printf("Tag %s:\n", termfmt.Bold.String(name))
 			for _, artifact := range ref.Artifacts.Results {
-				fmt.Printf("  #%d: %s\n", artifact.Id, artifact.Filename)
+				fmt.Printf("  %s %s\n", termfmt.DarkYellow.Sprintf("#%d", artifact.Id), artifact.Filename)
 			}
 		}
 	}
