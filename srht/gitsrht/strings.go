@@ -35,3 +35,14 @@ func ParseVisibility(s string) (Visibility, error) {
 		return "", fmt.Errorf("invalid visibility: %s", s)
 	}
 }
+
+func ParseAccessMode(s string) (AccessMode, error) {
+	switch strings.ToLower(s) {
+	case "ro":
+		return AccessModeRo, nil
+	case "rw":
+		return AccessModeRw, nil
+	default:
+		return "", fmt.Errorf("invalid access mode: %s", s)
+	}
+}

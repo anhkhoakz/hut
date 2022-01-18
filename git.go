@@ -345,7 +345,7 @@ func newGitACLUpdateCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
-		accessMode, err := getAccessMode(mode)
+		accessMode, err := gitsrht.ParseAccessMode(mode)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -529,17 +529,6 @@ func completeRev(cmd *cobra.Command, args []string, toComplete string) ([]string
 
 	revs := strings.Split(string(output), "\n")
 	return revs, cobra.ShellCompDirectiveNoFileComp
-}
-
-func getAccessMode(mode string) (gitsrht.AccessMode, error) {
-	switch strings.ToLower(mode) {
-	case "ro":
-		return gitsrht.AccessModeRo, nil
-	case "rw":
-		return gitsrht.AccessModeRw, nil
-	default:
-		return "", fmt.Errorf("invalid access mode: %s", mode)
-	}
 }
 
 func completeAccessMode(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
