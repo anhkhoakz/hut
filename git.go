@@ -39,7 +39,7 @@ func newGitCreateCommand() *cobra.Command {
 		ctx := cmd.Context()
 		c := createClient("git", cmd)
 
-		gitVisibility, err := getGitVisibility(visibility)
+		gitVisibility, err := gitsrht.ParseVisibility(visibility)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -489,19 +489,6 @@ func guessRev() (string, error) {
 	}
 
 	return strings.TrimSpace(string(out)), nil
-}
-
-func getGitVisibility(visibility string) (gitsrht.Visibility, error) {
-	switch strings.ToLower(visibility) {
-	case "unlisted":
-		return gitsrht.VisibilityUnlisted, nil
-	case "private":
-		return gitsrht.VisibilityPrivate, nil
-	case "public":
-		return gitsrht.VisibilityPublic, nil
-	default:
-		return "", fmt.Errorf("invalid visibility: %s", visibility)
-	}
 }
 
 func completeRepo(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
