@@ -235,7 +235,7 @@ func newListsPatchsetUpdateCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
-		patchStatus, err := getPatchsetStatus(status)
+		patchStatus, err := listssrht.ParsePatchsetStatus(status)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -343,27 +343,6 @@ func parsePatchID(s string) (id int32, instance string, err error) {
 	}
 
 	return int32(id64), instance, nil
-}
-
-func getPatchsetStatus(status string) (listssrht.PatchsetStatus, error) {
-	switch strings.ToLower(status) {
-	case "unknown":
-		return listssrht.PatchsetStatusUnknown, nil
-	case "proposed":
-		return listssrht.PatchsetStatusProposed, nil
-	case "needs_revision":
-		return listssrht.PatchsetStatusNeedsRevision, nil
-	case "superseded":
-		return listssrht.PatchsetStatusSuperseded, nil
-	case "approved":
-		return listssrht.PatchsetStatusApproved, nil
-	case "rejected":
-		return listssrht.PatchsetStatusRejected, nil
-	case "applied":
-		return listssrht.PatchsetStatusApplied, nil
-	default:
-		return "", fmt.Errorf("invalid patchset status: %s", status)
-	}
 }
 
 func completePatchsetStatus(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

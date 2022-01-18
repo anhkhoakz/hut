@@ -31,3 +31,24 @@ func (status PatchsetStatus) TermString() string {
 
 	return style.String(strings.ToLower(string(status)))
 }
+
+func ParsePatchsetStatus(s string) (PatchsetStatus, error) {
+	switch strings.ToLower(s) {
+	case "unknown":
+		return PatchsetStatusUnknown, nil
+	case "proposed":
+		return PatchsetStatusProposed, nil
+	case "needs_revision":
+		return PatchsetStatusNeedsRevision, nil
+	case "superseded":
+		return PatchsetStatusSuperseded, nil
+	case "approved":
+		return PatchsetStatusApproved, nil
+	case "rejected":
+		return PatchsetStatusRejected, nil
+	case "applied":
+		return PatchsetStatusApplied, nil
+	default:
+		return "", fmt.Errorf("invalid patchset status: %s", s)
+	}
+}
