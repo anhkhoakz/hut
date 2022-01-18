@@ -26,7 +26,7 @@ func main() {
 		Short:             "hut is a CLI tool for sr.ht",
 		CompletionOptions: cobra.CompletionOptions{HiddenDefaultCmd: true},
 	}
-	cmd.PersistentFlags().String("instance", "", "srht instance to use")
+	cmd.PersistentFlags().String("instance", "", "sr.ht instance to use")
 	cmd.RegisterFlagCompletionFunc("instance", cobra.NoFileCompletions)
 	cmd.PersistentFlags().String("config", "", "config file to use")
 
