@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"git.sr.ht/~emersion/gqlclient"
 	"github.com/spf13/cobra"
@@ -36,7 +35,7 @@ func newPagesPublishCommand() *cobra.Command {
 			log.Fatal("enter a domain with --domain")
 		}
 
-		pagesProtocol, err := getProtocol(protocol)
+		pagesProtocol, err := pagessrht.ParseProtocol(protocol)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -82,7 +81,7 @@ func newPagesUnpublishCommand() *cobra.Command {
 			log.Fatal("enter a domain with --domain")
 		}
 
-		pagesProtocol, err := getProtocol(protocol)
+		pagesProtocol, err := pagessrht.ParseProtocol(protocol)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -132,17 +131,6 @@ func newPagesListCommand() *cobra.Command {
 		Run:   run,
 	}
 	return cmd
-}
-
-func getProtocol(protocol string) (pagessrht.Protocol, error) {
-	switch strings.ToLower(protocol) {
-	case "https":
-		return pagessrht.ProtocolHttps, nil
-	case "gemini":
-		return pagessrht.ProtocolGemini, nil
-	default:
-		return "", fmt.Errorf("invalid protocol: %s", protocol)
-	}
 }
 
 func completeProtocol(cmd *cobra.Command, args []string, toComplete string) (
