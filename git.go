@@ -112,7 +112,7 @@ func newGitListCommand() *cobra.Command {
 		}
 
 		for _, repo := range repos.Results {
-			fmt.Printf("%s %s (%s)\n", termfmt.DarkYellow.Sprintf("#%d", repo.Id), termfmt.Bold.String(repo.Name), repo.Visibility.TermString())
+			fmt.Printf("%s (%s)\n", termfmt.Bold.String(repo.Name), repo.Visibility.TermString())
 			if repo.Description != nil && *repo.Description != "" {
 				fmt.Printf("  %s\n", *repo.Description)
 			}

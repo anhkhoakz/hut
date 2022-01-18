@@ -36,7 +36,6 @@ query repositoriesByUser($username: String!) {
 
 fragment repos on RepositoryCursor {
     results {
-        id
         name
         description
         visibility
