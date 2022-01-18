@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"git.sr.ht/~emersion/gqlclient"
 	"github.com/spf13/cobra"
@@ -36,7 +35,7 @@ func newPasteCreateCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
-		pasteVisibility, err := getVisibility(visibility)
+		pasteVisibility, err := pastesrht.ParseVisibility(visibility)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -209,7 +208,7 @@ func newPasteUpdateCommand() *cobra.Command {
 		ctx := cmd.Context()
 		c := createClient("paste", cmd)
 
-		pasteVisibility, err := getVisibility(visibility)
+		pasteVisibility, err := pastesrht.ParseVisibility(visibility)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -237,19 +236,6 @@ func newPasteUpdateCommand() *cobra.Command {
 	cmd.MarkFlagRequired("visibility")
 	cmd.RegisterFlagCompletionFunc("visibility", completeVisibility)
 	return cmd
-}
-
-func getVisibility(visibility string) (pastesrht.Visibility, error) {
-	switch strings.ToLower(visibility) {
-	case "unlisted":
-		return pastesrht.VisibilityUnlisted, nil
-	case "private":
-		return pastesrht.VisibilityPrivate, nil
-	case "public":
-		return pastesrht.VisibilityPublic, nil
-	default:
-		return "", fmt.Errorf("invalid visibility: %s", visibility)
-	}
 }
 
 func completePasteID(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

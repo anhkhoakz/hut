@@ -22,3 +22,16 @@ func (visibility Visibility) TermString() string {
 
 	return style.String(strings.ToLower(string(visibility)))
 }
+
+func ParseVisibility(s string) (Visibility, error) {
+	switch strings.ToLower(s) {
+	case "unlisted":
+		return VisibilityUnlisted, nil
+	case "private":
+		return VisibilityPrivate, nil
+	case "public":
+		return VisibilityPublic, nil
+	default:
+		return "", fmt.Errorf("invalid visibility: %s", s)
+	}
+}
