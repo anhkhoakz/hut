@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"git.sr.ht/~emersion/gqlclient"
 	"github.com/spf13/cobra"
@@ -65,7 +66,7 @@ func newPagesPublishCommand() *cobra.Command {
 		Run:   run,
 	}
 	cmd.Flags().StringVarP(&domain, "domain", "d", "", "domain name")
-	cmd.RegisterFlagCompletionFunc("domain", cobra.NoFileCompletions)
+	cmd.RegisterFlagCompletionFunc("domain", completeDomain)
 	cmd.Flags().StringVarP(&protocol, "protocol", "p", "HTTPS",
 		"protocol (HTTPS or GEMINI)")
 	cmd.RegisterFlagCompletionFunc("protocol", completeProtocol)
@@ -102,7 +103,7 @@ func newPagesUnpublishCommand() *cobra.Command {
 		Run:   run,
 	}
 	cmd.Flags().StringVarP(&domain, "domain", "d", "", "domain name")
-	cmd.RegisterFlagCompletionFunc("domain", cobra.NoFileCompletions)
+	cmd.RegisterFlagCompletionFunc("domain", completeDomain)
 	cmd.Flags().StringVarP(&protocol, "protocol", "p", "HTTPS",
 		"protocol (HTTPS or GEMINI)")
 	cmd.RegisterFlagCompletionFunc("protocol", completeProtocol)
@@ -136,4 +137,28 @@ func newPagesListCommand() *cobra.Command {
 func completeProtocol(cmd *cobra.Command, args []string, toComplete string) (
 	[]string, cobra.ShellCompDirective) {
 	return []string{"https", "gemini"}, cobra.ShellCompDirectiveNoFileComp
+}
+
+func completeDomain(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	ctx := cmd.Context()
+	c := createClient("pages", cmd)
+	var domainList []string
+
+	protocol, err := cmd.Flags().GetString("protocol")
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	sites, err := pagessrht.Sites(c.Client, ctx)
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	for _, site := range sites.Results {
+		if strings.EqualFold(protocol, string(site.Protocol)) {
+			domainList = append(domainList, site.Domain)
+		}
+	}
+
+	return domainList, cobra.ShellCompDirectiveNoFileComp
 }
