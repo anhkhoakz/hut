@@ -1,2 +1,5 @@
 /hut
 /doc/hut.1
+/hut.bash
+/hut.fish
+/hut.zsh
