@@ -20,13 +20,13 @@ hut:
 
 completions: hut.bash hut.zsh hut.fish
 
-hut.bash:
+hut.bash: hut
 	./hut completion bash >hut.bash
 
-hut.zsh:
+hut.zsh: hut
 	./hut completion zsh >hut.zsh
 
-hut.fish:
+hut.fish: hut
 	./hut completion fish >hut.fish
 
 doc/hut.1: doc/hut.1.scd
