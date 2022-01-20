@@ -147,7 +147,7 @@ const (
 )
 
 func Repositories(client *gqlclient.Client, ctx context.Context) (repositories *RepositoryCursor, err error) {
-	op := gqlclient.NewOperation("query repositories {\n\trepositories {\n\t\t... repos\n\t}\n}\nfragment repos on RepositoryCursor {\n\tresults {\n\t\tid\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t}\n}\n")
+	op := gqlclient.NewOperation("query repositories {\n\trepositories {\n\t\t... repos\n\t}\n}\nfragment repos on RepositoryCursor {\n\tresults {\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t}\n}\n")
 	var respData struct {
 		Repositories *RepositoryCursor
 	}
@@ -156,7 +156,7 @@ func Repositories(client *gqlclient.Client, ctx context.Context) (repositories *
 }
 
 func RepositoriesByUser(client *gqlclient.Client, ctx context.Context, username string) (user *User, err error) {
-	op := gqlclient.NewOperation("query repositoriesByUser ($username: String!) {\n\tuser(username: $username) {\n\t\trepositories {\n\t\t\t... repos\n\t\t}\n\t}\n}\nfragment repos on RepositoryCursor {\n\tresults {\n\t\tid\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t}\n}\n")
+	op := gqlclient.NewOperation("query repositoriesByUser ($username: String!) {\n\tuser(username: $username) {\n\t\trepositories {\n\t\t\t... repos\n\t\t}\n\t}\n}\nfragment repos on RepositoryCursor {\n\tresults {\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t}\n}\n")
 	op.Var("username", username)
 	var respData struct {
 		User *User
