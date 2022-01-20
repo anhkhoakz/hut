@@ -134,8 +134,7 @@ func newPagesListCommand() *cobra.Command {
 	return cmd
 }
 
-func completeProtocol(cmd *cobra.Command, args []string, toComplete string) (
-	[]string, cobra.ShellCompDirective) {
+func completeProtocol(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	return []string{"https", "gemini"}, cobra.ShellCompDirectiveNoFileComp
 }
 
