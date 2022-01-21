@@ -27,6 +27,7 @@ func newGitCommand() *cobra.Command {
 	cmd.AddCommand(newGitListCommand())
 	cmd.AddCommand(newGitDeleteCommand())
 	cmd.AddCommand(newGitACLCommand())
+	cmd.AddCommand(newGitShowCommand())
 	cmd.PersistentFlags().StringP("repo", "r", "", "name of repository")
 	cmd.RegisterFlagCompletionFunc("repo", completeRepo)
 	return cmd
@@ -406,6 +407,80 @@ func newGitACLDeleteCommand() *cobra.Command {
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
+	return cmd
+}
+
+func newGitShowCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		var name, instance string
+		if len(args) > 0 {
+			// TODO: handle owner
+			name, _, instance = parseResourceName(args[0])
+		} else {
+			name, instance = getRepoName(ctx, cmd)
+		}
+
+		c := createClientWithInstance("git", cmd, instance)
+
+		repo, err := gitsrht.RepositoryByName(c.Client, ctx, name)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// prints basic information
+		fmt.Printf("%s (%s)\n", termfmt.Bold.String(repo.Name), repo.Visibility.TermString())
+		if repo.Description != nil && *repo.Description != "" {
+			fmt.Printf("  %s\n", *repo.Description)
+		}
+		if repo.UpstreamUrl != nil && *repo.UpstreamUrl != "" {
+			fmt.Printf("  Upstream URL: %s\n", *repo.UpstreamUrl)
+		}
+
+		// prints latest tag
+		tags := repo.References.Tags()
+		if len(tags) > 0 {
+			fmt.Println()
+			fmt.Printf("  Latest tag: %s\n", tags[0])
+		}
+
+		// prints branches
+		branches := repo.References.Heads()
+		if len(branches) > 0 {
+			fmt.Println()
+			fmt.Printf("  Branches:\n")
+			for i := 0; i < len(branches); i++ {
+				fmt.Printf("    %s\n", branches[i])
+			}
+		}
+
+		// prints the three most recent commits
+		if len(repo.Log.Results) >= 3 {
+			fmt.Println()
+			fmt.Printf("  Recent log:\n")
+
+			for _, commit := range repo.Log.Results[:3] {
+				fmt.Printf("    %s %s <%s> (%s ago)\n",
+					termfmt.Yellow.Sprintf("%s", commit.ShortId),
+					commit.Author.Name,
+					commit.Author.Email,
+					timeDelta(commit.Author.Time))
+
+				commitLines := strings.Split(commit.Message, "\n")
+				fmt.Printf("      %s\n", commitLines[0])
+			}
+		}
+	}
+
+	cmd := &cobra.Command{
+		Use:               "show [repo]",
+		Short:             "Shows a repository",
+		Args:              cobra.MaximumNArgs(1),
+		ValidArgsFunction: completeRepo,
+		Run:               run,
+	}
+
 	return cmd
 }
 

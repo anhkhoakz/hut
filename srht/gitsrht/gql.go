@@ -266,6 +266,16 @@ func ListArtifacts(client *gqlclient.Client, ctx context.Context, name string) (
 	return respData.RepositoryByName, err
 }
 
+func RepositoryByName(client *gqlclient.Client, ctx context.Context, name string) (repositoryByName *Repository, err error) {
+	op := gqlclient.NewOperation("query repositoryByName ($name: String!) {\n\trepositoryByName(name: $name) {\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t\tupstreamUrl\n\t\treferences {\n\t\t\tresults {\n\t\t\t\tname\n\t\t\t}\n\t\t}\n\t\tlog {\n\t\t\tresults {\n\t\t\t\tshortId\n\t\t\t\tauthor {\n\t\t\t\t\tname\n\t\t\t\t\temail\n\t\t\t\t\ttime\n\t\t\t\t}\n\t\t\t\tmessage\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op.Var("name", name)
+	var respData struct {
+		RepositoryByName *Repository
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.RepositoryByName, err
+}
+
 func Repositories(client *gqlclient.Client, ctx context.Context) (repositories *RepositoryCursor, err error) {
 	op := gqlclient.NewOperation("query repositories {\n\trepositories {\n\t\t... repos\n\t}\n}\nfragment repos on RepositoryCursor {\n\tresults {\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t}\n}\n")
 	var respData struct {

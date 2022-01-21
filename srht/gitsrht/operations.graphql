@@ -20,6 +20,31 @@ query listArtifacts($name: String!) {
     }
 }
 
+query repositoryByName($name: String!) {
+    repositoryByName(name: $name) {
+        name
+        description
+        visibility
+        upstreamUrl
+        references {
+            results {
+                name
+            }
+        }
+        log {
+            results {
+                shortId
+                author {
+                    name
+                    email
+                    time
+                }
+                message
+            }
+        }
+    }
+}
+
 query repositories {
     repositories {
         ...repos
