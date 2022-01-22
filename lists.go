@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/mail"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -180,6 +181,7 @@ func newListsPatchsetCommand() *cobra.Command {
 	}
 	cmd.AddCommand(newListsPatchsetListCommand())
 	cmd.AddCommand(newListsPatchsetUpdateCommand())
+	cmd.AddCommand(newListsPatchsetApplyCommand())
 	return cmd
 }
 
@@ -266,6 +268,49 @@ func newListsPatchsetUpdateCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&status, "status", "s", "", "patchset status")
 	cmd.RegisterFlagCompletionFunc("status", completePatchsetStatus)
 	cmd.MarkFlagRequired("status")
+	return cmd
+}
+
+func newListsPatchsetApplyCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		id, instance, err := parsePatchID(args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+		c := createClientWithInstance("lists", cmd, instance)
+
+		patchset, err := listssrht.PatchsetById(c.Client, ctx, id)
+		if err != nil {
+			log.Fatal(err)
+		} else if patchset == nil {
+			log.Fatalf("no such patchset %d", id)
+		}
+
+		var mbox string
+		for _, patch := range patchset.Patches.Results {
+			mbox += fmt.Sprintf("From nobody %s\nFrom: %s\nSubject: %s\nDate: %s\n\n%s\n",
+				patch.Date.Format(dateLayout), patch.Header[0], patch.Subject, patch.Date.Format(dateLayout), patch.Body)
+		}
+
+		applyCmd := exec.Command("git", "am", "-3")
+		applyCmd.Stdin = strings.NewReader(mbox)
+		applyCmd.Stdout = os.Stdout
+		applyCmd.Stderr = os.Stderr
+
+		if err := applyCmd.Run(); err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	cmd := &cobra.Command{
+		Use:               "apply <ID>",
+		Short:             "Apply a patchset",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
 	return cmd
 }
 

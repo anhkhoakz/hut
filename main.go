@@ -17,6 +17,8 @@ import (
 // used to indicate users.
 const ownerPrefixes = "~"
 
+const dateLayout = "Mon, 02 Jan 2006 15:04:05 -0700"
+
 func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()

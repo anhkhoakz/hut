@@ -420,6 +420,16 @@ func PatchesByOwner(client *gqlclient.Client, ctx context.Context, ownerName str
 	return respData.MailingListByOwner, err
 }
 
+func PatchsetById(client *gqlclient.Client, ctx context.Context, id int32) (patchset *Patchset, err error) {
+	op := gqlclient.NewOperation("query patchsetById ($id: Int!) {\n\tpatchset(id: $id) {\n\t\tpatches {\n\t\t\tresults {\n\t\t\t\tdate\n\t\t\t\tbody\n\t\t\t\tsubject\n\t\t\t\theader(want: \"From\")\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op.Var("id", id)
+	var respData struct {
+		Patchset *Patchset
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Patchset, err
+}
+
 func MailingListSubscribe(client *gqlclient.Client, ctx context.Context, listID int32) (mailingListSubscribe *MailingListSubscription, err error) {
 	op := gqlclient.NewOperation("mutation mailingListSubscribe ($listID: Int!) {\n\tmailingListSubscribe(listID: $listID) {\n\t\tlist {\n\t\t\tname\n\t\t\towner {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	op.Var("listID", listID)

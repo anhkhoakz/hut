@@ -305,6 +305,9 @@ Options are:
 	*-s*, *--status* <string>
 		Patchset status to set (required).
 
+*patchset apply* <ID>
+	Apply a patchset.
+
 ## hg
 
 *list* [owner]

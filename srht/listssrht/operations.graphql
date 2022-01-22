@@ -63,6 +63,19 @@ fragment patchsets on MailingList {
     }
 }
 
+query patchsetById($id: Int!) {
+    patchset(id: $id) {
+        patches {
+            results {
+                date
+                body
+                subject
+                header(want: "From")
+            }
+        }
+    }
+}
+
 mutation mailingListSubscribe($listID: Int!) {
     mailingListSubscribe(listID: $listID) {
         list {
