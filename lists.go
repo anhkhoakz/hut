@@ -215,10 +215,17 @@ func newListsPatchsetListCommand() *cobra.Command {
 		}
 
 		for _, patchset := range list.Patches.Results {
-			// TODO: Improve formatting (version)
-			fmt.Printf("%s %s %s (%s %s ago)\n", termfmt.DarkYellow.Sprintf("#%d", patchset.Id),
-				patchset.Status.TermString(), patchset.Subject, patchset.Submitter.CanonicalName,
+			s := fmt.Sprintf("%s %s ", termfmt.DarkYellow.Sprintf("#%d", patchset.Id), patchset.Status.TermString())
+			if patchset.Prefix != nil && *patchset.Prefix != "" {
+				s += fmt.Sprintf("[%s] ", *patchset.Prefix)
+			}
+			s += patchset.Subject
+			if patchset.Version != 1 {
+				s += fmt.Sprintf(" v%d", patchset.Version)
+			}
+			s += fmt.Sprintf(" (%s %s ago)", patchset.Submitter.CanonicalName,
 				timeDelta(patchset.Created))
+			fmt.Println(s)
 		}
 	}
 
