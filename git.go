@@ -140,7 +140,7 @@ func newGitDeleteCommand() *cobra.Command {
 			// TODO: handle owner
 			name, _, instance = parseResourceName(args[0])
 		} else {
-			name, instance = getRepoName(ctx, cmd)
+			name, _, instance = getRepoName(ctx, cmd)
 		}
 
 		c := createClientWithInstance("git", cmd, instance)
@@ -184,7 +184,7 @@ func newGitArtifactUploadCommand() *cobra.Command {
 	var rev string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		repoName, instance := getRepoName(ctx, cmd)
+		repoName, _, instance := getRepoName(ctx, cmd)
 		c := createClientWithInstance("git", cmd, instance)
 		repoID := getRepoID(c, ctx, repoName)
 
@@ -230,7 +230,7 @@ func newGitArtifactListCommand() *cobra.Command {
 
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		repoName, instance := getRepoName(ctx, cmd)
+		repoName, _, instance := getRepoName(ctx, cmd)
 		c := createClientWithInstance("git", cmd, instance)
 
 		repo, err := gitsrht.ListArtifacts(c.Client, ctx, repoName)
@@ -309,7 +309,7 @@ func newGitACLListCommand() *cobra.Command {
 			// TODO: handle owner
 			name, _, instance = parseResourceName(args[0])
 		} else {
-			name, instance = getRepoName(ctx, cmd)
+			name, _, instance = getRepoName(ctx, cmd)
 		}
 
 		c := createClientWithInstance("git", cmd, instance)
@@ -355,7 +355,7 @@ func newGitACLUpdateCommand() *cobra.Command {
 			log.Fatal("user must be in canonical form")
 		}
 
-		name, instance := getRepoName(ctx, cmd)
+		name, _, instance := getRepoName(ctx, cmd)
 		c := createClientWithInstance("git", cmd, instance)
 		id := getRepoID(c, ctx, name)
 
@@ -419,7 +419,7 @@ func newGitShowCommand() *cobra.Command {
 			// TODO: handle owner
 			name, _, instance = parseResourceName(args[0])
 		} else {
-			name, instance = getRepoName(ctx, cmd)
+			name, _, instance = getRepoName(ctx, cmd)
 		}
 
 		c := createClientWithInstance("git", cmd, instance)
@@ -484,38 +484,36 @@ func newGitShowCommand() *cobra.Command {
 	return cmd
 }
 
-func getRepoName(ctx context.Context, cmd *cobra.Command) (repoName, instance string) {
+func getRepoName(ctx context.Context, cmd *cobra.Command) (repoName, owner, instance string) {
 	if repoName, err := cmd.Flags().GetString("repo"); err != nil {
 		log.Fatal(err)
 	} else if repoName != "" {
-		// TODO: handle owner
-		repoName, _, instance = parseResourceName(repoName)
-		return repoName, instance
+		repoName, owner, instance = parseResourceName(repoName)
+		return repoName, owner, instance
 	}
 
-	repoName, instance, err := guessGitRepoName(ctx)
+	repoName, owner, instance, err := guessGitRepoName(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return repoName, instance
+	return repoName, owner, instance
 }
 
-func guessGitRepoName(ctx context.Context) (repoName, instance string, err error) {
+func guessGitRepoName(ctx context.Context) (repoName, owner, instance string, err error) {
 	remoteURL, err := gitRemoteURL(ctx)
 	if err != nil {
-		return "", "", err
+		return "", "", "", err
 	}
 
 	parts := strings.Split(strings.Trim(remoteURL.Path, "/"), "/")
 	if len(parts) != 2 {
-		return "", "", fmt.Errorf("failed to parse Git URL %q: expected 2 path components", remoteURL)
+		return "", "", "", fmt.Errorf("failed to parse Git URL %q: expected 2 path components", remoteURL)
 	}
-	repoName = parts[1]
+	owner, repoName = parts[0], parts[1]
 
 	// TODO: ignore port in host
-	// TODO: handle repos not belonging to authenticated user
-	return repoName, remoteURL.Host, nil
+	return repoName, owner, remoteURL.Host, nil
 }
 
 func getRepoID(c *Client, ctx context.Context, name string) int32 {
