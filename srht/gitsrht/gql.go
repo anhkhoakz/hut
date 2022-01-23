@@ -267,13 +267,24 @@ func ListArtifacts(client *gqlclient.Client, ctx context.Context, name string) (
 }
 
 func RepositoryByName(client *gqlclient.Client, ctx context.Context, name string) (repositoryByName *Repository, err error) {
-	op := gqlclient.NewOperation("query repositoryByName ($name: String!) {\n\trepositoryByName(name: $name) {\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t\tupstreamUrl\n\t\treferences {\n\t\t\tresults {\n\t\t\t\tname\n\t\t\t}\n\t\t}\n\t\tlog {\n\t\t\tresults {\n\t\t\t\tshortId\n\t\t\t\tauthor {\n\t\t\t\t\tname\n\t\t\t\t\temail\n\t\t\t\t\ttime\n\t\t\t\t}\n\t\t\t\tmessage\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op := gqlclient.NewOperation("query repositoryByName ($name: String!) {\n\trepositoryByName(name: $name) {\n\t\t... repository\n\t}\n}\nfragment repository on Repository {\n\tname\n\tdescription\n\tvisibility\n\tupstreamUrl\n\treferences {\n\t\tresults {\n\t\t\tname\n\t\t}\n\t}\n\tlog {\n\t\tresults {\n\t\t\tshortId\n\t\t\tauthor {\n\t\t\t\tname\n\t\t\t\temail\n\t\t\t\ttime\n\t\t\t}\n\t\t\tmessage\n\t\t}\n\t}\n}\n")
 	op.Var("name", name)
 	var respData struct {
 		RepositoryByName *Repository
 	}
 	err = client.Execute(ctx, op, &respData)
 	return respData.RepositoryByName, err
+}
+
+func RepositoryByOwner(client *gqlclient.Client, ctx context.Context, owner string, repo string) (repositoryByOwner *Repository, err error) {
+	op := gqlclient.NewOperation("query repositoryByOwner ($owner: String!, $repo: String!) {\n\trepositoryByOwner(owner: $owner, repo: $repo) {\n\t\t... repository\n\t}\n}\nfragment repository on Repository {\n\tname\n\tdescription\n\tvisibility\n\tupstreamUrl\n\treferences {\n\t\tresults {\n\t\t\tname\n\t\t}\n\t}\n\tlog {\n\t\tresults {\n\t\t\tshortId\n\t\t\tauthor {\n\t\t\t\tname\n\t\t\t\temail\n\t\t\t\ttime\n\t\t\t}\n\t\t\tmessage\n\t\t}\n\t}\n}\n")
+	op.Var("owner", owner)
+	op.Var("repo", repo)
+	var respData struct {
+		RepositoryByOwner *Repository
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.RepositoryByOwner, err
 }
 
 func Repositories(client *gqlclient.Client, ctx context.Context) (repositories *RepositoryCursor, err error) {

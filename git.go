@@ -414,19 +414,28 @@ func newGitShowCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
-		var name, instance string
+		var name, owner, instance string
 		if len(args) > 0 {
-			// TODO: handle owner
-			name, _, instance = parseResourceName(args[0])
+			name, owner, instance = parseResourceName(args[0])
 		} else {
-			name, _, instance = getRepoName(ctx, cmd)
+			name, owner, instance = getRepoName(ctx, cmd)
 		}
 
 		c := createClientWithInstance("git", cmd, instance)
 
-		repo, err := gitsrht.RepositoryByName(c.Client, ctx, name)
+		var (
+			repo *gitsrht.Repository
+			err  error
+		)
+		if owner == "" {
+			repo, err = gitsrht.RepositoryByName(c.Client, ctx, name)
+		} else {
+			repo, err = gitsrht.RepositoryByOwner(c.Client, ctx, owner, name)
+		}
 		if err != nil {
 			log.Fatal(err)
+		} else if repo == nil {
+			log.Fatalf("no such repository %q", name)
 		}
 
 		// prints basic information

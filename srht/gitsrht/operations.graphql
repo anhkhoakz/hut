@@ -22,25 +22,35 @@ query listArtifacts($name: String!) {
 
 query repositoryByName($name: String!) {
     repositoryByName(name: $name) {
-        name
-        description
-        visibility
-        upstreamUrl
-        references {
-            results {
-                name
-            }
+        ...repository
+    }
+}
+
+query repositoryByOwner($owner: String!, $repo: String!) {
+    repositoryByOwner(owner: $owner, repo: $repo) {
+        ...repository
+    }
+}
+
+fragment repository on Repository {
+    name
+    description
+    visibility
+    upstreamUrl
+    references {
+        results {
+            name
         }
-        log {
-            results {
-                shortId
-                author {
-                    name
-                    email
-                    time
-                }
-                message
+    }
+    log {
+        results {
+            shortId
+            author {
+                name
+                email
+                time
             }
+            message
         }
     }
 }
