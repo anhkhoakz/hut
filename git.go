@@ -451,7 +451,7 @@ func newGitShowCommand() *cobra.Command {
 		tags := repo.References.Tags()
 		if len(tags) > 0 {
 			fmt.Println()
-			fmt.Printf("  Latest tag: %s\n", tags[0])
+			fmt.Printf("  Latest tag: %s\n", tags[len(tags)-1])
 		}
 
 		// prints branches
