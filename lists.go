@@ -27,6 +27,7 @@ func newListsCommand() *cobra.Command {
 	cmd.AddCommand(newListsSubscribeCommand())
 	cmd.AddCommand(newListsUnsubscribeCommand())
 	cmd.AddCommand(newListsPatchsetCommand())
+	cmd.AddCommand(newListsACLCommand())
 	cmd.PersistentFlags().StringP("mailing-list", "l", "", "mailing list name")
 	return cmd
 }
@@ -343,6 +344,62 @@ func newListsPatchsetApplyCommand() *cobra.Command {
 		Short:             "Apply a patchset",
 		Args:              cobra.ExactArgs(1),
 		ValidArgsFunction: completePatchsetID,
+		Run:               run,
+	}
+	return cmd
+}
+
+func newListsACLCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "acl",
+		Short: "Manage access-control lists",
+	}
+	cmd.AddCommand(newListsACLListCommand())
+	return cmd
+}
+
+func newListsACLListCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		var name, instance string
+		if len(args) > 0 {
+			name, _, instance = parseResourceName(args[0])
+		} else {
+			name, _, instance = getMailingListName(ctx, cmd)
+		}
+
+		c := createClientWithInstance("lists", cmd, instance)
+
+		list, err := listssrht.AclByListName(c.Client, ctx, name)
+		if err != nil {
+			log.Fatal(err)
+		} else if list == nil {
+			log.Fatalf("no such list %q", name)
+		}
+
+		fmt.Println(termfmt.Bold.Sprint("Global permissions"))
+		fmt.Printf("Non-subscriber %s\n", list.Nonsubscriber.TermString())
+		fmt.Printf("Subscriber %s\n", list.Subscriber.TermString())
+		fmt.Printf("Account holder %s\n", list.Identified.TermString())
+
+		if len(list.Acl.Results) > 0 {
+			fmt.Println(termfmt.Bold.Sprint("\nUser permissions"))
+		}
+		for _, acl := range list.Acl.Results {
+			s := fmt.Sprintf("%s browse  %s reply  %s post  %s moderate",
+				listssrht.PermissionIcon(acl.Browse), listssrht.PermissionIcon(acl.Reply),
+				listssrht.PermissionIcon(acl.Post), listssrht.PermissionIcon(acl.Moderate))
+			fmt.Printf("%s %s %s %s ago\n", termfmt.DarkYellow.Sprintf("#%d", acl.Id),
+				acl.Entity.CanonicalName, s, timeDelta(acl.Created))
+		}
+	}
+
+	cmd := &cobra.Command{
+		Use:               "list",
+		Short:             "List ACL entries",
+		Args:              cobra.MaximumNArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
 	return cmd

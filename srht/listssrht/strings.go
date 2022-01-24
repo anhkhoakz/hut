@@ -52,3 +52,15 @@ func ParsePatchsetStatus(s string) (PatchsetStatus, error) {
 		return "", fmt.Errorf("invalid patchset status: %s", s)
 	}
 }
+
+func (acl GeneralACL) TermString() string {
+	return fmt.Sprintf("%s browse  %s reply  %s post  %s moderate",
+		PermissionIcon(acl.Browse), PermissionIcon(acl.Reply), PermissionIcon(acl.Post), PermissionIcon(acl.Moderate))
+}
+
+func PermissionIcon(permission bool) string {
+	if permission {
+		return termfmt.Green.Sprint("✔")
+	}
+	return termfmt.Red.Sprint("✗")
+}

@@ -313,6 +313,9 @@ Options are:
 *patchset apply* <ID>
 	Apply a patchset.
 
+*acl list* [list]
+	List ACL entries of a mailing list.
+
 ## hg
 
 *list* [owner]

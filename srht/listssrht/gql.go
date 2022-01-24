@@ -470,6 +470,16 @@ func CompletePatchsetIdByOwner(client *gqlclient.Client, ctx context.Context, ow
 	return respData.MailingListByOwner, err
 }
 
+func AclByListName(client *gqlclient.Client, ctx context.Context, name string) (mailingListByName *MailingList, err error) {
+	op := gqlclient.NewOperation("query aclByListName ($name: String!) {\n\tmailingListByName(name: $name) {\n\t\tnonsubscriber {\n\t\t\t... acl\n\t\t}\n\t\tsubscriber {\n\t\t\t... acl\n\t\t}\n\t\tidentified {\n\t\t\t... acl\n\t\t}\n\t\tacl {\n\t\t\tresults {\n\t\t\t\tid\n\t\t\t\tcreated\n\t\t\t\tentity {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t\tbrowse\n\t\t\t\treply\n\t\t\t\tpost\n\t\t\t\tmoderate\n\t\t\t}\n\t\t}\n\t}\n}\nfragment acl on GeneralACL {\n\tbrowse\n\treply\n\tpost\n\tmoderate\n}\n")
+	op.Var("name", name)
+	var respData struct {
+		MailingListByName *MailingList
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.MailingListByName, err
+}
+
 func MailingListSubscribe(client *gqlclient.Client, ctx context.Context, listID int32) (mailingListSubscribe *MailingListSubscription, err error) {
 	op := gqlclient.NewOperation("mutation mailingListSubscribe ($listID: Int!) {\n\tmailingListSubscribe(listID: $listID) {\n\t\tlist {\n\t\t\tname\n\t\t\towner {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	op.Var("listID", listID)
