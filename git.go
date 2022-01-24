@@ -326,8 +326,8 @@ func newGitACLListCommand() *cobra.Command {
 			if acl.Mode != nil {
 				mode = string(*acl.Mode)
 			}
-			fmt.Printf("%s %s %s ago %s\n", termfmt.DarkYellow.Sprintf("#%d", acl.Id),
-				acl.Entity.CanonicalName, timeDelta(acl.Created), mode)
+			fmt.Printf("%s %s %s %s ago\n", termfmt.DarkYellow.Sprintf("#%d", acl.Id),
+				acl.Entity.CanonicalName, mode, timeDelta(acl.Created))
 		}
 	}
 
