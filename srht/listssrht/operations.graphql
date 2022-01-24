@@ -39,17 +39,17 @@ query mailingListIDByOwner($ownerName: String!, $listName: String!) {
 
 query patches($name: String!) {
     mailingListByName(name: $name) {
-        ...patchsets
+        ...patchsetsByList
     }
 }
 
 query patchesByOwner($ownerName: String!, $listName: String!) {
     mailingListByOwner(ownerName: $ownerName, listName: $listName) {
-        ...patchsets
+        ...patchsetsByList
     }
 }
 
-fragment patchsets on MailingList {
+fragment patchsetsByList on MailingList {
     patches {
         results {
             id
@@ -60,6 +60,37 @@ fragment patchsets on MailingList {
             prefix
             submitter {
                 canonicalName
+            }
+        }
+    }
+}
+
+query patchesByMe {
+    me {
+        ...patchsets
+    }
+}
+
+query patchesByUser($username: String!) {
+    userByName(username: $username) {
+        ...patchsets
+    }
+}
+
+fragment patchsets on User {
+    patches {
+        results {
+            id
+            subject
+            status
+            created
+            version
+            prefix
+            list {
+                name
+                owner {
+                    canonicalName
+                }
             }
         }
     }

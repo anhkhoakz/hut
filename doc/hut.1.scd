@@ -294,8 +294,13 @@ Options are:
 *unsubscribe* [list]
 	Unsubscribe from a mailing list.
 
-*patchset list* [list]
+*patchset list* [list] [options...]
 	List patchsets in list.
+
+	Options are:
+
+	*-u*, *--user*
+		List patchsets by user instead of by list.
 
 *patchset update* <ID>
 	Update a patchset.

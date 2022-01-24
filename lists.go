@@ -186,6 +186,7 @@ func newListsPatchsetCommand() *cobra.Command {
 }
 
 func newListsPatchsetListCommand() *cobra.Command {
+	var byUser bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
@@ -198,23 +199,42 @@ func newListsPatchsetListCommand() *cobra.Command {
 		c := createClientWithInstance("lists", cmd, instance)
 
 		var (
-			err  error
-			list *listssrht.MailingList
+			err     error
+			patches *listssrht.PatchsetCursor
 		)
 
-		if owner != "" {
-			list, err = listssrht.PatchesByOwner(c.Client, ctx, owner, name)
+		if byUser {
+			var user *listssrht.User
+			if len(args) > 0 {
+				name = strings.TrimLeft(name, ownerPrefixes)
+				user, err = listssrht.PatchesByUser(c.Client, ctx, name)
+			} else {
+				user, err = listssrht.PatchesByMe(c.Client, ctx)
+			}
+
+			if err != nil {
+				log.Fatal(err)
+			} else if user == nil {
+				log.Fatalf("no such user %q", name)
+			}
+			patches = user.Patches
 		} else {
-			list, err = listssrht.Patches(c.Client, ctx, name)
+			var list *listssrht.MailingList
+			if owner != "" {
+				list, err = listssrht.PatchesByOwner(c.Client, ctx, owner, name)
+			} else {
+				list, err = listssrht.Patches(c.Client, ctx, name)
+			}
+
+			if err != nil {
+				log.Fatal(err)
+			} else if list == nil {
+				log.Fatalf("no such list %q", name)
+			}
+			patches = list.Patches
 		}
 
-		if err != nil {
-			log.Fatal(err)
-		} else if list == nil {
-			log.Fatal("no such list")
-		}
-
-		for _, patchset := range list.Patches.Results {
+		for _, patchset := range patches.Results {
 			s := fmt.Sprintf("%s %s ", termfmt.DarkYellow.Sprintf("#%d", patchset.Id), patchset.Status.TermString())
 			if patchset.Prefix != nil && *patchset.Prefix != "" {
 				s += fmt.Sprintf("[%s] ", *patchset.Prefix)
@@ -223,8 +243,14 @@ func newListsPatchsetListCommand() *cobra.Command {
 			if patchset.Version != 1 {
 				s += fmt.Sprintf(" v%d", patchset.Version)
 			}
-			s += fmt.Sprintf(" (%s %s ago)", patchset.Submitter.CanonicalName,
-				timeDelta(patchset.Created))
+
+			if byUser {
+				s += fmt.Sprintf(" (%s/%s %s ago)", patchset.List.Owner.CanonicalName,
+					patchset.List.Name, timeDelta(patchset.Created))
+			} else {
+				s += fmt.Sprintf(" (%s %s ago)", patchset.Submitter.CanonicalName,
+					timeDelta(patchset.Created))
+			}
 			fmt.Println(s)
 		}
 	}
@@ -236,6 +262,7 @@ func newListsPatchsetListCommand() *cobra.Command {
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
+	cmd.Flags().BoolVarP(&byUser, "user", "u", false, "list patches by user")
 	return cmd
 }
 
