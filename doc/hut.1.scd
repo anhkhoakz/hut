@@ -316,6 +316,9 @@ Options are:
 *acl list* [list]
 	List ACL entries of a mailing list.
 
+*acl delete* <ID>
+	Delete an ACL entry.
+
 ## hg
 
 *list* [owner]

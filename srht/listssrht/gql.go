@@ -510,3 +510,13 @@ func UpdatePatchset(client *gqlclient.Client, ctx context.Context, id int32, sta
 	err = client.Execute(ctx, op, &respData)
 	return respData.UpdatePatchset, err
 }
+
+func DeleteACL(client *gqlclient.Client, ctx context.Context, id int32) (deleteACL *MailingListACL, err error) {
+	op := gqlclient.NewOperation("mutation deleteACL ($id: Int!) {\n\tdeleteACL(id: $id) {\n\t\tentity {\n\t\t\tcanonicalName\n\t\t}\n\t\tlist {\n\t\t\tname\n\t\t}\n\t}\n}\n")
+	op.Var("id", id)
+	var respData struct {
+		DeleteACL *MailingListACL
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.DeleteACL, err
+}

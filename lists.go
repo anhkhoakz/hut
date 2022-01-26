@@ -355,6 +355,7 @@ func newListsACLCommand() *cobra.Command {
 		Short: "Manage access-control lists",
 	}
 	cmd.AddCommand(newListsACLListCommand())
+	cmd.AddCommand(newListsACLDeleteCommand())
 	return cmd
 }
 
@@ -399,6 +400,36 @@ func newListsACLListCommand() *cobra.Command {
 		Use:               "list",
 		Short:             "List ACL entries",
 		Args:              cobra.MaximumNArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	return cmd
+}
+
+func newListsACLDeleteCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("lists", cmd)
+
+		id, err := parseInt32(args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		acl, err := listssrht.DeleteACL(c.Client, ctx, id)
+		if err != nil {
+			log.Fatal(err)
+		} else if acl == nil {
+			log.Fatalf("failed to delete ACL entry with ID %d", id)
+		}
+
+		fmt.Printf("Deleted ACL entry for %q in mailing list %q\n", acl.Entity.CanonicalName, acl.List.Name)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "delete <ID>",
+		Short:             "Delete an ACL entry",
+		Args:              cobra.ExactArgs(1),
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}

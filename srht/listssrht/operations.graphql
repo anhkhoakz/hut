@@ -197,3 +197,14 @@ mutation updatePatchset($id: Int!, $status: PatchsetStatus!) {
         subject
     }
 }
+
+mutation deleteACL($id: Int!) {
+    deleteACL(id: $id) {
+        entity {
+            canonicalName
+        }
+        list {
+            name
+        }
+    }
+}
