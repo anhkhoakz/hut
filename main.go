@@ -40,6 +40,7 @@ func main() {
 	cmd.AddCommand(newMetaCommand())
 	cmd.AddCommand(newPasteCommand())
 	cmd.AddCommand(newPagesCommand())
+	cmd.AddCommand(newTodoCommand())
 
 	if err := cmd.ExecuteContext(ctx); err != nil {
 		os.Exit(1)

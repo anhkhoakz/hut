@@ -2,7 +2,11 @@
 
 package todosrht
 
-import "time"
+import (
+	"context"
+	gqlclient "git.sr.ht/~emersion/gqlclient"
+	"time"
+)
 
 type ACL struct {
 	// Permission to view tickets
@@ -450,3 +454,22 @@ const (
 	VisibilityUnlisted Visibility = "UNLISTED"
 	VisibilityPrivate  Visibility = "PRIVATE"
 )
+
+func Trackers(client *gqlclient.Client, ctx context.Context) (trackers *TrackerCursor, err error) {
+	op := gqlclient.NewOperation("query trackers {\n\ttrackers {\n\t\t... trackers\n\t}\n}\nfragment trackers on TrackerCursor {\n\tresults {\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t}\n}\n")
+	var respData struct {
+		Trackers *TrackerCursor
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Trackers, err
+}
+
+func TrackersByUser(client *gqlclient.Client, ctx context.Context, username string) (user *User, err error) {
+	op := gqlclient.NewOperation("query trackersByUser ($username: String!) {\n\tuser(username: $username) {\n\t\ttrackers {\n\t\t\t... trackers\n\t\t}\n\t}\n}\nfragment trackers on TrackerCursor {\n\tresults {\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t}\n}\n")
+	op.Var("username", username)
+	var respData struct {
+		User *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.User, err
+}

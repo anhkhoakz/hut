@@ -1,0 +1,21 @@
+query trackers {
+    trackers {
+        ...trackers
+    }
+}
+
+query trackersByUser($username: String!) {
+    user(username: $username) {
+        trackers {
+            ...trackers
+        }
+    }
+}
+
+fragment trackers on TrackerCursor {
+    results {
+        name
+        description
+        visibility
+    }
+}

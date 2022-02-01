@@ -313,6 +313,11 @@ Options are:
 *list* [owner]
 	List repositories.
 
+## todo
+
+*list* [owner]
+	List trackers.
+
 # CONFIGURATION
 
 Generate a new OAuth2 access token on _meta.sr.ht_.
