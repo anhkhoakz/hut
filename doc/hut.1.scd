@@ -315,6 +315,11 @@ Options are:
 
 ## todo
 
+Options are:
+
+	*-t*, *--tracker* <string>
+		Name of tracker.
+
 *list* [owner]
 	List trackers.
 
@@ -325,6 +330,9 @@ Options are:
 
 	*-y*, *--yes*
 		Confirm deletion without prompt.
+
+*ticket list*
+	List tickets.
 
 # CONFIGURATION
 

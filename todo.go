@@ -18,6 +18,8 @@ func newTodoCommand() *cobra.Command {
 	}
 	cmd.AddCommand(newTodoListCommand())
 	cmd.AddCommand(newTodoDeleteCommand())
+	cmd.AddCommand(newTodoTicketCommand())
+	cmd.PersistentFlags().StringP("tracker", "t", "", "name of tracker")
 	return cmd
 }
 
@@ -96,6 +98,72 @@ func newTodoDeleteCommand() *cobra.Command {
 	return cmd
 }
 
+func newTodoTicketCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "ticket",
+		Short: "Manage tickets",
+	}
+	cmd.AddCommand(newTodoTicketListCommand())
+	return cmd
+}
+
+func newTodoTicketListCommand() *cobra.Command {
+	// TODO: Filter by ticket status
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		name, owner, instance := getTrackerName(ctx, cmd)
+		c := createClientWithInstance("todo", cmd, instance)
+
+		var (
+			tracker *todosrht.Tracker
+			err     error
+		)
+
+		if owner != "" {
+			tracker, err = todosrht.TicketsByOwner(c.Client, ctx, owner, name)
+		} else {
+			tracker, err = todosrht.Tickets(c.Client, ctx, name)
+		}
+
+		if err != nil {
+			log.Fatal(err)
+		} else if tracker == nil {
+			log.Fatalf("no such tracker %q", name)
+		}
+
+		for _, ticket := range tracker.Tickets.Results {
+			var labels string
+			s := termfmt.DarkYellow.Sprintf("#%d %s ", ticket.Id, ticket.Status.TermString())
+			if ticket.Status == todosrht.TicketStatusResolved {
+				s += termfmt.Green.Sprintf("%s ", strings.ToLower(string(ticket.Resolution)))
+			}
+
+			if len(ticket.Labels) > 0 {
+				labels = " ["
+				for i, label := range ticket.Labels {
+					labels += label.Name
+					if i != len(ticket.Labels)-1 {
+						labels += ", "
+					}
+				}
+				labels += "]"
+			}
+			s += fmt.Sprintf("%s%s (%s %s ago)", ticket.Subject, labels,
+				ticket.Submitter.CanonicalName, timeDelta(ticket.Created))
+			fmt.Println(s)
+		}
+
+	}
+
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List tickets",
+		Args:  cobra.ExactArgs(0),
+		Run:   run,
+	}
+	return cmd
+}
+
 func getTrackerID(c *Client, ctx context.Context, name string) int32 {
 	tracker, err := todosrht.TrackerIDByName(c.Client, ctx, name)
 	if err != nil {
@@ -104,4 +172,20 @@ func getTrackerID(c *Client, ctx context.Context, name string) int32 {
 		log.Fatalf("tracker %q does not exist", name)
 	}
 	return tracker.Id
+}
+
+func getTrackerName(ctx context.Context, cmd *cobra.Command) (name, owner, instance string) {
+	if s, err := cmd.Flags().GetString("tracker"); err != nil {
+		log.Fatal(err)
+	} else if s != "" {
+		return parseResourceName(s)
+	}
+
+	// TODO: Use hub.sr.ht API to determine trackers
+	name, owner, instance, err := guessGitRepoName(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return name, owner, instance
 }

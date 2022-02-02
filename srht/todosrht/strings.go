@@ -22,3 +22,21 @@ func (visibility Visibility) TermString() string {
 
 	return style.String(strings.ToLower(string(visibility)))
 }
+
+func (status TicketStatus) TermString() string {
+	var style termfmt.Style
+	var s string
+
+	switch status {
+	case TicketStatusReported, TicketStatusConfirmed, TicketStatusInProgress, TicketStatusPending:
+		s = "open"
+		style = termfmt.Red
+	case TicketStatusResolved:
+		s = "closed"
+		style = termfmt.Green
+	default:
+		panic(fmt.Sprintf("unknown status: %q", status))
+	}
+
+	return style.String(s)
+}

@@ -26,6 +26,37 @@ query trackerIDByName($name: String!) {
     }
 }
 
+query tickets($name: String!) {
+    trackerByName(name: $name) {
+        tickets {
+            ...tickets
+        }
+    }
+}
+
+query ticketsByOwner($owner: String!, $tracker: String!) {
+    trackerByOwner(owner: $owner, tracker: $tracker) {
+        tickets {
+            ...tickets
+        }
+    }
+}
+fragment tickets on TicketCursor {
+    results {
+        id
+        subject
+        status
+        resolution
+        created
+        submitter {
+            canonicalName
+        }
+        labels {
+            name
+        }
+    }
+}
+
 mutation deleteTracker($id: Int!) {
     deleteTracker(id: $id) {
         name
