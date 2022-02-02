@@ -6,14 +6,24 @@ query repositoryIDByName($name: String!) {
 
 query listArtifacts($name: String!) {
     repositoryByName(name: $name) {
-        references {
-            results {
-                name
-                artifacts {
-                    results {
-                        id
-                        filename
-                    }
+        ...artifacts
+    }
+}
+
+query listArtifactsByOwner($owner: String!, $repo: String!) {
+    repositoryByOwner(owner: $owner, repo: $repo) {
+        ...artifacts
+    }
+}
+
+fragment artifacts on Repository {
+    references {
+        results {
+            name
+            artifacts {
+                results {
+                    id
+                    filename
                 }
             }
         }

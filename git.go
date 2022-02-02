@@ -230,10 +230,20 @@ func newGitArtifactListCommand() *cobra.Command {
 
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		repoName, _, instance := getRepoName(ctx, cmd)
+		repoName, owner, instance := getRepoName(ctx, cmd)
 		c := createClientWithInstance("git", cmd, instance)
 
-		repo, err := gitsrht.ListArtifacts(c.Client, ctx, repoName)
+		var (
+			err  error
+			repo *gitsrht.Repository
+		)
+
+		if owner != "" {
+			repo, err = gitsrht.ListArtifactsByOwner(c.Client, ctx, owner, repoName)
+		} else {
+			repo, err = gitsrht.ListArtifacts(c.Client, ctx, repoName)
+		}
+
 		if err != nil {
 			log.Fatal(err)
 		} else if repo == nil {
