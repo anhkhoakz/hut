@@ -4,6 +4,12 @@ query repositoryIDByName($name: String!) {
     }
 }
 
+query repositoryIDByOwner($owner: String!, $repo: String!) {
+    repositoryByOwner(owner: $owner, repo: $repo) {
+        id
+    }
+}
+
 query listArtifacts($name: String!) {
     repositoryByName(name: $name) {
         ...artifacts

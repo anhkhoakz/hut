@@ -135,16 +135,15 @@ func newGitDeleteCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
-		var name, instance string
+		var name, owner, instance string
 		if len(args) > 0 {
-			// TODO: handle owner
-			name, _, instance = parseResourceName(args[0])
+			name, owner, instance = parseResourceName(args[0])
 		} else {
-			name, _, instance = getRepoName(ctx, cmd)
+			name, owner, instance = getRepoName(ctx, cmd)
 		}
 
 		c := createClientWithInstance("git", cmd, instance)
-		id := getRepoID(c, ctx, name)
+		id := getRepoID(c, ctx, name, owner)
 
 		if !autoConfirm && !getConfirmation(fmt.Sprintf("Do you really want to delete the repo %s", name)) {
 			fmt.Println("Aborted")
@@ -184,9 +183,9 @@ func newGitArtifactUploadCommand() *cobra.Command {
 	var rev string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		repoName, _, instance := getRepoName(ctx, cmd)
+		repoName, owner, instance := getRepoName(ctx, cmd)
 		c := createClientWithInstance("git", cmd, instance)
-		repoID := getRepoID(c, ctx, repoName)
+		repoID := getRepoID(c, ctx, repoName, owner)
 
 		if rev == "" {
 			var err error
@@ -365,9 +364,9 @@ func newGitACLUpdateCommand() *cobra.Command {
 			log.Fatal("user must be in canonical form")
 		}
 
-		name, _, instance := getRepoName(ctx, cmd)
+		name, owner, instance := getRepoName(ctx, cmd)
 		c := createClientWithInstance("git", cmd, instance)
-		id := getRepoID(c, ctx, name)
+		id := getRepoID(c, ctx, name, owner)
 
 		acl, err := gitsrht.UpdateACL(c.Client, ctx, id, accessMode, args[0])
 		if err != nil {
@@ -535,8 +534,16 @@ func guessGitRepoName(ctx context.Context) (repoName, owner, instance string, er
 	return repoName, owner, remoteURL.Host, nil
 }
 
-func getRepoID(c *Client, ctx context.Context, name string) int32 {
-	repo, err := gitsrht.RepositoryIDByName(c.Client, ctx, name)
+func getRepoID(c *Client, ctx context.Context, name, owner string) int32 {
+	var (
+		repo *gitsrht.Repository
+		err  error
+	)
+	if owner == "" {
+		repo, err = gitsrht.RepositoryIDByName(c.Client, ctx, name)
+	} else {
+		repo, err = gitsrht.RepositoryIDByOwner(c.Client, ctx, owner, name)
+	}
 	if err != nil {
 		log.Fatalf("failed to get repository ID: %v", err)
 	} else if repo == nil {

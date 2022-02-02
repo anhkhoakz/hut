@@ -256,6 +256,17 @@ func RepositoryIDByName(client *gqlclient.Client, ctx context.Context, name stri
 	return respData.RepositoryByName, err
 }
 
+func RepositoryIDByOwner(client *gqlclient.Client, ctx context.Context, owner string, repo string) (repositoryByOwner *Repository, err error) {
+	op := gqlclient.NewOperation("query repositoryIDByOwner ($owner: String!, $repo: String!) {\n\trepositoryByOwner(owner: $owner, repo: $repo) {\n\t\tid\n\t}\n}\n")
+	op.Var("owner", owner)
+	op.Var("repo", repo)
+	var respData struct {
+		RepositoryByOwner *Repository
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.RepositoryByOwner, err
+}
+
 func ListArtifacts(client *gqlclient.Client, ctx context.Context, name string) (repositoryByName *Repository, err error) {
 	op := gqlclient.NewOperation("query listArtifacts ($name: String!) {\n\trepositoryByName(name: $name) {\n\t\t... artifacts\n\t}\n}\nfragment artifacts on Repository {\n\treferences {\n\t\tresults {\n\t\t\tname\n\t\t\tartifacts {\n\t\t\t\tresults {\n\t\t\t\t\tid\n\t\t\t\t\tfilename\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	op.Var("name", name)
