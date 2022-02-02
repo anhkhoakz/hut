@@ -473,3 +473,23 @@ func TrackersByUser(client *gqlclient.Client, ctx context.Context, username stri
 	err = client.Execute(ctx, op, &respData)
 	return respData.User, err
 }
+
+func TrackerIDByName(client *gqlclient.Client, ctx context.Context, name string) (trackerByName *Tracker, err error) {
+	op := gqlclient.NewOperation("query trackerIDByName ($name: String!) {\n\ttrackerByName(name: $name) {\n\t\tid\n\t}\n}\n")
+	op.Var("name", name)
+	var respData struct {
+		TrackerByName *Tracker
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.TrackerByName, err
+}
+
+func DeleteTracker(client *gqlclient.Client, ctx context.Context, id int32) (deleteTracker *Tracker, err error) {
+	op := gqlclient.NewOperation("mutation deleteTracker ($id: Int!) {\n\tdeleteTracker(id: $id) {\n\t\tname\n\t}\n}\n")
+	op.Var("id", id)
+	var respData struct {
+		DeleteTracker *Tracker
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.DeleteTracker, err
+}

@@ -318,6 +318,14 @@ Options are:
 *list* [owner]
 	List trackers.
 
+*delete* <tracker> [options...]
+	Delete a tracker.
+
+	Options are:
+
+	*-y*, *--yes*
+		Confirm deletion without prompt.
+
 # CONFIGURATION
 
 Generate a new OAuth2 access token on _meta.sr.ht_.

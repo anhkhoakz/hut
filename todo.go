@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -16,6 +17,7 @@ func newTodoCommand() *cobra.Command {
 		Short: "Use the todo API",
 	}
 	cmd.AddCommand(newTodoListCommand())
+	cmd.AddCommand(newTodoDeleteCommand())
 	return cmd
 }
 
@@ -60,4 +62,46 @@ func newTodoListCommand() *cobra.Command {
 		Run:               run,
 	}
 	return cmd
+}
+
+func newTodoDeleteCommand() *cobra.Command {
+	var autoConfirm bool
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		name, _, instance := parseResourceName(args[0])
+		c := createClientWithInstance("todo", cmd, instance)
+		id := getTrackerID(c, ctx, name)
+
+		if !autoConfirm && !getConfirmation(fmt.Sprintf("Do you really want to delete the tracker %s", name)) {
+			fmt.Println("Aborted")
+			return
+		}
+
+		tracker, err := todosrht.DeleteTracker(c.Client, ctx, id)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf("Deleted tracker %s\n", tracker.Name)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "delete <tracker>",
+		Short:             "Delete a tracker",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: completeRepo,
+		Run:               run,
+	}
+	cmd.Flags().BoolVarP(&autoConfirm, "yes", "y", false, "auto confirm")
+	return cmd
+}
+
+func getTrackerID(c *Client, ctx context.Context, name string) int32 {
+	tracker, err := todosrht.TrackerIDByName(c.Client, ctx, name)
+	if err != nil {
+		log.Fatalf("failed to get tracker ID: %v", err)
+	} else if tracker == nil {
+		log.Fatalf("tracker %q does not exist", name)
+	}
+	return tracker.Id
 }

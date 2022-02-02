@@ -19,3 +19,15 @@ fragment trackers on TrackerCursor {
         visibility
     }
 }
+
+query trackerIDByName($name: String!) {
+    trackerByName(name: $name) {
+        id
+    }
+}
+
+mutation deleteTracker($id: Int!) {
+    deleteTracker(id: $id) {
+        name
+    }
+}
