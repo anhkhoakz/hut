@@ -78,6 +78,30 @@ query patchsetById($id: Int!) {
     }
 }
 
+query completePatchsetId($name: String!) {
+    mailingListByName(name: $name) {
+        ...completePatchset
+    }
+}
+
+query completePatchsetIdByOwner($ownerName: String!, $listName: String!) {
+    mailingListByOwner(ownerName: $ownerName, listName: $listName) {
+        ...completePatchset
+    }
+}
+
+fragment completePatchset on MailingList {
+    patches {
+        results {
+            id
+            subject
+            status
+            version
+            prefix
+        }
+    }
+}
+
 mutation mailingListSubscribe($listID: Int!) {
     mailingListSubscribe(listID: $listID) {
         list {

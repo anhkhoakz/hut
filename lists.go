@@ -269,7 +269,7 @@ func newListsPatchsetUpdateCommand() *cobra.Command {
 		Use:               "update <ID>",
 		Short:             "Update a patchset",
 		Args:              cobra.ExactArgs(1),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction: completePatchsetID,
 		Run:               run,
 	}
 	cmd.Flags().StringVarP(&status, "status", "s", "", "patchset status")
@@ -315,7 +315,7 @@ func newListsPatchsetApplyCommand() *cobra.Command {
 		Use:               "apply <ID>",
 		Short:             "Apply a patchset",
 		Args:              cobra.ExactArgs(1),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction: completePatchsetID,
 		Run:               run,
 	}
 	return cmd
@@ -400,4 +400,54 @@ func parsePatchID(s string) (id int32, instance string, err error) {
 func completePatchsetStatus(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	return []string{"unknown", "proposed", "needs_revision", "superseded",
 		"approved", "rejected", "applied"}, cobra.ShellCompDirectiveNoFileComp
+}
+
+func completePatchsetID(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	ctx := cmd.Context()
+	var patchList []string
+
+	name, owner, instance := getMailingListName(ctx, cmd)
+	c := createClientWithInstance("lists", cmd, instance)
+
+	var (
+		err  error
+		list *listssrht.MailingList
+	)
+	if owner != "" {
+		list, err = listssrht.CompletePatchsetIdByOwner(c.Client, ctx, owner, name)
+	} else {
+		list, err = listssrht.CompletePatchsetId(c.Client, ctx, name)
+	}
+
+	if err != nil || list == nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	for _, patchset := range list.Patches.Results {
+		// TODO: filter with API
+		if cmd.Name() == "apply" && !patchsetApplicable(patchset.Status) {
+			continue
+		}
+
+		s := fmt.Sprintf("%d\t", patchset.Id)
+		if patchset.Prefix != nil && *patchset.Prefix != "" {
+			s += fmt.Sprintf("[%s] ", *patchset.Prefix)
+		}
+		s += patchset.Subject
+		if patchset.Version != 1 {
+			s += fmt.Sprintf(" v%d", patchset.Version)
+		}
+		patchList = append(patchList, s)
+	}
+
+	return patchList, cobra.ShellCompDirectiveNoFileComp
+}
+
+func patchsetApplicable(status listssrht.PatchsetStatus) bool {
+	switch status {
+	case listssrht.PatchsetStatusApplied, listssrht.PatchsetStatusNeedsRevision, listssrht.PatchsetStatusSuperseded, listssrht.PatchsetStatusRejected:
+		return false
+	default:
+		return true
+	}
 }
