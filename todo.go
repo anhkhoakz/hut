@@ -70,9 +70,9 @@ func newTodoDeleteCommand() *cobra.Command {
 	var autoConfirm bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		name, _, instance := parseResourceName(args[0])
+		name, owner, instance := parseResourceName(args[0])
 		c := createClientWithInstance("todo", cmd, instance)
-		id := getTrackerID(c, ctx, name)
+		id := getTrackerID(c, ctx, name, owner)
 
 		if !autoConfirm && !getConfirmation(fmt.Sprintf("Do you really want to delete the tracker %s", name)) {
 			fmt.Println("Aborted")
@@ -82,6 +82,8 @@ func newTodoDeleteCommand() *cobra.Command {
 		tracker, err := todosrht.DeleteTracker(c.Client, ctx, id)
 		if err != nil {
 			log.Fatal(err)
+		} else if tracker == nil {
+			log.Fatalf("failed to delete tracker %q", name)
 		}
 
 		fmt.Printf("Deleted tracker %s\n", tracker.Name)
@@ -164,8 +166,17 @@ func newTodoTicketListCommand() *cobra.Command {
 	return cmd
 }
 
-func getTrackerID(c *Client, ctx context.Context, name string) int32 {
-	tracker, err := todosrht.TrackerIDByName(c.Client, ctx, name)
+func getTrackerID(c *Client, ctx context.Context, name, owner string) int32 {
+	var (
+		tracker *todosrht.Tracker
+		err     error
+	)
+
+	if owner == "" {
+		tracker, err = todosrht.TrackerIDByName(c.Client, ctx, name)
+	} else {
+		tracker, err = todosrht.TrackerIDByOwner(c.Client, ctx, owner, name)
+	}
 	if err != nil {
 		log.Fatalf("failed to get tracker ID: %v", err)
 	} else if tracker == nil {

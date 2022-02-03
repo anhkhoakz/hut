@@ -26,6 +26,12 @@ query trackerIDByName($name: String!) {
     }
 }
 
+query trackerIDByOwner($owner: String!, $tracker: String!) {
+    trackerByOwner(owner: $owner, tracker: $tracker) {
+        id
+    }
+}
+
 query tickets($name: String!) {
     trackerByName(name: $name) {
         tickets {
