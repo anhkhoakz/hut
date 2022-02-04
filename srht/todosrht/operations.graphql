@@ -68,3 +68,15 @@ mutation deleteTracker($id: Int!) {
         name
     }
 }
+
+mutation submitComment(
+    $trackerId: Int!
+    $ticketId: Int!
+    $input: SubmitCommentInput!
+) {
+    submitComment(trackerId: $trackerId, ticketId: $ticketId, input: $input) {
+        ticket {
+            subject
+        }
+    }
+}

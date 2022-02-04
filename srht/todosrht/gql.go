@@ -525,3 +525,15 @@ func DeleteTracker(client *gqlclient.Client, ctx context.Context, id int32) (del
 	err = client.Execute(ctx, op, &respData)
 	return respData.DeleteTracker, err
 }
+
+func SubmitComment(client *gqlclient.Client, ctx context.Context, trackerId int32, ticketId int32, input SubmitCommentInput) (submitComment *Event, err error) {
+	op := gqlclient.NewOperation("mutation submitComment ($trackerId: Int!, $ticketId: Int!, $input: SubmitCommentInput!) {\n\tsubmitComment(trackerId: $trackerId, ticketId: $ticketId, input: $input) {\n\t\tticket {\n\t\t\tsubject\n\t\t}\n\t}\n}\n")
+	op.Var("trackerId", trackerId)
+	op.Var("ticketId", ticketId)
+	op.Var("input", input)
+	var respData struct {
+		SubmitComment *Event
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.SubmitComment, err
+}

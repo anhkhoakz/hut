@@ -345,6 +345,9 @@ Options are:
 *ticket list*
 	List tickets.
 
+*ticket comment* <ID>
+	Comment on a ticket.
+
 # CONFIGURATION
 
 Generate a new OAuth2 access token on _meta.sr.ht_.

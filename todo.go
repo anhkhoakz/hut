@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
+	"os"
 	"strings"
 
 	"git.sr.ht/~emersion/hut/srht/todosrht"
@@ -106,6 +108,7 @@ func newTodoTicketCommand() *cobra.Command {
 		Short: "Manage tickets",
 	}
 	cmd.AddCommand(newTodoTicketListCommand())
+	cmd.AddCommand(newTodoTicketCommentCommand())
 	return cmd
 }
 
@@ -161,6 +164,67 @@ func newTodoTicketListCommand() *cobra.Command {
 		Use:   "list",
 		Short: "List tickets",
 		Args:  cobra.ExactArgs(0),
+		Run:   run,
+	}
+	return cmd
+}
+
+func newTodoTicketCommentCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		var (
+			name, owner, instance string
+			ticketID              int32
+		)
+
+		if strings.Contains(args[0], "/") {
+			var resource string
+			resource, owner, instance = parseResourceName(args[0])
+			split := strings.Split(resource, "/")
+			if len(split) != 2 {
+				log.Fatal("failed to parse tracker name and/or ID")
+			}
+
+			name = split[0]
+			var err error
+			ticketID, err = parseInt32(split[1])
+			if err != nil {
+				log.Fatal(err)
+			}
+		} else {
+			var err error
+			ticketID, err = parseInt32(args[0])
+			if err != nil {
+				log.Fatal(err)
+			}
+			name, owner, instance = getTrackerName(ctx, cmd)
+		}
+
+		c := createClientWithInstance("todo", cmd, instance)
+		trackerID := getTrackerID(c, ctx, name, owner)
+
+		var input todosrht.SubmitCommentInput
+		fmt.Printf("Comment %s:\n", termfmt.Dim.String("(Markdown supported)"))
+		text, err := io.ReadAll(os.Stdin)
+		if err != nil {
+			log.Fatalf("failed to read comment: %v", err)
+		}
+		input.Text = string(text)
+
+		event, err := todosrht.SubmitComment(c.Client, ctx, trackerID, ticketID, input)
+		if err != nil {
+			log.Fatal(err)
+		} else if event == nil {
+			log.Fatalf("failed to comment on ticket with ID %d", ticketID)
+		}
+
+		fmt.Printf("Commented on %s\n", event.Ticket.Subject)
+	}
+
+	cmd := &cobra.Command{
+		Use:   "comment <ID>",
+		Short: "Comment on a ticket",
+		Args:  cobra.ExactArgs(1),
 		Run:   run,
 	}
 	return cmd
