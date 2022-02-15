@@ -16,6 +16,11 @@ type ACL struct {
 	Mode       *AccessMode `json:"mode,omitempty"`
 }
 
+// A cursor for enumerating access control list entries
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
 type ACLCursor struct {
 	Results []ACL   `json:"results"`
 	Cursor  *Cursor `json:"cursor,omitempty"`
@@ -31,7 +36,9 @@ const (
 type AccessMode string
 
 const (
+	// Read-only
 	AccessModeRo AccessMode = "RO"
+	// Read/write
 	AccessModeRw AccessMode = "RW"
 )
 
@@ -44,6 +51,7 @@ const (
 	AccessScopeAcls         AccessScope = "ACLS"
 )
 
+// Arbitrary file attached to a git repository
 type Artifact struct {
 	Id       int32     `json:"id"`
 	Created  time.Time `json:"created"`
@@ -53,6 +61,11 @@ type Artifact struct {
 	Url      string    `json:"url"`
 }
 
+// A cursor for enumerating artifacts
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
 type ArtifactCursor struct {
 	Results []Artifact `json:"results"`
 	Cursor  *Cursor    `json:"cursor,omitempty"`
@@ -83,6 +96,11 @@ type Commit struct {
 	Diff      string     `json:"diff"`
 }
 
+// A cursor for enumerating commits
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
 type CommitCursor struct {
 	Results []Commit `json:"results"`
 	Cursor  *Cursor  `json:"cursor,omitempty"`
@@ -91,27 +109,47 @@ type CommitCursor struct {
 type Cursor string
 
 type Entity struct {
-	Id            int32             `json:"id"`
-	Created       time.Time         `json:"created"`
-	Updated       time.Time         `json:"updated"`
-	CanonicalName string            `json:"canonicalName"`
-	Repositories  *RepositoryCursor `json:"repositories"`
+	Id      int32     `json:"id"`
+	Created time.Time `json:"created"`
+	Updated time.Time `json:"updated"`
+	// The canonical name of this entity. For users, this is their username
+	// prefixed with '~'. Additional entity types will be supported in the future.
+	CanonicalName string `json:"canonicalName"`
+	// Returns a specific repository owned by the user.
+	Repository *Repository `json:"repository,omitempty"`
+	// Returns repositories that the user has access to.
+	//
+	// NOTE: in this version of the API, only repositories owned by the
+	// authenticated user are returned, but in the future the default behavior
+	// will be to return all repositories that the user either (1) has been given
+	// explicit access to via ACLs or (2) has implicit access to either by
+	// ownership or group membership.
+	Repositories *RepositoryCursor `json:"repositories"`
 }
 
+// Describes the status of optional features
 type Features struct {
 	Artifacts bool `json:"artifacts"`
 }
 
 type Filter struct {
-	Count  *int32  `json:"count,omitempty"`
+	// Number of results to return.
+	Count *int32 `json:"count,omitempty"`
+	// Search terms. The exact meaning varies by usage, but generally these are
+	// compatible with the web UI's search syntax.
 	Search *string `json:"search,omitempty"`
+}
+
+type OAuthClient struct {
+	Uuid string `json:"uuid"`
 }
 
 type Object struct {
 	Type    ObjectType `json:"type"`
 	Id      string     `json:"id"`
 	ShortId string     `json:"shortId"`
-	Raw     string     `json:"raw"`
+	// Raw git object, base64 encoded
+	Raw string `json:"raw"`
 }
 
 type ObjectType string
@@ -130,6 +168,11 @@ type Reference struct {
 	Artifacts *ArtifactCursor `json:"artifacts"`
 }
 
+// A cursor for enumerating a list of references
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
 type ReferenceCursor struct {
 	Results []Reference `json:"results"`
 	Cursor  *Cursor     `json:"cursor,omitempty"`
@@ -139,33 +182,67 @@ type RepoInput struct {
 	Name        *string     `json:"name,omitempty"`
 	Description *string     `json:"description,omitempty"`
 	Visibility  *Visibility `json:"visibility,omitempty"`
-	Readme      *string     `json:"readme,omitempty"`
+	// Updates the custom README associated with this repository. Note that the
+	// provided HTML will be sanitized when displayed on the web; see
+	// https://man.sr.ht/markdown/#post-processing
+	Readme *string `json:"readme,omitempty"`
+	// Updates the repository HEAD reference, which serves as the default branch.
+	// Must be a valid branch name.
+	HEAD *string `json:"HEAD,omitempty"`
 }
 
 type Repository struct {
-	Id                int32            `json:"id"`
-	Created           time.Time        `json:"created"`
-	Updated           time.Time        `json:"updated"`
-	Owner             *Entity          `json:"owner"`
-	Name              string           `json:"name"`
-	Description       *string          `json:"description,omitempty"`
-	Visibility        Visibility       `json:"visibility"`
-	Readme            *string          `json:"readme,omitempty"`
+	Id          int32      `json:"id"`
+	Created     time.Time  `json:"created"`
+	Updated     time.Time  `json:"updated"`
+	Owner       *Entity    `json:"owner"`
+	Name        string     `json:"name"`
+	Description *string    `json:"description,omitempty"`
+	Visibility  Visibility `json:"visibility"`
+	// The repository's custom README, if set.
+	//
+	// NOTICE: This returns unsanitized HTML. It is the client's responsibility to
+	// sanitize this for display on the web, if so desired.
+	Readme *string `json:"readme,omitempty"`
+	// If this repository was cloned from another, this is set to the original
+	// clone URL.
 	UpstreamUrl       *string          `json:"upstreamUrl,omitempty"`
 	AccessControlList *ACLCursor       `json:"accessControlList"`
 	Objects           []*Object        `json:"objects"`
 	References        *ReferenceCursor `json:"references"`
-	HEAD              *Reference       `json:"HEAD,omitempty"`
-	Log               *CommitCursor    `json:"log"`
-	Path              *TreeEntry       `json:"path,omitempty"`
-	Revparse_single   *Commit          `json:"revparse_single,omitempty"`
+	// The HEAD reference for this repository (equivalent to the default branch)
+	HEAD *Reference `json:"HEAD,omitempty"`
+	// Returns a list of comments sorted by committer time (similar to `git log`'s
+	// default ordering).
+	//
+	// If `from` is specified, it is interpreted as a revspec to start logging
+	// from. A clever reader may notice that using commits[-1].from + "^" as the
+	// from parameter is equivalent to passing the cursor to the next call.
+	Log *CommitCursor `json:"log"`
+	// Returns a tree entry for a given path, at the given revspec.
+	Path *TreeEntry `json:"path,omitempty"`
+	// Returns the commit for a given revspec.
+	Revparse_single *Commit `json:"revparse_single,omitempty"`
 }
 
+// A cursor for enumerating a list of repositories
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
 type RepositoryCursor struct {
 	Results []Repository `json:"results"`
 	Cursor  *Cursor      `json:"cursor,omitempty"`
 }
 
+type RepositoryEvent struct {
+	Uuid       string       `json:"uuid"`
+	Event      WebhookEvent `json:"event"`
+	Date       time.Time    `json:"date"`
+	Repository *Repository  `json:"repository"`
+}
+
+// Instance specific settings
 type Settings struct {
 	SshUser string `json:"sshUser"`
 }
@@ -208,9 +285,15 @@ type TreeEntry struct {
 	Id     string  `json:"id"`
 	Name   string  `json:"name"`
 	Object *Object `json:"object"`
-	Mode   int32   `json:"mode"`
+	// Unix-style file mode, i.e. 0755 or 0644 (octal)
+	Mode int32 `json:"mode"`
 }
 
+// A cursor for enumerating tree entries
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
 type TreeEntryCursor struct {
 	Results []TreeEntry `json:"results"`
 	Cursor  *Cursor     `json:"cursor,omitempty"`
@@ -226,87 +309,175 @@ type User struct {
 	Url           *string           `json:"url,omitempty"`
 	Location      *string           `json:"location,omitempty"`
 	Bio           *string           `json:"bio,omitempty"`
+	Repository    *Repository       `json:"repository,omitempty"`
 	Repositories  *RepositoryCursor `json:"repositories"`
 }
 
+type UserWebhookInput struct {
+	Url    string         `json:"url"`
+	Events []WebhookEvent `json:"events"`
+	Query  string         `json:"query"`
+}
+
+type UserWebhookSubscription struct {
+	Id         int32                  `json:"id"`
+	Events     []WebhookEvent         `json:"events"`
+	Query      string                 `json:"query"`
+	Url        string                 `json:"url"`
+	Client     *OAuthClient           `json:"client,omitempty"`
+	Deliveries *WebhookDeliveryCursor `json:"deliveries"`
+	Sample     string                 `json:"sample"`
+}
+
 type Version struct {
-	Major           int32     `json:"major"`
-	Minor           int32     `json:"minor"`
-	Patch           int32     `json:"patch"`
+	Major int32 `json:"major"`
+	Minor int32 `json:"minor"`
+	Patch int32 `json:"patch"`
+	// If this API version is scheduled for deprecation, this is the date on which
+	// it will stop working; or null if this API version is not scheduled for
+	// deprecation.
 	DeprecationDate time.Time `json:"deprecationDate,omitempty"`
-	Features        *Features `json:"features"`
-	Settings        *Settings `json:"settings"`
+	// Optional features
+	Features *Features `json:"features"`
+	// Config settings
+	Settings *Settings `json:"settings"`
 }
 
 type Visibility string
 
 const (
-	VisibilityPublic   Visibility = "PUBLIC"
+	// Visible to everyone, listed on your profile
+	VisibilityPublic Visibility = "PUBLIC"
+	// Visible to everyone (if they know the URL), not listed on your profile
 	VisibilityUnlisted Visibility = "UNLISTED"
-	VisibilityPrivate  Visibility = "PRIVATE"
+	// Not visible to anyone except those explicitly added to the access list
+	VisibilityPrivate Visibility = "PRIVATE"
 )
 
-func RepositoryIDByName(client *gqlclient.Client, ctx context.Context, name string) (repositoryByName *Repository, err error) {
-	op := gqlclient.NewOperation("query repositoryIDByName ($name: String!) {\n\trepositoryByName(name: $name) {\n\t\tid\n\t}\n}\n")
+type WebhookDelivery struct {
+	Uuid         string               `json:"uuid"`
+	Date         time.Time            `json:"date"`
+	Event        WebhookEvent         `json:"event"`
+	Subscription *WebhookSubscription `json:"subscription"`
+	RequestBody  string               `json:"requestBody"`
+	// These details are provided only after a response is received from the
+	// remote server. If a response is sent whose Content-Type is not text/*, or
+	// cannot be decoded as UTF-8, the response body will be null. It will be
+	// truncated after 64 KiB.
+	ResponseBody    *string `json:"responseBody,omitempty"`
+	ResponseHeaders *string `json:"responseHeaders,omitempty"`
+	ResponseStatus  *int32  `json:"responseStatus,omitempty"`
+}
+
+// A cursor for enumerating a list of webhook deliveries
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
+type WebhookDeliveryCursor struct {
+	Results []WebhookDelivery `json:"results"`
+	Cursor  *Cursor           `json:"cursor,omitempty"`
+}
+
+type WebhookEvent string
+
+const (
+	WebhookEventRepoCreated WebhookEvent = "REPO_CREATED"
+	WebhookEventRepoUpdate  WebhookEvent = "REPO_UPDATE"
+	WebhookEventRepoDeleted WebhookEvent = "REPO_DELETED"
+)
+
+type WebhookPayload struct {
+	Uuid  string       `json:"uuid"`
+	Event WebhookEvent `json:"event"`
+	Date  time.Time    `json:"date"`
+}
+
+type WebhookSubscription struct {
+	Id     int32          `json:"id"`
+	Events []WebhookEvent `json:"events"`
+	Query  string         `json:"query"`
+	Url    string         `json:"url"`
+	// If this webhook was registered by an authorized OAuth 2.0 client, this
+	// field is non-null.
+	Client *OAuthClient `json:"client,omitempty"`
+	// All deliveries which have been sent to this webhook.
+	Deliveries *WebhookDeliveryCursor `json:"deliveries"`
+	// Returns a sample payload for this subscription, for testing purposes
+	Sample string `json:"sample"`
+}
+
+// A cursor for enumerating a list of webhook subscriptions
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
+type WebhookSubscriptionCursor struct {
+	Results []WebhookSubscription `json:"results"`
+	Cursor  *Cursor               `json:"cursor,omitempty"`
+}
+
+func RepositoryIDByName(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
+	op := gqlclient.NewOperation("query repositoryIDByName ($name: String!) {\n\tme {\n\t\trepository(name: $name) {\n\t\t\tid\n\t\t}\n\t}\n}\n")
 	op.Var("name", name)
 	var respData struct {
-		RepositoryByName *Repository
+		Me *User
 	}
 	err = client.Execute(ctx, op, &respData)
-	return respData.RepositoryByName, err
+	return respData.Me, err
 }
 
-func RepositoryIDByOwner(client *gqlclient.Client, ctx context.Context, owner string, repo string) (repositoryByOwner *Repository, err error) {
-	op := gqlclient.NewOperation("query repositoryIDByOwner ($owner: String!, $repo: String!) {\n\trepositoryByOwner(owner: $owner, repo: $repo) {\n\t\tid\n\t}\n}\n")
-	op.Var("owner", owner)
-	op.Var("repo", repo)
-	var respData struct {
-		RepositoryByOwner *Repository
-	}
-	err = client.Execute(ctx, op, &respData)
-	return respData.RepositoryByOwner, err
-}
-
-func ListArtifacts(client *gqlclient.Client, ctx context.Context, name string) (repositoryByName *Repository, err error) {
-	op := gqlclient.NewOperation("query listArtifacts ($name: String!) {\n\trepositoryByName(name: $name) {\n\t\t... artifacts\n\t}\n}\nfragment artifacts on Repository {\n\treferences {\n\t\tresults {\n\t\t\tname\n\t\t\tartifacts {\n\t\t\t\tresults {\n\t\t\t\t\tid\n\t\t\t\t\tfilename\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
+func RepositoryIDByUser(client *gqlclient.Client, ctx context.Context, username string, name string) (user *User, err error) {
+	op := gqlclient.NewOperation("query repositoryIDByUser ($username: String!, $name: String!) {\n\tuser(username: $username) {\n\t\trepository(name: $name) {\n\t\t\tid\n\t\t}\n\t}\n}\n")
+	op.Var("username", username)
 	op.Var("name", name)
 	var respData struct {
-		RepositoryByName *Repository
+		User *User
 	}
 	err = client.Execute(ctx, op, &respData)
-	return respData.RepositoryByName, err
+	return respData.User, err
 }
 
-func ListArtifactsByOwner(client *gqlclient.Client, ctx context.Context, owner string, repo string) (repositoryByOwner *Repository, err error) {
-	op := gqlclient.NewOperation("query listArtifactsByOwner ($owner: String!, $repo: String!) {\n\trepositoryByOwner(owner: $owner, repo: $repo) {\n\t\t... artifacts\n\t}\n}\nfragment artifacts on Repository {\n\treferences {\n\t\tresults {\n\t\t\tname\n\t\t\tartifacts {\n\t\t\t\tresults {\n\t\t\t\t\tid\n\t\t\t\t\tfilename\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
-	op.Var("owner", owner)
-	op.Var("repo", repo)
-	var respData struct {
-		RepositoryByOwner *Repository
-	}
-	err = client.Execute(ctx, op, &respData)
-	return respData.RepositoryByOwner, err
-}
-
-func RepositoryByName(client *gqlclient.Client, ctx context.Context, name string) (repositoryByName *Repository, err error) {
-	op := gqlclient.NewOperation("query repositoryByName ($name: String!) {\n\trepositoryByName(name: $name) {\n\t\t... repository\n\t}\n}\nfragment repository on Repository {\n\tname\n\tdescription\n\tvisibility\n\tupstreamUrl\n\treferences {\n\t\tresults {\n\t\t\tname\n\t\t}\n\t}\n\tlog {\n\t\tresults {\n\t\t\tshortId\n\t\t\tauthor {\n\t\t\t\tname\n\t\t\t\temail\n\t\t\t\ttime\n\t\t\t}\n\t\t\tmessage\n\t\t}\n\t}\n}\n")
+func ListArtifacts(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
+	op := gqlclient.NewOperation("query listArtifacts ($name: String!) {\n\tme {\n\t\trepository(name: $name) {\n\t\t\t... artifacts\n\t\t}\n\t}\n}\nfragment artifacts on Repository {\n\treferences {\n\t\tresults {\n\t\t\tname\n\t\t\tartifacts {\n\t\t\t\tresults {\n\t\t\t\t\tid\n\t\t\t\t\tfilename\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	op.Var("name", name)
 	var respData struct {
-		RepositoryByName *Repository
+		Me *User
 	}
 	err = client.Execute(ctx, op, &respData)
-	return respData.RepositoryByName, err
+	return respData.Me, err
 }
 
-func RepositoryByOwner(client *gqlclient.Client, ctx context.Context, owner string, repo string) (repositoryByOwner *Repository, err error) {
-	op := gqlclient.NewOperation("query repositoryByOwner ($owner: String!, $repo: String!) {\n\trepositoryByOwner(owner: $owner, repo: $repo) {\n\t\t... repository\n\t}\n}\nfragment repository on Repository {\n\tname\n\tdescription\n\tvisibility\n\tupstreamUrl\n\treferences {\n\t\tresults {\n\t\t\tname\n\t\t}\n\t}\n\tlog {\n\t\tresults {\n\t\t\tshortId\n\t\t\tauthor {\n\t\t\t\tname\n\t\t\t\temail\n\t\t\t\ttime\n\t\t\t}\n\t\t\tmessage\n\t\t}\n\t}\n}\n")
-	op.Var("owner", owner)
-	op.Var("repo", repo)
+func ListArtifactsByUser(client *gqlclient.Client, ctx context.Context, username string, name string) (user *User, err error) {
+	op := gqlclient.NewOperation("query listArtifactsByUser ($username: String!, $name: String!) {\n\tuser(username: $username) {\n\t\trepository(name: $name) {\n\t\t\t... artifacts\n\t\t}\n\t}\n}\nfragment artifacts on Repository {\n\treferences {\n\t\tresults {\n\t\t\tname\n\t\t\tartifacts {\n\t\t\t\tresults {\n\t\t\t\t\tid\n\t\t\t\t\tfilename\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op.Var("username", username)
+	op.Var("name", name)
 	var respData struct {
-		RepositoryByOwner *Repository
+		User *User
 	}
 	err = client.Execute(ctx, op, &respData)
-	return respData.RepositoryByOwner, err
+	return respData.User, err
+}
+
+func RepositoryByName(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
+	op := gqlclient.NewOperation("query repositoryByName ($name: String!) {\n\tme {\n\t\trepository(name: $name) {\n\t\t\t... repository\n\t\t}\n\t}\n}\nfragment repository on Repository {\n\tname\n\tdescription\n\tvisibility\n\tupstreamUrl\n\treferences {\n\t\tresults {\n\t\t\tname\n\t\t}\n\t}\n\tlog {\n\t\tresults {\n\t\t\tshortId\n\t\t\tauthor {\n\t\t\t\tname\n\t\t\t\temail\n\t\t\t\ttime\n\t\t\t}\n\t\t\tmessage\n\t\t}\n\t}\n}\n")
+	op.Var("name", name)
+	var respData struct {
+		Me *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Me, err
+}
+
+func RepositoryByUser(client *gqlclient.Client, ctx context.Context, username string, name string) (user *User, err error) {
+	op := gqlclient.NewOperation("query repositoryByUser ($username: String!, $name: String!) {\n\tuser(username: $username) {\n\t\trepository(name: $name) {\n\t\t\t... repository\n\t\t}\n\t}\n}\nfragment repository on Repository {\n\tname\n\tdescription\n\tvisibility\n\tupstreamUrl\n\treferences {\n\t\tresults {\n\t\t\tname\n\t\t}\n\t}\n\tlog {\n\t\tresults {\n\t\t\tshortId\n\t\t\tauthor {\n\t\t\t\tname\n\t\t\t\temail\n\t\t\t\ttime\n\t\t\t}\n\t\t\tmessage\n\t\t}\n\t}\n}\n")
+	op.Var("username", username)
+	op.Var("name", name)
+	var respData struct {
+		User *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.User, err
 }
 
 func Repositories(client *gqlclient.Client, ctx context.Context) (repositories *RepositoryCursor, err error) {
@@ -346,24 +517,24 @@ func RepoNames(client *gqlclient.Client, ctx context.Context) (repositories *Rep
 	return respData.Repositories, err
 }
 
-func RevsByRepoName(client *gqlclient.Client, ctx context.Context, name string) (repositoryByName *Repository, err error) {
-	op := gqlclient.NewOperation("query revsByRepoName ($name: String!) {\n\trepositoryByName(name: $name) {\n\t\treferences {\n\t\t\tresults {\n\t\t\t\tname\n\t\t\t}\n\t\t}\n\t}\n}\n")
+func RevsByRepoName(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
+	op := gqlclient.NewOperation("query revsByRepoName ($name: String!) {\n\tme {\n\t\trepository(name: $name) {\n\t\t\treferences {\n\t\t\t\tresults {\n\t\t\t\t\tname\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	op.Var("name", name)
 	var respData struct {
-		RepositoryByName *Repository
+		Me *User
 	}
 	err = client.Execute(ctx, op, &respData)
-	return respData.RepositoryByName, err
+	return respData.Me, err
 }
 
-func AclByRepoName(client *gqlclient.Client, ctx context.Context, name string) (repositoryByName *Repository, err error) {
-	op := gqlclient.NewOperation("query aclByRepoName ($name: String!) {\n\trepositoryByName(name: $name) {\n\t\taccessControlList {\n\t\t\tresults {\n\t\t\t\tid\n\t\t\t\tcreated\n\t\t\t\tentity {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t\tmode\n\t\t\t}\n\t\t}\n\t}\n}\n")
+func AclByRepoName(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
+	op := gqlclient.NewOperation("query aclByRepoName ($name: String!) {\n\tme {\n\t\trepository(name: $name) {\n\t\t\taccessControlList {\n\t\t\t\tresults {\n\t\t\t\t\tid\n\t\t\t\t\tcreated\n\t\t\t\t\tentity {\n\t\t\t\t\t\tcanonicalName\n\t\t\t\t\t}\n\t\t\t\t\tmode\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	op.Var("name", name)
 	var respData struct {
-		RepositoryByName *Repository
+		Me *User
 	}
 	err = client.Execute(ctx, op, &respData)
-	return respData.RepositoryByName, err
+	return respData.Me, err
 }
 
 func UploadArtifact(client *gqlclient.Client, ctx context.Context, repoId int32, revspec string, file gqlclient.Upload) (uploadArtifact *Artifact, err error) {

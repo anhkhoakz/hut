@@ -1,24 +1,32 @@
 query repositoryIDByName($name: String!) {
-    repositoryByName(name: $name) {
-        id
+    me {
+        repository(name: $name) {
+            id
+        }
     }
 }
 
-query repositoryIDByOwner($owner: String!, $repo: String!) {
-    repositoryByOwner(owner: $owner, repo: $repo) {
-        id
+query repositoryIDByUser($username: String!, $name: String!) {
+    user(username: $username) {
+        repository(name: $name) {
+            id
+        }
     }
 }
 
 query listArtifacts($name: String!) {
-    repositoryByName(name: $name) {
-        ...artifacts
+    me {
+        repository(name: $name) {
+            ...artifacts
+        }
     }
 }
 
-query listArtifactsByOwner($owner: String!, $repo: String!) {
-    repositoryByOwner(owner: $owner, repo: $repo) {
-        ...artifacts
+query listArtifactsByUser($username: String!, $name: String!) {
+    user(username: $username) {
+        repository(name: $name) {
+            ...artifacts
+        }
     }
 }
 
@@ -37,14 +45,18 @@ fragment artifacts on Repository {
 }
 
 query repositoryByName($name: String!) {
-    repositoryByName(name: $name) {
-        ...repository
+    me {
+        repository(name: $name) {
+            ...repository
+        }
     }
 }
 
-query repositoryByOwner($owner: String!, $repo: String!) {
-    repositoryByOwner(owner: $owner, repo: $repo) {
-        ...repository
+query repositoryByUser($username: String!, $name: String!) {
+    user(username: $username) {
+        repository(name: $name) {
+            ...repository
+        }
     }
 }
 
@@ -110,25 +122,29 @@ query repoNames {
 }
 
 query revsByRepoName($name: String!) {
-    repositoryByName(name: $name) {
-        references {
-            results {
-                name
+    me {
+        repository(name: $name) {
+            references {
+                results {
+                    name
+                }
             }
         }
     }
 }
 
 query aclByRepoName($name: String!) {
-    repositoryByName(name: $name) {
-        accessControlList {
-            results {
-                id
-                created
-                entity {
-                    canonicalName
+    me {
+        repository(name: $name) {
+            accessControlList {
+                results {
+                    id
+                    created
+                    entity {
+                        canonicalName
+                    }
+                    mode
                 }
-                mode
             }
         }
     }

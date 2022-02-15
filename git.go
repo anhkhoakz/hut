@@ -233,23 +233,27 @@ func newGitArtifactListCommand() *cobra.Command {
 		c := createClientWithInstance("git", cmd, instance)
 
 		var (
-			err  error
-			repo *gitsrht.Repository
+			err      error
+			username string
+			user     *gitsrht.User
 		)
 
 		if owner != "" {
-			repo, err = gitsrht.ListArtifactsByOwner(c.Client, ctx, owner, repoName)
+			username = strings.TrimLeft(owner, ownerPrefixes)
+			user, err = gitsrht.ListArtifactsByUser(c.Client, ctx, username, repoName)
 		} else {
-			repo, err = gitsrht.ListArtifacts(c.Client, ctx, repoName)
+			user, err = gitsrht.ListArtifacts(c.Client, ctx, repoName)
 		}
 
 		if err != nil {
 			log.Fatal(err)
-		} else if repo == nil {
-			log.Fatalf("repository %s does not exist", repoName)
+		} else if user == nil {
+			log.Fatalf("no such user %q", username)
+		} else if user.Repository == nil {
+			log.Fatalf("no such repository %q", repoName)
 		}
 
-		for _, ref := range repo.References.Results {
+		for _, ref := range user.Repository.References.Results {
 			if len(ref.Artifacts.Results) == 0 {
 				continue
 			}
@@ -323,14 +327,16 @@ func newGitACLListCommand() *cobra.Command {
 
 		c := createClientWithInstance("git", cmd, instance)
 
-		repo, err := gitsrht.AclByRepoName(c.Client, ctx, name)
+		user, err := gitsrht.AclByRepoName(c.Client, ctx, name)
 		if err != nil {
 			log.Fatal(err)
-		} else if repo == nil {
-			log.Fatalf("repository %s does not exist", name)
+		} else if user == nil {
+			log.Fatal("no such user")
+		} else if user.Repository == nil {
+			log.Fatalf("no such repository %q", name)
 		}
 
-		for _, acl := range repo.AccessControlList.Results {
+		for _, acl := range user.Repository.AccessControlList.Results {
 			var mode string
 			if acl.Mode != nil {
 				mode = string(*acl.Mode)
@@ -433,19 +439,24 @@ func newGitShowCommand() *cobra.Command {
 		c := createClientWithInstance("git", cmd, instance)
 
 		var (
-			repo *gitsrht.Repository
-			err  error
+			user     *gitsrht.User
+			username string
+			err      error
 		)
 		if owner == "" {
-			repo, err = gitsrht.RepositoryByName(c.Client, ctx, name)
+			user, err = gitsrht.RepositoryByName(c.Client, ctx, name)
 		} else {
-			repo, err = gitsrht.RepositoryByOwner(c.Client, ctx, owner, name)
+			username = strings.TrimLeft(owner, ownerPrefixes)
+			user, err = gitsrht.RepositoryByUser(c.Client, ctx, username, name)
 		}
 		if err != nil {
 			log.Fatal(err)
-		} else if repo == nil {
+		} else if user == nil {
+			log.Fatalf("no such user %q", username)
+		} else if user.Repository == nil {
 			log.Fatalf("no such repository %q", name)
 		}
+		repo := user.Repository
 
 		// prints basic information
 		fmt.Printf("%s (%s)\n", termfmt.Bold.String(repo.Name), repo.Visibility.TermString())
@@ -536,20 +547,24 @@ func guessGitRepoName(ctx context.Context) (repoName, owner, instance string, er
 
 func getRepoID(c *Client, ctx context.Context, name, owner string) int32 {
 	var (
-		repo *gitsrht.Repository
-		err  error
+		user     *gitsrht.User
+		username string
+		err      error
 	)
 	if owner == "" {
-		repo, err = gitsrht.RepositoryIDByName(c.Client, ctx, name)
+		user, err = gitsrht.RepositoryIDByName(c.Client, ctx, name)
 	} else {
-		repo, err = gitsrht.RepositoryIDByOwner(c.Client, ctx, owner, name)
+		username = strings.TrimLeft(owner, ownerPrefixes)
+		user, err = gitsrht.RepositoryIDByUser(c.Client, ctx, username, name)
 	}
 	if err != nil {
 		log.Fatalf("failed to get repository ID: %v", err)
-	} else if repo == nil {
-		log.Fatalf("repository %s does not exist", name)
+	} else if user == nil {
+		log.Fatalf("no such user %q", username)
+	} else if user.Repository == nil {
+		log.Fatalf("no such repository %q", name)
 	}
-	return repo.Id
+	return user.Repository.Id
 }
 
 func gitRemoteURL(ctx context.Context) (*url.URL, error) {
@@ -613,12 +628,12 @@ func completeRev(cmd *cobra.Command, args []string, toComplete string) ([]string
 		ctx := cmd.Context()
 		c := createClient("git", cmd)
 
-		repo, err := gitsrht.RevsByRepoName(c.Client, ctx, repo)
-		if err != nil {
+		user, err := gitsrht.RevsByRepoName(c.Client, ctx, repo)
+		if err != nil || user.Repository == nil {
 			return nil, cobra.ShellCompDirectiveNoFileComp
 		}
 
-		return repo.References.Tags(), cobra.ShellCompDirectiveNoFileComp
+		return user.Repository.References.Tags(), cobra.ShellCompDirectiveNoFileComp
 	}
 
 	output, err := exec.Command("git", "tag").Output()
