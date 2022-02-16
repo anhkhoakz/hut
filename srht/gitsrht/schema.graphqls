@@ -134,12 +134,6 @@ type Repository {
   """
   readme: String
 
-  """
-  If this repository was cloned from another, this is set to the original
-  clone URL.
-  """
-  upstreamUrl: String
-
   accessControlList(cursor: Cursor): ACLCursor! @access(scope: ACLS, kind: RO)
 
   ## Plumbing API:

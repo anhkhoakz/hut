@@ -64,7 +64,6 @@ fragment repository on Repository {
     name
     description
     visibility
-    upstreamUrl
     references {
         results {
             name

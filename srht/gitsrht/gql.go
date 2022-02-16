@@ -203,10 +203,7 @@ type Repository struct {
 	//
 	// NOTICE: This returns unsanitized HTML. It is the client's responsibility to
 	// sanitize this for display on the web, if so desired.
-	Readme *string `json:"readme,omitempty"`
-	// If this repository was cloned from another, this is set to the original
-	// clone URL.
-	UpstreamUrl       *string          `json:"upstreamUrl,omitempty"`
+	Readme            *string          `json:"readme,omitempty"`
 	AccessControlList *ACLCursor       `json:"accessControlList"`
 	Objects           []*Object        `json:"objects"`
 	References        *ReferenceCursor `json:"references"`
@@ -460,7 +457,7 @@ func ListArtifactsByUser(client *gqlclient.Client, ctx context.Context, username
 }
 
 func RepositoryByName(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
-	op := gqlclient.NewOperation("query repositoryByName ($name: String!) {\n\tme {\n\t\trepository(name: $name) {\n\t\t\t... repository\n\t\t}\n\t}\n}\nfragment repository on Repository {\n\tname\n\tdescription\n\tvisibility\n\tupstreamUrl\n\treferences {\n\t\tresults {\n\t\t\tname\n\t\t}\n\t}\n\tlog {\n\t\tresults {\n\t\t\tshortId\n\t\t\tauthor {\n\t\t\t\tname\n\t\t\t\temail\n\t\t\t\ttime\n\t\t\t}\n\t\t\tmessage\n\t\t}\n\t}\n}\n")
+	op := gqlclient.NewOperation("query repositoryByName ($name: String!) {\n\tme {\n\t\trepository(name: $name) {\n\t\t\t... repository\n\t\t}\n\t}\n}\nfragment repository on Repository {\n\tname\n\tdescription\n\tvisibility\n\treferences {\n\t\tresults {\n\t\t\tname\n\t\t}\n\t}\n\tlog {\n\t\tresults {\n\t\t\tshortId\n\t\t\tauthor {\n\t\t\t\tname\n\t\t\t\temail\n\t\t\t\ttime\n\t\t\t}\n\t\t\tmessage\n\t\t}\n\t}\n}\n")
 	op.Var("name", name)
 	var respData struct {
 		Me *User
@@ -470,7 +467,7 @@ func RepositoryByName(client *gqlclient.Client, ctx context.Context, name string
 }
 
 func RepositoryByUser(client *gqlclient.Client, ctx context.Context, username string, name string) (user *User, err error) {
-	op := gqlclient.NewOperation("query repositoryByUser ($username: String!, $name: String!) {\n\tuser(username: $username) {\n\t\trepository(name: $name) {\n\t\t\t... repository\n\t\t}\n\t}\n}\nfragment repository on Repository {\n\tname\n\tdescription\n\tvisibility\n\tupstreamUrl\n\treferences {\n\t\tresults {\n\t\t\tname\n\t\t}\n\t}\n\tlog {\n\t\tresults {\n\t\t\tshortId\n\t\t\tauthor {\n\t\t\t\tname\n\t\t\t\temail\n\t\t\t\ttime\n\t\t\t}\n\t\t\tmessage\n\t\t}\n\t}\n}\n")
+	op := gqlclient.NewOperation("query repositoryByUser ($username: String!, $name: String!) {\n\tuser(username: $username) {\n\t\trepository(name: $name) {\n\t\t\t... repository\n\t\t}\n\t}\n}\nfragment repository on Repository {\n\tname\n\tdescription\n\tvisibility\n\treferences {\n\t\tresults {\n\t\t\tname\n\t\t}\n\t}\n\tlog {\n\t\tresults {\n\t\t\tshortId\n\t\t\tauthor {\n\t\t\t\tname\n\t\t\t\temail\n\t\t\t\ttime\n\t\t\t}\n\t\t\tmessage\n\t\t}\n\t}\n}\n")
 	op.Var("username", username)
 	op.Var("name", name)
 	var respData struct {

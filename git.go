@@ -463,9 +463,6 @@ func newGitShowCommand() *cobra.Command {
 		if repo.Description != nil && *repo.Description != "" {
 			fmt.Printf("  %s\n", *repo.Description)
 		}
-		if repo.UpstreamUrl != nil && *repo.UpstreamUrl != "" {
-			fmt.Printf("  Upstream URL: %s\n", *repo.UpstreamUrl)
-		}
 
 		// prints latest tag
 		tags := repo.References.Tags()
