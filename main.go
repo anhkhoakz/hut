@@ -122,7 +122,7 @@ func parseInt32(s string) (int32, error) {
 	return int32(i), err
 }
 
-func getInputWithEditor(pattern string) (string, error) {
+func getInputWithEditor(pattern, initialText string) (string, error) {
 	editor := os.Getenv("EDITOR")
 	if editor == "" {
 		return "", errors.New("EDITOR not set")
@@ -133,6 +133,13 @@ func getInputWithEditor(pattern string) (string, error) {
 		return "", err
 	}
 	defer os.Remove(file.Name())
+
+	if initialText != "" {
+		_, err = file.WriteString(initialText)
+		if err != nil {
+			return "", err
+		}
+	}
 
 	err = file.Close()
 	if err != nil {

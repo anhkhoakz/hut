@@ -190,7 +190,7 @@ func newTodoTicketCommentCommand() *cobra.Command {
 			}
 			input.Text = string(text)
 		} else {
-			text, err := getInputWithEditor("hut_comment*.md")
+			text, err := getInputWithEditor("hut_comment*.md", "")
 			if err != nil {
 				log.Fatalf("failed to read comment: %v", err)
 			}
