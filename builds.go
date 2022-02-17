@@ -329,6 +329,8 @@ func newBuildsSSHCommand() *cobra.Command {
 		job, ver, err := buildssrht.GetSSHInfo(c.Client, ctx, id)
 		if err != nil {
 			log.Fatal(err)
+		} else if job == nil {
+			log.Fatalf("no such job with ID %d", id)
 		}
 
 		err = sshConnection(job, ver.Settings.SshUser)
