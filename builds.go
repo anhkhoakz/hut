@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -122,43 +121,12 @@ func newBuildsResubmitCommand() *cobra.Command {
 		}
 
 		if edit {
-			editor := os.Getenv("EDITOR")
-			if editor == "" {
-				log.Fatal("EDITOR not set")
-			}
-
-			file, err := ioutil.TempFile(os.TempDir(), "hut*.yml")
-			if err != nil {
-				log.Fatal(err)
-			}
-			defer os.Remove(file.Name())
-
-			_, err = file.WriteString(oldJob.Manifest)
+			content, err := getInputWithEditor("hut*.yml", oldJob.Manifest)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			err = file.Close()
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			cmd := exec.Command(editor, file.Name())
-			cmd.Stdin = os.Stdin
-			cmd.Stdout = os.Stdout
-			cmd.Stderr = os.Stderr
-
-			err = cmd.Run()
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			content, err := ioutil.ReadFile(file.Name())
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			oldJob.Manifest = string(content)
+			oldJob.Manifest = content
 		}
 
 		note := fmt.Sprintf("Resubmission of build [#%d](/%s/job/%d)",
