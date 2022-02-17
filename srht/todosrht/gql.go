@@ -496,7 +496,7 @@ func TrackerIDByOwner(client *gqlclient.Client, ctx context.Context, owner strin
 }
 
 func Tickets(client *gqlclient.Client, ctx context.Context, name string) (trackerByName *Tracker, err error) {
-	op := gqlclient.NewOperation("query tickets ($name: String!) {\n\ttrackerByName(name: $name) {\n\t\ttickets {\n\t\t\t... tickets\n\t\t}\n\t}\n}\nfragment tickets on TicketCursor {\n\tresults {\n\t\tid\n\t\tsubject\n\t\tstatus\n\t\tresolution\n\t\tcreated\n\t\tsubmitter {\n\t\t\tcanonicalName\n\t\t}\n\t\tlabels {\n\t\t\tname\n\t\t}\n\t}\n}\n")
+	op := gqlclient.NewOperation("query tickets ($name: String!) {\n\ttrackerByName(name: $name) {\n\t\ttickets {\n\t\t\t... tickets\n\t\t}\n\t}\n}\nfragment tickets on TicketCursor {\n\tresults {\n\t\tid\n\t\tsubject\n\t\tstatus\n\t\tresolution\n\t\tcreated\n\t\tsubmitter {\n\t\t\tcanonicalName\n\t\t}\n\t\tlabels {\n\t\t\tname\n\t\t\tbackgroundColor\n\t\t\tforegroundColor\n\t\t}\n\t}\n}\n")
 	op.Var("name", name)
 	var respData struct {
 		TrackerByName *Tracker
@@ -506,7 +506,7 @@ func Tickets(client *gqlclient.Client, ctx context.Context, name string) (tracke
 }
 
 func TicketsByOwner(client *gqlclient.Client, ctx context.Context, owner string, tracker string) (trackerByOwner *Tracker, err error) {
-	op := gqlclient.NewOperation("query ticketsByOwner ($owner: String!, $tracker: String!) {\n\ttrackerByOwner(owner: $owner, tracker: $tracker) {\n\t\ttickets {\n\t\t\t... tickets\n\t\t}\n\t}\n}\nfragment tickets on TicketCursor {\n\tresults {\n\t\tid\n\t\tsubject\n\t\tstatus\n\t\tresolution\n\t\tcreated\n\t\tsubmitter {\n\t\t\tcanonicalName\n\t\t}\n\t\tlabels {\n\t\t\tname\n\t\t}\n\t}\n}\n")
+	op := gqlclient.NewOperation("query ticketsByOwner ($owner: String!, $tracker: String!) {\n\ttrackerByOwner(owner: $owner, tracker: $tracker) {\n\t\ttickets {\n\t\t\t... tickets\n\t\t}\n\t}\n}\nfragment tickets on TicketCursor {\n\tresults {\n\t\tid\n\t\tsubject\n\t\tstatus\n\t\tresolution\n\t\tcreated\n\t\tsubmitter {\n\t\t\tcanonicalName\n\t\t}\n\t\tlabels {\n\t\t\tname\n\t\t\tbackgroundColor\n\t\t\tforegroundColor\n\t\t}\n\t}\n}\n")
 	op.Var("owner", owner)
 	op.Var("tracker", tracker)
 	var respData struct {

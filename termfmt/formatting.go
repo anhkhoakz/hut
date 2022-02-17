@@ -2,7 +2,10 @@ package termfmt
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"strconv"
+	"strings"
 
 	"golang.org/x/term"
 )
@@ -10,6 +13,10 @@ import (
 var isTerminal = term.IsTerminal(int(os.Stdout.Fd()))
 
 type Style string
+
+type RGB struct {
+	Red, Green, Blue uint8
+}
 
 const (
 	Bold Style = "bold"
@@ -48,10 +55,52 @@ func (style Style) String(s string) string {
 	}
 }
 
+func HexString(s string, fg string, bg string) string {
+	if !isTerminal {
+		return s
+	}
+
+	return RGBString(s, hexToRGB(fg), hexToRGB(bg))
+}
+
+func RGBString(s string, fg, bg RGB) string {
+	if !isTerminal {
+		return s
+	}
+
+	return fmt.Sprintf("\033[38;2;%d;%d;%dm\033[48;2;%d;%d;%dm%s\033[0m",
+		fg.Red, fg.Green, fg.Blue, bg.Red, bg.Green, bg.Blue, s)
+}
+
 func (style Style) Sprint(args ...interface{}) string {
 	return style.String(fmt.Sprint(args...))
 }
 
 func (style Style) Sprintf(format string, args ...interface{}) string {
 	return style.String(fmt.Sprintf(format, args...))
+}
+
+func hexToRGB(hex string) RGB {
+	var rgb RGB
+	hex = strings.TrimPrefix(hex, "#")
+	if len(hex) != 6 {
+		log.Fatalf("not a valid hex color %q", hex)
+	}
+
+	for i := 0; i < 3; i++ {
+		v, err := strconv.ParseUint(hex[i*2:i*2+2], 16, 8)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		switch i {
+		case 0:
+			rgb.Red = uint8(v)
+		case 1:
+			rgb.Green = uint8(v)
+		case 2:
+			rgb.Blue = uint8(v)
+		}
+	}
+	return rgb
 }

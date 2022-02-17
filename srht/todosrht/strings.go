@@ -40,3 +40,7 @@ func (status TicketStatus) TermString() string {
 
 	return style.String(s)
 }
+
+func (label Label) TermString() string {
+	return termfmt.HexString(label.Name, label.ForegroundColor, label.BackgroundColor)
+}

@@ -59,6 +59,8 @@ fragment tickets on TicketCursor {
         }
         labels {
             name
+            backgroundColor
+            foregroundColor
         }
     }
 }

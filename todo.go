@@ -146,7 +146,7 @@ func newTodoTicketListCommand() *cobra.Command {
 			if len(ticket.Labels) > 0 {
 				labels = " ["
 				for i, label := range ticket.Labels {
-					labels += label.Name
+					labels += label.TermString()
 					if i != len(ticket.Labels)-1 {
 						labels += ", "
 					}
