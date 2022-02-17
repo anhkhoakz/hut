@@ -350,8 +350,14 @@ Options are:
 
 	Options are:
 
-	*-s*, *--stdin*
+	*--stdin*
 		Read comment from _stdin_.
+
+	*-s*, *--status*
+		New ticket status.
+
+	*-r*, *--resolution*
+		Resolution for resolved tickets (required if status _RESOLVED_ is used).
 
 *ticket update-status* <ID> [options...]
 	Update status of a ticket.

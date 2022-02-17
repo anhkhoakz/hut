@@ -172,6 +172,7 @@ func newTodoTicketListCommand() *cobra.Command {
 
 func newTodoTicketCommentCommand() *cobra.Command {
 	var stdin bool
+	var status, resolution string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
@@ -181,6 +182,24 @@ func newTodoTicketCommentCommand() *cobra.Command {
 		trackerID := getTrackerID(c, ctx, name, owner)
 
 		var input todosrht.SubmitCommentInput
+
+		if status != "" {
+			ticketStatus, err := todosrht.ParseTicketStatus(status)
+			if err != nil {
+				log.Fatal(err)
+			}
+			input.Status = &ticketStatus
+		}
+
+		if input.Status != nil && *input.Status == todosrht.TicketStatusResolved {
+			ticketResolution, err := todosrht.ParseTicketResolution(resolution)
+			if err != nil {
+				log.Fatal(err)
+			}
+			input.Resolution = &ticketResolution
+		} else if resolution != "" {
+			log.Fatalf("resolution %q specified, but ticket not marked as resolved", resolution)
+		}
 
 		if stdin {
 			fmt.Printf("Comment %s:\n", termfmt.Dim.String("(Markdown supported)"))
@@ -218,7 +237,11 @@ func newTodoTicketCommentCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Run:   run,
 	}
-	cmd.Flags().BoolVarP(&stdin, "stdin", "s", false, "read comment from stdin")
+	cmd.Flags().BoolVar(&stdin, "stdin", false, "read comment from stdin")
+	cmd.Flags().StringVarP(&status, "status", "s", "", "ticket status")
+	cmd.RegisterFlagCompletionFunc("status", completeTicketStatus)
+	cmd.Flags().StringVarP(&resolution, "resolution", "r", "", "ticket resolution")
+	cmd.RegisterFlagCompletionFunc("resolution", completeTicketResolution)
 	return cmd
 }
 
