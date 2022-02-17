@@ -109,6 +109,7 @@ func newTodoTicketCommand() *cobra.Command {
 	}
 	cmd.AddCommand(newTodoTicketListCommand())
 	cmd.AddCommand(newTodoTicketCommentCommand())
+	cmd.AddCommand(newTodoTicketStatusCommand())
 	return cmd
 }
 
@@ -205,6 +206,57 @@ func newTodoTicketCommentCommand() *cobra.Command {
 	return cmd
 }
 
+func newTodoTicketStatusCommand() *cobra.Command {
+	var status, resolution string
+	run := func(cmd *cobra.Command, args []string) {
+		var input todosrht.UpdateStatusInput
+		ctx := cmd.Context()
+
+		ticketStatus, err := todosrht.ParseTicketStatus(status)
+		if err != nil {
+			log.Fatal(err)
+		}
+		input.Status = ticketStatus
+
+		if ticketStatus == todosrht.TicketStatusResolved {
+			ticketResolution, err := todosrht.ParseTicketResolution(resolution)
+			if err != nil {
+				log.Fatal(err)
+			}
+			input.Resolution = &ticketResolution
+		} else if resolution != "" {
+			log.Fatalf("resolution %q specified, but ticket not marked as resolved", resolution)
+		}
+
+		ticketID, name, owner, instance := parseTicketResource(ctx, cmd, args[0])
+		c := createClientWithInstance("todo", cmd, instance)
+		trackerID := getTrackerID(c, ctx, name, owner)
+
+		event, err := todosrht.UpdateTicketStatus(c.Client, ctx, trackerID, ticketID, input)
+		if err != nil {
+			log.Fatal(err)
+		} else if event == nil {
+			log.Fatalf("failed to update status of ticket with ID %d", ticketID)
+		}
+
+		fmt.Printf("Updated status of %s\n", event.Ticket.Subject)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "update-status <ID>",
+		Short:             "Update ticket status",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	cmd.Flags().StringVarP(&status, "status", "s", "", "ticket status")
+	cmd.RegisterFlagCompletionFunc("status", completeTicketStatus)
+	cmd.MarkFlagRequired("status")
+	cmd.Flags().StringVarP(&resolution, "resolution", "r", "", "ticket resolution")
+	cmd.RegisterFlagCompletionFunc("resolution", completeTicketResolution)
+	return cmd
+}
+
 func getTrackerID(c *Client, ctx context.Context, name, owner string) int32 {
 	var (
 		tracker *todosrht.Tracker
@@ -265,4 +317,14 @@ func parseTicketResource(ctx context.Context, cmd *cobra.Command, ticket string)
 	}
 
 	return ticketID, name, owner, instance
+}
+
+func completeTicketStatus(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return []string{"reported", "confirmed", "in_progress", "pending", "resolved"},
+		cobra.ShellCompDirectiveNoFileComp
+}
+
+func completeTicketResolution(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return []string{"unresolved", "fixed", "implemented", "wont_fix", "by_design",
+		"invalid", "duplicate", "not_our_bug"}, cobra.ShellCompDirectiveNoFileComp
 }

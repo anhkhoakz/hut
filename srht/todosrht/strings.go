@@ -44,3 +44,43 @@ func (status TicketStatus) TermString() string {
 func (label Label) TermString() string {
 	return termfmt.HexString(label.Name, label.ForegroundColor, label.BackgroundColor)
 }
+
+func ParseTicketStatus(s string) (TicketStatus, error) {
+	switch strings.ToLower(s) {
+	case "reported":
+		return TicketStatusReported, nil
+	case "confirmed":
+		return TicketStatusConfirmed, nil
+	case "in_progress":
+		return TicketStatusInProgress, nil
+	case "pending":
+		return TicketStatusPending, nil
+	case "resolved":
+		return TicketStatusResolved, nil
+	default:
+		return "", fmt.Errorf("invalid ticket status: %s", s)
+	}
+}
+
+func ParseTicketResolution(s string) (TicketResolution, error) {
+	switch strings.ToLower(s) {
+	case "unresolved":
+		return TicketResolutionUnresolved, nil
+	case "fixed":
+		return TicketResolutionFixed, nil
+	case "implemented":
+		return TicketResolutionImplemented, nil
+	case "wont_fix":
+		return TicketResolutionWontFix, nil
+	case "by_design":
+		return TicketResolutionByDesign, nil
+	case "invalid":
+		return TicketResolutionInvalid, nil
+	case "duplicate":
+		return TicketResolutionDuplicate, nil
+	case "not_out_bug":
+		return TicketResolutionNotOurBug, nil
+	default:
+		return "", fmt.Errorf("invalid ticket resolution: %s", s)
+	}
+}

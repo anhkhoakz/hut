@@ -348,6 +348,17 @@ Options are:
 *ticket comment* <ID>
 	Comment on a ticket.
 
+*ticket update-status* <ID> [options...]
+	Update status of a ticket.
+
+	Options are:
+
+	*-s*, *--status*
+		New ticket status (required).
+
+	*-r*, *--resolution*
+		Resolution for resolved tickets (required if status _RESOLVED_ is used).
+
 # CONFIGURATION
 
 Generate a new OAuth2 access token on _meta.sr.ht_.

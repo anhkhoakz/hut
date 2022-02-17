@@ -537,3 +537,15 @@ func SubmitComment(client *gqlclient.Client, ctx context.Context, trackerId int3
 	err = client.Execute(ctx, op, &respData)
 	return respData.SubmitComment, err
 }
+
+func UpdateTicketStatus(client *gqlclient.Client, ctx context.Context, trackerId int32, ticketId int32, input UpdateStatusInput) (updateTicketStatus *Event, err error) {
+	op := gqlclient.NewOperation("mutation updateTicketStatus ($trackerId: Int!, $ticketId: Int!, $input: UpdateStatusInput!) {\n\tupdateTicketStatus(trackerId: $trackerId, ticketId: $ticketId, input: $input) {\n\t\tticket {\n\t\t\tsubject\n\t\t}\n\t}\n}\n")
+	op.Var("trackerId", trackerId)
+	op.Var("ticketId", ticketId)
+	op.Var("input", input)
+	var respData struct {
+		UpdateTicketStatus *Event
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.UpdateTicketStatus, err
+}

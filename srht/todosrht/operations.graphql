@@ -82,3 +82,19 @@ mutation submitComment(
         }
     }
 }
+
+mutation updateTicketStatus(
+    $trackerId: Int!
+    $ticketId: Int!
+    $input: UpdateStatusInput!
+) {
+    updateTicketStatus(
+        trackerId: $trackerId
+        ticketId: $ticketId
+        input: $input
+    ) {
+        ticket {
+            subject
+        }
+    }
+}
