@@ -3,9 +3,12 @@ package main
 import (
 	"bufio"
 	"context"
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 	"time"
@@ -117,4 +120,39 @@ func parseResourceName(name string) (resource, owner, instance string) {
 func parseInt32(s string) (int32, error) {
 	i, err := strconv.ParseInt(s, 10, 32)
 	return int32(i), err
+}
+
+func getInputWithEditor(pattern string) (string, error) {
+	editor := os.Getenv("EDITOR")
+	if editor == "" {
+		return "", errors.New("EDITOR not set")
+	}
+
+	file, err := ioutil.TempFile("", pattern)
+	if err != nil {
+		return "", err
+	}
+	defer os.Remove(file.Name())
+
+	err = file.Close()
+	if err != nil {
+		return "", err
+	}
+
+	cmd := exec.Command(editor, file.Name())
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	err = cmd.Run()
+	if err != nil {
+		return "", err
+	}
+
+	content, err := ioutil.ReadFile(file.Name())
+	if err != nil {
+		return "", err
+	}
+
+	return string(content), nil
 }

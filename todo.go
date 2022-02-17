@@ -171,6 +171,7 @@ func newTodoTicketListCommand() *cobra.Command {
 }
 
 func newTodoTicketCommentCommand() *cobra.Command {
+	var stdin bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
@@ -180,12 +181,26 @@ func newTodoTicketCommentCommand() *cobra.Command {
 		trackerID := getTrackerID(c, ctx, name, owner)
 
 		var input todosrht.SubmitCommentInput
-		fmt.Printf("Comment %s:\n", termfmt.Dim.String("(Markdown supported)"))
-		text, err := io.ReadAll(os.Stdin)
-		if err != nil {
-			log.Fatalf("failed to read comment: %v", err)
+
+		if stdin {
+			fmt.Printf("Comment %s:\n", termfmt.Dim.String("(Markdown supported)"))
+			text, err := io.ReadAll(os.Stdin)
+			if err != nil {
+				log.Fatalf("failed to read comment: %v", err)
+			}
+			input.Text = string(text)
+		} else {
+			text, err := getInputWithEditor("hut_comment*.md")
+			if err != nil {
+				log.Fatalf("failed to read comment: %v", err)
+			}
+			input.Text = text
 		}
-		input.Text = string(text)
+
+		if strings.TrimSpace(input.Text) == "" {
+			fmt.Println("Aborted writing empty comment")
+			return
+		}
 
 		event, err := todosrht.SubmitComment(c.Client, ctx, trackerID, ticketID, input)
 		if err != nil {
@@ -203,6 +218,7 @@ func newTodoTicketCommentCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Run:   run,
 	}
+	cmd.Flags().BoolVarP(&stdin, "stdin", "s", false, "read comment from stdin")
 	return cmd
 }
 

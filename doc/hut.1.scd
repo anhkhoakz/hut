@@ -345,8 +345,13 @@ Options are:
 *ticket list*
 	List tickets.
 
-*ticket comment* <ID>
-	Comment on a ticket.
+*ticket comment* <ID> [options...]
+	Comment on a ticket with _$EDITOR_.
+
+	Options are:
+
+	*-s*, *--stdin*
+		Read comment from _stdin_.
 
 *ticket update-status* <ID> [options...]
 	Update status of a ticket.
