@@ -172,33 +172,8 @@ func newTodoTicketListCommand() *cobra.Command {
 func newTodoTicketCommentCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		var (
-			name, owner, instance string
-			ticketID              int32
-		)
 
-		if strings.Contains(args[0], "/") {
-			var resource string
-			resource, owner, instance = parseResourceName(args[0])
-			split := strings.Split(resource, "/")
-			if len(split) != 2 {
-				log.Fatal("failed to parse tracker name and/or ID")
-			}
-
-			name = split[0]
-			var err error
-			ticketID, err = parseInt32(split[1])
-			if err != nil {
-				log.Fatal(err)
-			}
-		} else {
-			var err error
-			ticketID, err = parseInt32(args[0])
-			if err != nil {
-				log.Fatal(err)
-			}
-			name, owner, instance = getTrackerName(ctx, cmd)
-		}
+		ticketID, name, owner, instance := parseTicketResource(ctx, cmd, args[0])
 
 		c := createClientWithInstance("todo", cmd, instance)
 		trackerID := getTrackerID(c, ctx, name, owner)
@@ -263,4 +238,31 @@ func getTrackerName(ctx context.Context, cmd *cobra.Command) (name, owner, insta
 	}
 
 	return name, owner, instance
+}
+
+func parseTicketResource(ctx context.Context, cmd *cobra.Command, ticket string) (ticketID int32, name, owner, instance string) {
+	if strings.Contains(ticket, "/") {
+		var resource string
+		resource, owner, instance = parseResourceName(ticket)
+		split := strings.Split(resource, "/")
+		if len(split) != 2 {
+			log.Fatal("failed to parse tracker name and/or ID")
+		}
+
+		name = split[0]
+		var err error
+		ticketID, err = parseInt32(split[1])
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		var err error
+		ticketID, err = parseInt32(ticket)
+		if err != nil {
+			log.Fatal(err)
+		}
+		name, owner, instance = getTrackerName(ctx, cmd)
+	}
+
+	return ticketID, name, owner, instance
 }
