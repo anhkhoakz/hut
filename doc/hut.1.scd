@@ -62,6 +62,9 @@ hut is a CLI companion utility to interact with sr.ht.
 		EOF
 		```
 
+*init*
+	Initialize hut's configuration file.
+
 ## git
 
 Options are:
