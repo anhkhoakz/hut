@@ -26,10 +26,12 @@ const (
 type Cursor string
 
 type Entity struct {
-	Id            int32     `json:"id"`
-	Created       time.Time `json:"created"`
-	Updated       time.Time `json:"updated"`
-	CanonicalName string    `json:"canonicalName"`
+	Id      int32     `json:"id"`
+	Created time.Time `json:"created"`
+	Updated time.Time `json:"updated"`
+	// The canonical name of this entity. For users, this is their username
+	// prefixed with '~'. Additional entity types will be supported in the future.
+	CanonicalName string `json:"canonicalName"`
 }
 
 type Protocol string
@@ -39,17 +41,33 @@ const (
 	ProtocolGemini Protocol = "GEMINI"
 )
 
+// A published website
 type Site struct {
-	Id       int32     `json:"id"`
-	Created  time.Time `json:"created"`
-	Updated  time.Time `json:"updated"`
-	Domain   string    `json:"domain"`
-	Protocol Protocol  `json:"protocol"`
-	Version  string    `json:"version"`
+	Id      int32     `json:"id"`
+	Created time.Time `json:"created"`
+	Updated time.Time `json:"updated"`
+	// Domain name the site services
+	Domain string `json:"domain"`
+	// The site protocol
+	Protocol Protocol `json:"protocol"`
+	// SHA-256 checksum of the source tarball (uncompressed)
+	Version string `json:"version"`
+	// Path to the file to serve for 404 Not Found responses
+	NotFound *string `json:"notFound,omitempty"`
 }
 
+type SiteConfig struct {
+	// Path to the file to serve for 404 Not Found responses
+	NotFound *string `json:"notFound,omitempty"`
+}
+
+// A cursor for enumerating site entries
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
 type SiteCursor struct {
-	Results []*Site `json:"results"`
+	Results []Site  `json:"results"`
 	Cursor  *Cursor `json:"cursor,omitempty"`
 }
 
@@ -66,9 +84,12 @@ type User struct {
 }
 
 type Version struct {
-	Major           int32     `json:"major"`
-	Minor           int32     `json:"minor"`
-	Patch           int32     `json:"patch"`
+	Major int32 `json:"major"`
+	Minor int32 `json:"minor"`
+	Patch int32 `json:"patch"`
+	// If this API version is scheduled for deprecation, this is the date on which
+	// it will stop working; or null if this API version is not scheduled for
+	// deprecation.
 	DeprecationDate time.Time `json:"deprecationDate,omitempty"`
 }
 
