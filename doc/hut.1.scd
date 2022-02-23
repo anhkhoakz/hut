@@ -256,6 +256,10 @@ Options are:
 	*-p*, *--protocol* <string>
 		Protocol to use (either HTTPS or GEMINI; defaults to HTTPS)
 
+	*-s*, *--subdirectory* <string>
+		If specified, only this subdirectory is updated, the rest of the site
+		is left untouched.
+
 *unpublish* [options...]
 	Unpublish a website.
 

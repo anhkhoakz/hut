@@ -93,11 +93,12 @@ type Version struct {
 	DeprecationDate time.Time `json:"deprecationDate,omitempty"`
 }
 
-func Publish(client *gqlclient.Client, ctx context.Context, domain string, content gqlclient.Upload, protocol Protocol) (publish *Site, err error) {
-	op := gqlclient.NewOperation("mutation publish ($domain: String!, $content: Upload!, $protocol: Protocol!) {\n\tpublish(domain: $domain, content: $content, protocol: $protocol) {\n\t\tdomain\n\t}\n}\n")
+func Publish(client *gqlclient.Client, ctx context.Context, domain string, content gqlclient.Upload, protocol Protocol, subdirectory string) (publish *Site, err error) {
+	op := gqlclient.NewOperation("mutation publish ($domain: String!, $content: Upload!, $protocol: Protocol!, $subdirectory: String!) {\n\tpublish(domain: $domain, content: $content, protocol: $protocol, subdirectory: $subdirectory) {\n\t\tdomain\n\t}\n}\n")
 	op.Var("domain", domain)
 	op.Var("content", content)
 	op.Var("protocol", protocol)
+	op.Var("subdirectory", subdirectory)
 	var respData struct {
 		Publish *Site
 	}

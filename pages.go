@@ -26,7 +26,7 @@ func newPagesCommand() *cobra.Command {
 }
 
 func newPagesPublishCommand() *cobra.Command {
-	var domain, protocol string
+	var domain, protocol, subdirectory string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
@@ -51,7 +51,7 @@ func newPagesPublishCommand() *cobra.Command {
 
 		file := gqlclient.Upload{Body: f, Filename: filepath.Base(filename)}
 
-		site, err := pagessrht.Publish(c.Client, ctx, domain, file, pagesProtocol)
+		site, err := pagessrht.Publish(c.Client, ctx, domain, file, pagesProtocol, subdirectory)
 		if err != nil {
 			log.Fatalf("failed to publish site: %v", err)
 		}
@@ -70,6 +70,7 @@ func newPagesPublishCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&protocol, "protocol", "p", "HTTPS",
 		"protocol (HTTPS or GEMINI)")
 	cmd.RegisterFlagCompletionFunc("protocol", completeProtocol)
+	cmd.Flags().StringVarP(&subdirectory, "subdirectory", "s", "/", "subdirectory")
 	return cmd
 }
 
