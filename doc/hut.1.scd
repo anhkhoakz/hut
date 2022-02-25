@@ -138,6 +138,9 @@ Options are:
 	*-f*, *--follow*
 		Follow build logs.
 
+	*-n*, *--note* <string>
+		Provide a short job description.
+
 *resubmit* <ID>
 	Resubmit a build.
 
@@ -148,6 +151,9 @@ Options are:
 
 	*-e*, *--edit*
 		Edit manifest with _$EDITOR_.
+
+	*-n*, *--note* <string>
+		Provide a short job description.
 
 *cancel* <IDs...>
 	Cancel jobs.

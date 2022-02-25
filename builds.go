@@ -37,6 +37,7 @@ func newBuildsCommand() *cobra.Command {
 
 func newBuildsSubmitCommand() *cobra.Command {
 	var follow bool
+	var note string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("builds", cmd)
@@ -70,7 +71,7 @@ func newBuildsSubmitCommand() *cobra.Command {
 				log.Fatalf("failed to read manifest from %q: %v", name, err)
 			}
 
-			job, err := buildssrht.Submit(c.Client, ctx, string(b), nil)
+			job, err := buildssrht.Submit(c.Client, ctx, string(b), &note)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -98,11 +99,13 @@ func newBuildsSubmitCommand() *cobra.Command {
 		Run: run,
 	}
 	cmd.Flags().BoolVarP(&follow, "follow", "f", false, "follow build logs")
+	cmd.Flags().StringVarP(&note, "note", "n", "", "short job description")
 	return cmd
 }
 
 func newBuildsResubmitCommand() *cobra.Command {
 	var follow, edit bool
+	var note string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
@@ -129,11 +132,12 @@ func newBuildsResubmitCommand() *cobra.Command {
 			oldJob.Manifest = content
 		}
 
-		note := fmt.Sprintf("Resubmission of build [#%d](/%s/job/%d)",
+		if note == "" {
+			note = fmt.Sprintf("Resubmission of build [#%d](/%s/job/%d)",
 			id, oldJob.Owner.CanonicalName, id)
-
-		if edit {
-			note += " (edited)"
+			if edit {
+				note += " (edited)"
+			}
 		}
 
 		job, err := buildssrht.Submit(c.Client, ctx, oldJob.Manifest, &note)
@@ -163,6 +167,7 @@ func newBuildsResubmitCommand() *cobra.Command {
 	}
 	cmd.Flags().BoolVarP(&follow, "follow", "f", false, "follow build logs")
 	cmd.Flags().BoolVarP(&edit, "edit", "e", false, "edit manifest")
+	cmd.Flags().StringVarP(&note, "note", "n", "", "short job description")
 	return cmd
 }
 
