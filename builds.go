@@ -134,7 +134,7 @@ func newBuildsResubmitCommand() *cobra.Command {
 
 		if note == "" {
 			note = fmt.Sprintf("Resubmission of build [#%d](/%s/job/%d)",
-			id, oldJob.Owner.CanonicalName, id)
+				id, oldJob.Owner.CanonicalName, id)
 			if edit {
 				note += " (edited)"
 			}
