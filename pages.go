@@ -26,7 +26,7 @@ func newPagesCommand() *cobra.Command {
 }
 
 func newPagesPublishCommand() *cobra.Command {
-	var domain, protocol, subdirectory string
+	var domain, protocol, subdirectory, notFound string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
@@ -41,6 +41,11 @@ func newPagesPublishCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
+		siteConfig := pagessrht.SiteConfig{}
+		if notFound != "" {
+			siteConfig.NotFound = &notFound
+		}
+
 		c := createClient("pages", cmd)
 
 		f, err := os.Open(filename)
@@ -51,7 +56,7 @@ func newPagesPublishCommand() *cobra.Command {
 
 		file := gqlclient.Upload{Body: f, Filename: filepath.Base(filename)}
 
-		site, err := pagessrht.Publish(c.Client, ctx, domain, file, pagesProtocol, subdirectory)
+		site, err := pagessrht.Publish(c.Client, ctx, domain, file, pagesProtocol, subdirectory, siteConfig)
 		if err != nil {
 			log.Fatalf("failed to publish site: %v", err)
 		}
@@ -71,6 +76,7 @@ func newPagesPublishCommand() *cobra.Command {
 		"protocol (HTTPS or GEMINI)")
 	cmd.RegisterFlagCompletionFunc("protocol", completeProtocol)
 	cmd.Flags().StringVarP(&subdirectory, "subdirectory", "s", "/", "subdirectory")
+	cmd.Flags().StringVar(&notFound, "not-found", "", "path to serve for page not found responses")
 	return cmd
 }
 

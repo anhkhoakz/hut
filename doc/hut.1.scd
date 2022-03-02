@@ -266,6 +266,9 @@ Options are:
 		If specified, only this subdirectory is updated, the rest of the site
 		is left untouched.
 
+	*--not-found* <string>
+		Path to serve for page not found responses
+
 *unpublish* [options...]
 	Unpublish a website.
 

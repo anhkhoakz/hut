@@ -1,5 +1,5 @@
-mutation publish($domain: String!, $content: Upload!, $protocol: Protocol!, $subdirectory: String!) {
-    publish(domain: $domain, content: $content, protocol: $protocol, subdirectory: $subdirectory) {
+mutation publish($domain: String!, $content: Upload!, $protocol: Protocol!, $subdirectory: String!, $siteConfig: SiteConfig!) {
+    publish(domain: $domain, content: $content, protocol: $protocol, subdirectory: $subdirectory, siteConfig: $siteConfig) {
         domain
     }
 }
