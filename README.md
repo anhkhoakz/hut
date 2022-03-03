@@ -26,7 +26,7 @@ Send patches to the [mailing list], report bugs on the [issue tracker].
 
 ## License
 
-AGPLv3, see [LICENSE].
+AGPLv3 only, see [LICENSE].
 
 Copyright (C) 2021 Simon Ser
 
