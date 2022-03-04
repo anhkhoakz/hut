@@ -39,11 +39,17 @@ func loadConfig(filename string) (*Config, error) {
 	}
 
 	cfg := new(Config)
+	instanceNames := make(map[string]struct{})
 	for _, instanceDir := range rootBlock.GetAll("instance") {
 		instance := new(InstanceConfig)
 		if err := instanceDir.ParseParams(&instance.Name); err != nil {
 			return nil, err
 		}
+
+		if _, ok := instanceNames[instance.Name]; ok {
+			return nil, fmt.Errorf("duplicate instance name %q", instance.Name)
+		}
+		instanceNames[instance.Name] = struct{}{}
 
 		if dir := instanceDir.Children.Get("access-token"); dir != nil {
 			if err := dir.ParseParams(&instance.AccessToken); err != nil {
