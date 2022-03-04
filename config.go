@@ -21,6 +21,55 @@ import (
 	"git.sr.ht/~emersion/hut/termfmt"
 )
 
+type Config struct {
+	Instances []*InstanceConfig
+}
+
+type InstanceConfig struct {
+	Name string
+
+	AccessToken    string
+	AccessTokenCmd []string
+}
+
+func loadConfig(filename string) (*Config, error) {
+	rootBlock, err := scfg.Load(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	cfg := new(Config)
+	for _, instanceDir := range rootBlock.GetAll("instance") {
+		instance := new(InstanceConfig)
+		if err := instanceDir.ParseParams(&instance.Name); err != nil {
+			return nil, err
+		}
+
+		if dir := instanceDir.Children.Get("access-token"); dir != nil {
+			if err := dir.ParseParams(&instance.AccessToken); err != nil {
+				return nil, err
+			}
+		}
+		if dir := instanceDir.Children.Get("access-token-cmd"); dir != nil {
+			if len(dir.Params) == 0 {
+				return nil, fmt.Errorf("instance %q: missing command name in access-token-cmd directive", instance.Name)
+			}
+			instance.AccessTokenCmd = dir.Params
+		}
+
+		if instance.AccessToken == "" && len(instance.AccessTokenCmd) == 0 {
+			return nil, fmt.Errorf("instance %q: missing access-token or access-token-cmd", instance.Name)
+		}
+		if instance.AccessToken != "" && len(instance.AccessTokenCmd) > 0 {
+			return nil, fmt.Errorf("instance %q: access-token and access-token-cmd can't be both specified", instance.Name)
+		}
+
+		cfg.Instances = append(cfg.Instances, instance)
+	}
+
+	return cfg, nil
+}
+
 type Client struct {
 	*gqlclient.Client
 
@@ -43,7 +92,7 @@ func createClientWithInstance(service string, cmd *cobra.Command, instanceName s
 		customConfigFile = false
 	}
 
-	cfg, err := scfg.Load(configFile)
+	cfg, err := loadConfig(configFile)
 	if err != nil {
 		// This error message doesn't make sense if a config was
 		// provided with "--config". In that case, the normal log
@@ -55,8 +104,7 @@ func createClientWithInstance(service string, cmd *cobra.Command, instanceName s
 		log.Fatalf("failed to load config file: %v", err)
 	}
 
-	instances := cfg.GetAll("instance")
-	if len(instances) == 0 {
+	if len(cfg.Instances) == 0 {
 		log.Fatalf("no sr.ht instance configured")
 	}
 
@@ -69,10 +117,10 @@ func createClientWithInstance(service string, cmd *cobra.Command, instanceName s
 		instanceName = instanceFlag
 	}
 
-	var inst *scfg.Directive
+	var inst *InstanceConfig
 	if instanceName != "" {
-		for _, instance := range instances {
-			if instancesEqual(instanceName, instance.Params[0]) {
+		for _, instance := range cfg.Instances {
+			if instancesEqual(instanceName, instance.Name) {
 				inst = instance
 				break
 			}
@@ -82,22 +130,12 @@ func createClientWithInstance(service string, cmd *cobra.Command, instanceName s
 			log.Fatalf("no instance for %s found", instanceName)
 		}
 	} else {
-		inst = instances[0]
-	}
-
-	if len(inst.Params) == 0 {
-		log.Fatalf("missing instance hostname")
+		inst = cfg.Instances[0]
 	}
 
 	var token string
-	accessToken := inst.Children.Get("access-token")
-	if accessToken == nil || len(accessToken.Params) == 0 {
-		tokenCmd := inst.Children.Get("access-token-cmd")
-		if tokenCmd == nil || len(tokenCmd.Params) == 0 {
-			log.Fatalf("missing instance access-token or access-token-cmd")
-		}
-
-		cmd := exec.Command(tokenCmd.Params[0], tokenCmd.Params[1:]...)
+	if len(inst.AccessTokenCmd) > 0 {
+		cmd := exec.Command(inst.AccessTokenCmd[0], inst.AccessTokenCmd[1:]...)
 		output, err := cmd.Output()
 		if err != nil {
 			log.Fatalf("could not execute access-token-cmd: %v", err)
@@ -105,10 +143,10 @@ func createClientWithInstance(service string, cmd *cobra.Command, instanceName s
 
 		token = strings.Fields(string(output))[0]
 	} else {
-		token = accessToken.Params[0]
+		token = inst.AccessToken
 	}
 
-	hostname := inst.Params[0]
+	hostname := inst.Name
 	baseURL := fmt.Sprintf("https://%s.%s", service, hostname)
 	return createClientWithToken(hostname, baseURL, token)
 }
