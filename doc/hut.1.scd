@@ -374,6 +374,7 @@ Options are:
 
 	*-r*, *--resolution*
 		Resolution for resolved tickets (required if status _RESOLVED_ is used).
+		If status is omitted, it will be set to _RESOLVED_.
 
 *ticket update-status* <ID> [options...]
 	Update status of a ticket.

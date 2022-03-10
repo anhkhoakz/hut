@@ -183,6 +183,18 @@ func newTodoTicketCommentCommand() *cobra.Command {
 
 		var input todosrht.SubmitCommentInput
 
+		if resolution != "" {
+			ticketResolution, err := todosrht.ParseTicketResolution(resolution)
+			if err != nil {
+				log.Fatal(err)
+			}
+			input.Resolution = &ticketResolution
+
+			if status == "" {
+				status = "resolved"
+			}
+		}
+
 		if status != "" {
 			ticketStatus, err := todosrht.ParseTicketStatus(status)
 			if err != nil {
@@ -191,14 +203,11 @@ func newTodoTicketCommentCommand() *cobra.Command {
 			input.Status = &ticketStatus
 		}
 
-		if input.Status != nil && *input.Status == todosrht.TicketStatusResolved {
-			ticketResolution, err := todosrht.ParseTicketResolution(resolution)
-			if err != nil {
-				log.Fatal(err)
-			}
-			input.Resolution = &ticketResolution
-		} else if resolution != "" {
+		if *input.Status != todosrht.TicketStatusResolved && input.Resolution != nil {
 			log.Fatalf("resolution %q specified, but ticket not marked as resolved", resolution)
+		}
+		if *input.Status == todosrht.TicketStatusResolved && input.Resolution == nil {
+			log.Fatalf("resolution is required when status is RESOLVED")
 		}
 
 		if stdin {
