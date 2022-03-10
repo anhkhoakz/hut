@@ -382,10 +382,11 @@ Options are:
 	Options are:
 
 	*-s*, *--status*
-		New ticket status (required).
+		New ticket status.
 
 	*-r*, *--resolution*
 		Resolution for resolved tickets (required if status _RESOLVED_ is used).
+		If status is omitted, it will be set to _RESOLVED_.
 
 # CONFIGURATION
 

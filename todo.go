@@ -260,20 +260,29 @@ func newTodoTicketStatusCommand() *cobra.Command {
 		var input todosrht.UpdateStatusInput
 		ctx := cmd.Context()
 
+		if resolution != "" {
+			ticketResolution, err := todosrht.ParseTicketResolution(resolution)
+			if err != nil {
+				log.Fatal(err)
+			}
+			input.Resolution = &ticketResolution
+
+			if status == "" {
+				status = "resolved"
+			}
+		}
+
 		ticketStatus, err := todosrht.ParseTicketStatus(status)
 		if err != nil {
 			log.Fatal(err)
 		}
 		input.Status = ticketStatus
 
-		if ticketStatus == todosrht.TicketStatusResolved {
-			ticketResolution, err := todosrht.ParseTicketResolution(resolution)
-			if err != nil {
-				log.Fatal(err)
-			}
-			input.Resolution = &ticketResolution
-		} else if resolution != "" {
+		if ticketStatus != todosrht.TicketStatusResolved && input.Resolution != nil {
 			log.Fatalf("resolution %q specified, but ticket not marked as resolved", resolution)
+		}
+		if ticketStatus == todosrht.TicketStatusResolved && input.Resolution == nil {
+			log.Fatalf("resolution is required when status is RESOLVED")
 		}
 
 		ticketID, name, owner, instance := parseTicketResource(ctx, cmd, args[0])
@@ -299,7 +308,6 @@ func newTodoTicketStatusCommand() *cobra.Command {
 	}
 	cmd.Flags().StringVarP(&status, "status", "s", "", "ticket status")
 	cmd.RegisterFlagCompletionFunc("status", completeTicketStatus)
-	cmd.MarkFlagRequired("status")
 	cmd.Flags().StringVarP(&resolution, "resolution", "r", "", "ticket resolution")
 	cmd.RegisterFlagCompletionFunc("resolution", completeTicketResolution)
 	return cmd
