@@ -391,6 +391,9 @@ Options are:
 *label list*
 	List labels.
 
+*label delete* <ID>
+	Delete a label.
+
 # CONFIGURATION
 
 Generate a new OAuth2 access token on _meta.sr.ht_.

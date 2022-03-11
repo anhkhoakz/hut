@@ -123,3 +123,9 @@ mutation updateTicketStatus(
         }
     }
 }
+
+mutation deleteLabel($id: Int!) {
+    deleteLabel(id: $id) {
+        name
+    }
+}

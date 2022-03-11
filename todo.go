@@ -320,6 +320,7 @@ func newTodoLabelCommand() *cobra.Command {
 		Short: "Manage labels",
 	}
 	cmd.AddCommand(newTodoLabelListCommand())
+	cmd.AddCommand(newTodoLabelDeleteCommand())
 	return cmd
 }
 
@@ -356,6 +357,37 @@ func newTodoLabelListCommand() *cobra.Command {
 		Short: "List labels",
 		Args:  cobra.ExactArgs(0),
 		Run:   run,
+	}
+	return cmd
+}
+
+func newTodoLabelDeleteCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		_, _, instance := getTrackerName(ctx, cmd)
+		c := createClientWithInstance("todo", cmd, instance)
+
+		id, err := parseInt32(args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		label, err := todosrht.DeleteLabel(c.Client, ctx, id)
+		if err != nil {
+			log.Fatal(err)
+		} else if label == nil {
+			log.Fatal("failed to delete label")
+		}
+
+		fmt.Printf("Deleted label %s\n", label.Name)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "delete <ID>",
+		Short:             "Delete a label",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
 	}
 	return cmd
 }

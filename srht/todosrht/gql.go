@@ -570,3 +570,13 @@ func UpdateTicketStatus(client *gqlclient.Client, ctx context.Context, trackerId
 	err = client.Execute(ctx, op, &respData)
 	return respData.UpdateTicketStatus, err
 }
+
+func DeleteLabel(client *gqlclient.Client, ctx context.Context, id int32) (deleteLabel *Label, err error) {
+	op := gqlclient.NewOperation("mutation deleteLabel ($id: Int!) {\n\tdeleteLabel(id: $id) {\n\t\tname\n\t}\n}\n")
+	op.Var("id", id)
+	var respData struct {
+		DeleteLabel *Label
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.DeleteLabel, err
+}
