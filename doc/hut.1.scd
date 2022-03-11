@@ -388,6 +388,9 @@ Options are:
 		Resolution for resolved tickets (required if status _RESOLVED_ is used).
 		If status is omitted, it will be set to _RESOLVED_.
 
+*label list*
+	List labels.
+
 # CONFIGURATION
 
 Generate a new OAuth2 access token on _meta.sr.ht_.

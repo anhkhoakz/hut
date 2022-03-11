@@ -65,6 +65,31 @@ fragment tickets on TicketCursor {
     }
 }
 
+query labels($name: String!) {
+    trackerByName(name: $name) {
+        labels {
+            ...labels
+        }
+    }
+}
+
+query labelsByOwner($owner: String!, $tracker: String!) {
+    trackerByOwner(owner: $owner, tracker: $tracker) {
+        labels {
+            ...labels
+        }
+    }
+}
+
+fragment labels on LabelCursor {
+    results {
+        id
+        name
+        backgroundColor
+        foregroundColor
+    }
+}
+
 mutation deleteTracker($id: Int!) {
     deleteTracker(id: $id) {
         name

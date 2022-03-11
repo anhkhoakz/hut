@@ -516,6 +516,27 @@ func TicketsByOwner(client *gqlclient.Client, ctx context.Context, owner string,
 	return respData.TrackerByOwner, err
 }
 
+func Labels(client *gqlclient.Client, ctx context.Context, name string) (trackerByName *Tracker, err error) {
+	op := gqlclient.NewOperation("query labels ($name: String!) {\n\ttrackerByName(name: $name) {\n\t\tlabels {\n\t\t\t... labels\n\t\t}\n\t}\n}\nfragment labels on LabelCursor {\n\tresults {\n\t\tid\n\t\tname\n\t\tbackgroundColor\n\t\tforegroundColor\n\t}\n}\n")
+	op.Var("name", name)
+	var respData struct {
+		TrackerByName *Tracker
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.TrackerByName, err
+}
+
+func LabelsByOwner(client *gqlclient.Client, ctx context.Context, owner string, tracker string) (trackerByOwner *Tracker, err error) {
+	op := gqlclient.NewOperation("query labelsByOwner ($owner: String!, $tracker: String!) {\n\ttrackerByOwner(owner: $owner, tracker: $tracker) {\n\t\tlabels {\n\t\t\t... labels\n\t\t}\n\t}\n}\nfragment labels on LabelCursor {\n\tresults {\n\t\tid\n\t\tname\n\t\tbackgroundColor\n\t\tforegroundColor\n\t}\n}\n")
+	op.Var("owner", owner)
+	op.Var("tracker", tracker)
+	var respData struct {
+		TrackerByOwner *Tracker
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.TrackerByOwner, err
+}
+
 func DeleteTracker(client *gqlclient.Client, ctx context.Context, id int32) (deleteTracker *Tracker, err error) {
 	op := gqlclient.NewOperation("mutation deleteTracker ($id: Int!) {\n\tdeleteTracker(id: $id) {\n\t\tname\n\t}\n}\n")
 	op.Var("id", id)

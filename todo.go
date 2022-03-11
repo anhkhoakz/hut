@@ -21,6 +21,7 @@ func newTodoCommand() *cobra.Command {
 	cmd.AddCommand(newTodoListCommand())
 	cmd.AddCommand(newTodoDeleteCommand())
 	cmd.AddCommand(newTodoTicketCommand())
+	cmd.AddCommand(newTodoLabelCommand())
 	cmd.PersistentFlags().StringP("tracker", "t", "", "name of tracker")
 	return cmd
 }
@@ -310,6 +311,52 @@ func newTodoTicketStatusCommand() *cobra.Command {
 	cmd.RegisterFlagCompletionFunc("status", completeTicketStatus)
 	cmd.Flags().StringVarP(&resolution, "resolution", "r", "", "ticket resolution")
 	cmd.RegisterFlagCompletionFunc("resolution", completeTicketResolution)
+	return cmd
+}
+
+func newTodoLabelCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "label",
+		Short: "Manage labels",
+	}
+	cmd.AddCommand(newTodoLabelListCommand())
+	return cmd
+}
+
+func newTodoLabelListCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		name, owner, instance := getTrackerName(ctx, cmd)
+		c := createClientWithInstance("todo", cmd, instance)
+
+		var (
+			tracker *todosrht.Tracker
+			err     error
+		)
+
+		if owner != "" {
+			tracker, err = todosrht.LabelsByOwner(c.Client, ctx, owner, name)
+		} else {
+			tracker, err = todosrht.Labels(c.Client, ctx, name)
+		}
+
+		if err != nil {
+			log.Fatal(err)
+		} else if tracker == nil {
+			log.Fatalf("no such tracker %q", name)
+		}
+
+		for _, label := range tracker.Labels.Results {
+			fmt.Printf("%s %s\n", termfmt.DarkYellow.Sprintf("#%d", label.Id), label.TermString())
+		}
+	}
+
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List labels",
+		Args:  cobra.ExactArgs(0),
+		Run:   run,
+	}
 	return cmd
 }
 
