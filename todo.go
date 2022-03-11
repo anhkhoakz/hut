@@ -146,14 +146,13 @@ func newTodoTicketListCommand() *cobra.Command {
 			}
 
 			if len(ticket.Labels) > 0 {
-				labels = " ["
+				labels = " "
 				for i, label := range ticket.Labels {
 					labels += label.TermString()
 					if i != len(ticket.Labels)-1 {
-						labels += ", "
+						labels += " "
 					}
 				}
-				labels += "]"
 			}
 			s += fmt.Sprintf("%s%s (%s %s ago)", ticket.Subject, labels,
 				ticket.Submitter.CanonicalName, timeDelta(ticket.Created))

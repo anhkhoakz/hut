@@ -42,7 +42,7 @@ func (status TicketStatus) TermString() string {
 }
 
 func (label Label) TermString() string {
-	return termfmt.HexString(label.Name, label.ForegroundColor, label.BackgroundColor)
+	return termfmt.HexString(fmt.Sprintf(" %s ", label.Name), label.ForegroundColor, label.BackgroundColor)
 }
 
 func ParseTicketStatus(s string) (TicketStatus, error) {
