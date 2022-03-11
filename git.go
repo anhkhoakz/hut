@@ -297,7 +297,7 @@ func newGitArtifactDeleteCommand() *cobra.Command {
 		Use:               "delete <ID>",
 		Short:             "Delete an artifact",
 		Args:              cobra.ExactArgs(1),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction: completeArtifacts,
 		Run:               run,
 	}
 	return cmd
@@ -644,4 +644,25 @@ func completeRev(cmd *cobra.Command, args []string, toComplete string) ([]string
 
 func completeAccessMode(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	return []string{"RO", "RW"}, cobra.ShellCompDirectiveNoFileComp
+}
+
+func completeArtifacts(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	ctx := cmd.Context()
+	repoName, _, instance := getRepoName(ctx, cmd)
+	c := createClientWithInstance("git", cmd, instance)
+	var artifactList []string
+
+	user, err := gitsrht.ListArtifacts(c.Client, ctx, repoName)
+	if err != nil || user.Repository == nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	for _, ref := range user.Repository.References.Results {
+		for _, artifact := range ref.Artifacts.Results {
+			name := ref.Name[strings.LastIndex(ref.Name, "/")+1:]
+			s := fmt.Sprintf("%d\t%s (%s)", artifact.Id, artifact.Filename, name)
+			artifactList = append(artifactList, s)
+		}
+	}
+	return artifactList, cobra.ShellCompDirectiveNoFileComp
 }
