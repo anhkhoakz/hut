@@ -321,6 +321,7 @@ func newTodoLabelCommand() *cobra.Command {
 	}
 	cmd.AddCommand(newTodoLabelListCommand())
 	cmd.AddCommand(newTodoLabelDeleteCommand())
+	cmd.AddCommand(newTodoLabelCreateCommand())
 	return cmd
 }
 
@@ -389,6 +390,41 @@ func newTodoLabelDeleteCommand() *cobra.Command {
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
+	return cmd
+}
+
+func newTodoLabelCreateCommand() *cobra.Command {
+	var fg, bg string
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		name, owner, instance := getTrackerName(ctx, cmd)
+		c := createClientWithInstance("todo", cmd, instance)
+
+		id := getTrackerID(c, ctx, name, owner)
+
+		label, err := todosrht.CreateLabel(c.Client, ctx, id, args[0], fg, bg)
+		if err != nil {
+			log.Fatal(err)
+		} else if label == nil {
+			log.Fatal("failed to create label")
+		}
+
+		fmt.Printf("Created label %s\n", label.TermString())
+	}
+
+	cmd := &cobra.Command{
+		Use:               "create <name>",
+		Short:             "Create a label",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	cmd.Flags().StringVarP(&fg, "foreground", "f", "", "foreground color")
+	cmd.MarkFlagRequired("foreground")
+	cmd.RegisterFlagCompletionFunc("foreground", cobra.NoFileCompletions)
+	cmd.Flags().StringVarP(&bg, "background", "b", "", "background color")
+	cmd.MarkFlagRequired("background")
+	cmd.RegisterFlagCompletionFunc("background", cobra.NoFileCompletions)
 	return cmd
 }
 

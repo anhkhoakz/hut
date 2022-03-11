@@ -129,3 +129,21 @@ mutation deleteLabel($id: Int!) {
         name
     }
 }
+
+mutation createLabel(
+    $trackerId: Int!
+    $name: String!
+    $foreground: String!
+    $background: String!
+) {
+    createLabel(
+        trackerId: $trackerId
+        name: $name
+        foreground: $foreground
+        background: $background
+    ) {
+        name
+        backgroundColor
+        foregroundColor
+    }
+}

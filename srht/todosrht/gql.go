@@ -580,3 +580,16 @@ func DeleteLabel(client *gqlclient.Client, ctx context.Context, id int32) (delet
 	err = client.Execute(ctx, op, &respData)
 	return respData.DeleteLabel, err
 }
+
+func CreateLabel(client *gqlclient.Client, ctx context.Context, trackerId int32, name string, foreground string, background string) (createLabel *Label, err error) {
+	op := gqlclient.NewOperation("mutation createLabel ($trackerId: Int!, $name: String!, $foreground: String!, $background: String!) {\n\tcreateLabel(trackerId: $trackerId, name: $name, foreground: $foreground, background: $background) {\n\t\tname\n\t\tbackgroundColor\n\t\tforegroundColor\n\t}\n}\n")
+	op.Var("trackerId", trackerId)
+	op.Var("name", name)
+	op.Var("foreground", foreground)
+	op.Var("background", background)
+	var respData struct {
+		CreateLabel *Label
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.CreateLabel, err
+}

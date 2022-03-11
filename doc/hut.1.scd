@@ -394,6 +394,17 @@ Options are:
 *label delete* <ID>
 	Delete a label.
 
+*label create* <name> [options...]
+	Create a label.
+
+	Options are:
+
+	*-f*, *--foreground*
+		Foreground color in hex format (required).
+
+	*-b*, *--background*
+		Background color in hex format (required).
+
 # CONFIGURATION
 
 Generate a new OAuth2 access token on _meta.sr.ht_.
