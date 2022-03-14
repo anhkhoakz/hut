@@ -213,3 +213,9 @@ mutation deleteACL($id: Int!) {
         }
     }
 }
+
+mutation deleteWebhook($id: Int!) {
+    deleteWebhook(id: $id) {
+        id
+    }
+}

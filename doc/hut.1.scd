@@ -128,6 +128,9 @@ Options are:
 *webhook list*
 	List webhooks.
 
+*webhook delete* <ID>
+	Delete a webhook.
+
 ## builds
 
 *submit* [manifest...] [options...]
