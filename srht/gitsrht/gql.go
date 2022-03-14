@@ -618,3 +618,13 @@ func DeleteWebhook(client *gqlclient.Client, ctx context.Context, id int32) (del
 	err = client.Execute(ctx, op, &respData)
 	return respData.DeleteWebhook, err
 }
+
+func CreateWebhook(client *gqlclient.Client, ctx context.Context, config UserWebhookInput) (createWebhook *WebhookSubscription, err error) {
+	op := gqlclient.NewOperation("mutation createWebhook ($config: UserWebhookInput!) {\n\tcreateWebhook(config: $config) {\n\t\tid\n\t}\n}\n")
+	op.Var("config", config)
+	var respData struct {
+		CreateWebhook *WebhookSubscription
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.CreateWebhook, err
+}

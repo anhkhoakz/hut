@@ -125,6 +125,15 @@ Options are:
 *acl delete* <ID>
 	Delete an ACL entry.
 
+*webhook create* <URL> [options...]
+	Create a webhook. Write the query with _$EDITOR_.
+
+	Options are:
+
+	*-e*, *--events* <strings...>
+		List of events that should trigger the webhook (REPO_CREATED,
+		REPO_UPDATE, REPO_DELETED). Required.
+
 *webhook list*
 	List webhooks.
 

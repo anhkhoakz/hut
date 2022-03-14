@@ -517,8 +517,58 @@ func newGitWebhookCommand() *cobra.Command {
 		Use:   "webhook",
 		Short: "Manage webhooks",
 	}
+	cmd.AddCommand(newGitWebhookCreateCommand())
 	cmd.AddCommand(newGitWebhookListCommand())
 	cmd.AddCommand(newGitWebhookDeleteCommand())
+	return cmd
+}
+
+func newGitWebhookCreateCommand() *cobra.Command {
+	var events []string
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("git", cmd)
+
+		var config gitsrht.UserWebhookInput
+		config.Url = args[0]
+
+		text, err := getInputWithEditor("hut_query*.graphql", "")
+		if err != nil {
+			log.Fatalf("failed to read webhook query: %v", err)
+		}
+
+		if text == "" {
+			fmt.Println("Aborting due to empty query.")
+			os.Exit(1)
+		}
+		config.Query = text
+
+		whEvents, err := gitsrht.ParseEvents(events)
+		if err != nil {
+			log.Fatal(err)
+		}
+		config.Events = whEvents
+
+		webhook, err := gitsrht.CreateWebhook(c.Client, ctx, config)
+		if err != nil {
+			log.Fatal(err)
+		} else if webhook == nil {
+			log.Fatal("failed to create webhook")
+		}
+
+		fmt.Printf("Created webhook with ID %d\n", webhook.Id)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "create <URL>",
+		Short:             "Create a webhook",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	cmd.Flags().StringSliceVarP(&events, "events", "e", nil, "webhook events")
+	cmd.RegisterFlagCompletionFunc("events", completeEvents)
+	cmd.MarkFlagRequired("events")
 	return cmd
 }
 
@@ -734,4 +784,8 @@ func completeArtifacts(cmd *cobra.Command, args []string, toComplete string) ([]
 		}
 	}
 	return artifactList, cobra.ShellCompDirectiveNoFileComp
+}
+
+func completeEvents(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return []string{"repo_created", "repo_update", "repo_deleted"}, cobra.ShellCompDirectiveNoFileComp
 }

@@ -46,3 +46,21 @@ func ParseAccessMode(s string) (AccessMode, error) {
 		return "", fmt.Errorf("invalid access mode: %s", s)
 	}
 }
+
+func ParseEvents(events []string) ([]WebhookEvent, error) {
+	var whEvents []WebhookEvent
+	for _, event := range events {
+		switch strings.ToLower(event) {
+		case "repo_created":
+			whEvents = append(whEvents, WebhookEventRepoCreated)
+		case "repo_update":
+			whEvents = append(whEvents, WebhookEventRepoUpdate)
+		case "repo_deleted":
+			whEvents = append(whEvents, WebhookEventRepoDeleted)
+		default:
+			return whEvents, fmt.Errorf("invalid event: %q", event)
+		}
+	}
+
+	return whEvents, nil
+}
