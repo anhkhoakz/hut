@@ -537,6 +537,16 @@ func LabelsByOwner(client *gqlclient.Client, ctx context.Context, owner string, 
 	return respData.TrackerByOwner, err
 }
 
+func AclByTrackerName(client *gqlclient.Client, ctx context.Context, name string) (trackerByName *Tracker, err error) {
+	op := gqlclient.NewOperation("query aclByTrackerName ($name: String!) {\n\ttrackerByName(name: $name) {\n\t\tdefaultACL {\n\t\t\tbrowse\n\t\t\tsubmit\n\t\t\tcomment\n\t\t\tedit\n\t\t\ttriage\n\t\t}\n\t\tacls {\n\t\t\tresults {\n\t\t\t\tid\n\t\t\t\tcreated\n\t\t\t\tentity {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t\tbrowse\n\t\t\t\tsubmit\n\t\t\t\tcomment\n\t\t\t\tedit\n\t\t\t\ttriage\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op.Var("name", name)
+	var respData struct {
+		TrackerByName *Tracker
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.TrackerByName, err
+}
+
 func DeleteTracker(client *gqlclient.Client, ctx context.Context, id int32) (deleteTracker *Tracker, err error) {
 	op := gqlclient.NewOperation("mutation deleteTracker ($id: Int!) {\n\tdeleteTracker(id: $id) {\n\t\tname\n\t}\n}\n")
 	op.Var("id", id)

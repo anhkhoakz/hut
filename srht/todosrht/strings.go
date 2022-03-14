@@ -84,3 +84,16 @@ func ParseTicketResolution(s string) (TicketResolution, error) {
 		return "", fmt.Errorf("invalid ticket resolution: %s", s)
 	}
 }
+
+func (acl DefaultACL) TermString() string {
+	return fmt.Sprintf("%s browse  %s submit  %s comment  %s edit %s triage",
+		PermissionIcon(acl.Browse), PermissionIcon(acl.Submit), PermissionIcon(acl.Comment),
+		PermissionIcon(acl.Edit), PermissionIcon(acl.Triage))
+}
+
+func PermissionIcon(permission bool) string {
+	if permission {
+		return termfmt.Green.Sprint("✔")
+	}
+	return termfmt.Red.Sprint("✗")
+}

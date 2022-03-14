@@ -22,6 +22,7 @@ func newTodoCommand() *cobra.Command {
 	cmd.AddCommand(newTodoDeleteCommand())
 	cmd.AddCommand(newTodoTicketCommand())
 	cmd.AddCommand(newTodoLabelCommand())
+	cmd.AddCommand(newTodoACLCommand())
 	cmd.PersistentFlags().StringP("tracker", "t", "", "name of tracker")
 	return cmd
 }
@@ -424,6 +425,60 @@ func newTodoLabelCreateCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&bg, "background", "b", "", "background color")
 	cmd.MarkFlagRequired("background")
 	cmd.RegisterFlagCompletionFunc("background", cobra.NoFileCompletions)
+	return cmd
+}
+
+func newTodoACLCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "acl",
+		Short: "Manage access-control lists",
+	}
+	cmd.AddCommand(newTodoACLListCommand())
+	return cmd
+}
+
+func newTodoACLListCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		var name, instance string
+		if len(args) > 0 {
+			name, _, instance = parseResourceName(args[0])
+		} else {
+			name, _, instance = getTrackerName(ctx, cmd)
+		}
+
+		c := createClientWithInstance("todo", cmd, instance)
+
+		tracker, err := todosrht.AclByTrackerName(c.Client, ctx, name)
+		if err != nil {
+			log.Fatal(err)
+		} else if tracker == nil {
+			log.Fatalf("no such tracker %q", name)
+		}
+
+		fmt.Println(termfmt.Bold.Sprint("Default permissions"))
+		fmt.Println(tracker.DefaultACL.TermString())
+
+		if len(tracker.Acls.Results) > 0 {
+			fmt.Println(termfmt.Bold.Sprint("\nUser permissions"))
+		}
+		for _, acl := range tracker.Acls.Results {
+			s := fmt.Sprintf("%s browse  %s submit  %s comment  %s edit %s triage",
+				todosrht.PermissionIcon(acl.Browse), todosrht.PermissionIcon(acl.Submit),
+				todosrht.PermissionIcon(acl.Comment), todosrht.PermissionIcon(acl.Edit),
+				todosrht.PermissionIcon(acl.Triage))
+			fmt.Printf("%s %s %s %s ago\n", termfmt.DarkYellow.Sprintf("#%d", acl.Id),
+				acl.Entity.CanonicalName, s, timeDelta(acl.Created))
+		}
+	}
+
+	cmd := &cobra.Command{
+		Use:               "list",
+		Short:             "List ACL entries",
+		Args:              cobra.MaximumNArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
 	return cmd
 }
 

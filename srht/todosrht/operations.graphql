@@ -90,6 +90,32 @@ fragment labels on LabelCursor {
     }
 }
 
+query aclByTrackerName($name: String!) {
+    trackerByName(name: $name) {
+        defaultACL {
+            browse
+            submit
+            comment
+            edit
+            triage
+        }
+        acls {
+            results {
+                id
+                created
+                entity {
+                    canonicalName
+                }
+                browse
+                submit
+                comment
+                edit
+                triage
+            }
+        }
+    }
+}
+
 mutation deleteTracker($id: Int!) {
     deleteTracker(id: $id) {
         name

@@ -405,6 +405,9 @@ Options are:
 	*-b*, *--background*
 		Background color in hex format (required).
 
+*acl list* [tracker]
+	List ACL entries of a tracker.
+
 # CONFIGURATION
 
 Generate a new OAuth2 access token on _meta.sr.ht_.
