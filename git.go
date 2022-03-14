@@ -91,12 +91,12 @@ func newGitCreateCommand() *cobra.Command {
 func newGitListCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("git", cmd)
 
 		var repos *gitsrht.RepositoryCursor
-
 		if len(args) > 0 {
-			username := strings.TrimLeft(args[0], ownerPrefixes)
+			owner, instance := parseOwnerName(args[0])
+			c := createClientWithInstance("git", cmd, instance)
+			username := strings.TrimLeft(owner, ownerPrefixes)
 			user, err := gitsrht.RepositoriesByUser(c.Client, ctx, username)
 			if err != nil {
 				log.Fatal(err)
@@ -105,6 +105,7 @@ func newGitListCommand() *cobra.Command {
 			}
 			repos = user.Repositories
 		} else {
+			c := createClient("git", cmd)
 			var err error
 			repos, err = gitsrht.Repositories(c.Client, ctx)
 			if err != nil {
