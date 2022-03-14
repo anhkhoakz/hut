@@ -149,6 +149,17 @@ query aclByRepoName($name: String!) {
     }
 }
 
+query userWebhooks {
+    userWebhooks {
+        results {
+            id
+            events
+            query
+            url
+        }
+    }
+}
+
 mutation uploadArtifact($repoId: Int!, $revspec: String!, $file: Upload!) {
     uploadArtifact(repoId: $repoId, revspec: $revspec, file: $file) {
         filename

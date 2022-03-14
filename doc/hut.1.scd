@@ -125,6 +125,9 @@ Options are:
 *acl delete* <ID>
 	Delete an ACL entry.
 
+*webhook list*
+	List webhooks.
+
 ## builds
 
 *submit* [manifest...] [options...]

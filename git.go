@@ -28,6 +28,7 @@ func newGitCommand() *cobra.Command {
 	cmd.AddCommand(newGitDeleteCommand())
 	cmd.AddCommand(newGitACLCommand())
 	cmd.AddCommand(newGitShowCommand())
+	cmd.AddCommand(newGitWebhookCommand())
 	cmd.PersistentFlags().StringP("repo", "r", "", "name of repository")
 	cmd.RegisterFlagCompletionFunc("repo", completeRepo)
 	return cmd
@@ -508,6 +509,42 @@ func newGitShowCommand() *cobra.Command {
 		Run:               run,
 	}
 
+	return cmd
+}
+
+func newGitWebhookCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "webhook",
+		Short: "Manage webhooks",
+	}
+	cmd.AddCommand(newGitWebhookListCommand())
+	return cmd
+}
+
+func newGitWebhookListCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("git", cmd)
+
+		webhooks, err := gitsrht.UserWebhooks(c.Client, ctx)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for _, webhook := range webhooks.Results {
+			fmt.Printf("%s %s %s\n", termfmt.DarkYellow.Sprintf("#%d", webhook.Id),
+				webhook.Url, webhook.Events)
+			fmt.Println(indent(webhook.Query, "  "))
+		}
+
+	}
+
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List webhooks",
+		Args:  cobra.ExactArgs(0),
+		Run:   run,
+	}
 	return cmd
 }
 
