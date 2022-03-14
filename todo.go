@@ -180,6 +180,7 @@ func newTodoTicketCommand() *cobra.Command {
 	cmd.AddCommand(newTodoTicketListCommand())
 	cmd.AddCommand(newTodoTicketCommentCommand())
 	cmd.AddCommand(newTodoTicketStatusCommand())
+	cmd.AddCommand(newTodoTicketSubscribeCommand())
 	return cmd
 }
 
@@ -379,6 +380,34 @@ func newTodoTicketStatusCommand() *cobra.Command {
 	cmd.RegisterFlagCompletionFunc("status", completeTicketStatus)
 	cmd.Flags().StringVarP(&resolution, "resolution", "r", "", "ticket resolution")
 	cmd.RegisterFlagCompletionFunc("resolution", completeTicketResolution)
+	return cmd
+}
+
+func newTodoTicketSubscribeCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		ticketID, name, owner, instance := parseTicketResource(ctx, cmd, args[0])
+		c := createClientWithInstance("todo", cmd, instance)
+		trackerID := getTrackerID(c, ctx, name, owner)
+
+		subscription, err := todosrht.TicketSubscribe(c.Client, ctx, trackerID, ticketID)
+		if err != nil {
+			log.Fatal(err)
+		} else if subscription == nil {
+			log.Fatalf("failed to subscribe to ticket %d", ticketID)
+		}
+
+		fmt.Printf("Subscribed to %s/%s/%s/%d\n", c.BaseURL, owner, name, subscription.Ticket.Id)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "subscribe <ID>",
+		Short:             "Subscribe to a ticket",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
 	return cmd
 }
 

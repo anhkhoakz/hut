@@ -409,6 +409,9 @@ Options are:
 		Resolution for resolved tickets (required if status _RESOLVED_ is used).
 		If status is omitted, it will be set to _RESOLVED_.
 
+*ticket subscribe* <ID>
+	Subscribe to a ticket.
+
 *label list*
 	List labels.
 
