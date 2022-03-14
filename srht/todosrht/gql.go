@@ -623,3 +623,13 @@ func TrackerSubscribe(client *gqlclient.Client, ctx context.Context, trackerId i
 	err = client.Execute(ctx, op, &respData)
 	return respData.TrackerSubscribe, err
 }
+
+func TrackerUnsubscribe(client *gqlclient.Client, ctx context.Context, trackerId int32) (trackerUnsubscribe *TrackerSubscription, err error) {
+	op := gqlclient.NewOperation("mutation trackerUnsubscribe ($trackerId: Int!) {\n\ttrackerUnsubscribe(trackerId: $trackerId, tickets: false) {\n\t\ttracker {\n\t\t\tname\n\t\t\towner {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op.Var("trackerId", trackerId)
+	var respData struct {
+		TrackerUnsubscribe *TrackerSubscription
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.TrackerUnsubscribe, err
+}

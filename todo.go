@@ -21,6 +21,7 @@ func newTodoCommand() *cobra.Command {
 	cmd.AddCommand(newTodoListCommand())
 	cmd.AddCommand(newTodoDeleteCommand())
 	cmd.AddCommand(newTodoSubscribeCommand())
+	cmd.AddCommand(newTodoUnsubscribeCommand())
 	cmd.AddCommand(newTodoTicketCommand())
 	cmd.AddCommand(newTodoLabelCommand())
 	cmd.AddCommand(newTodoACLCommand())
@@ -131,6 +132,39 @@ func newTodoSubscribeCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:               "subscribe [tracker]",
 		Short:             "Subscribe to a tracker",
+		Args:              cobra.MaximumNArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	return cmd
+}
+
+func newTodoUnsubscribeCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		var name, owner, instance string
+		if len(args) > 0 {
+			name, owner, instance = parseResourceName(args[0])
+		} else {
+			name, owner, instance = getTrackerName(ctx, cmd)
+		}
+		c := createClientWithInstance("todo", cmd, instance)
+		id := getTrackerID(c, ctx, name, owner)
+
+		subscription, err := todosrht.TrackerUnsubscribe(c.Client, ctx, id)
+		if err != nil {
+			log.Fatal(err)
+		} else if subscription == nil {
+			log.Fatalf("you were not subscribed to %s/%s/%s", c.BaseURL, owner, name)
+		}
+
+		fmt.Printf("Unsubscribed from %s/%s/%s\n", c.BaseURL, subscription.Tracker.Owner.CanonicalName, subscription.Tracker.Name)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "unsubscribe [tracker]",
+		Short:             "Unubscribe from a tracker",
 		Args:              cobra.MaximumNArgs(1),
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,

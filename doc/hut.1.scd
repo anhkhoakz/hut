@@ -376,6 +376,9 @@ Options are:
 *subscribe* [tracker]
 	Subscribe to a tracker.
 
+*unsubscribe* [tracker]
+	Unsubscribe from a tracker.
+
 *ticket list*
 	List tickets.
 

@@ -195,3 +195,15 @@ mutation trackerSubscribe($trackerId: Int!) {
         }
     }
 }
+
+mutation trackerUnsubscribe($trackerId: Int!) {
+    # TODO: Wait for API to implement "tickets"
+    trackerUnsubscribe(trackerId: $trackerId, tickets: false) {
+        tracker {
+            name
+            owner {
+                canonicalName
+            }
+        }
+    }
+}
