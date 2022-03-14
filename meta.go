@@ -31,18 +31,19 @@ func newMetaCommand() *cobra.Command {
 
 func newMetaShowCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
-
 		ctx := cmd.Context()
-		c := createClient("meta", cmd)
 
 		var (
 			user *metasrht.User
 			err  error
 		)
 		if len(args) > 0 {
-			username := strings.TrimLeft(args[0], ownerPrefixes)
+			owner, instance := parseOwnerName(args[0])
+			c := createClientWithInstance("meta", cmd, instance)
+			username := strings.TrimLeft(owner, ownerPrefixes)
 			user, err = metasrht.FetchUser(c.Client, ctx, username)
 		} else {
+			c := createClient("meta", cmd)
 			user, err = metasrht.FetchMe(c.Client, ctx)
 		}
 		if err != nil {
