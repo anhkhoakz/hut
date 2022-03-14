@@ -408,6 +408,9 @@ Options are:
 *acl list* [tracker]
 	List ACL entries of a tracker.
 
+*acl delete* <ID>
+	Delete an ACL entry.
+
 # CONFIGURATION
 
 Generate a new OAuth2 access token on _meta.sr.ht_.

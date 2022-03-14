@@ -434,6 +434,7 @@ func newTodoACLCommand() *cobra.Command {
 		Short: "Manage access-control lists",
 	}
 	cmd.AddCommand(newTodoACLListCommand())
+	cmd.AddCommand(newTodoACLDeleteCommand())
 	return cmd
 }
 
@@ -476,6 +477,36 @@ func newTodoACLListCommand() *cobra.Command {
 		Use:               "list",
 		Short:             "List ACL entries",
 		Args:              cobra.MaximumNArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	return cmd
+}
+
+func newTodoACLDeleteCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("todo", cmd)
+
+		id, err := parseInt32(args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		acl, err := todosrht.DeleteACL(c.Client, ctx, id)
+		if err != nil {
+			log.Fatal(err)
+		} else if acl == nil {
+			log.Fatalf("failed to delete ACL entry with ID %d", id)
+		}
+
+		fmt.Printf("Deleted ACL entry for %q in tracker %q\n", acl.Entity.CanonicalName, acl.Tracker.Name)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "delete <ID>",
+		Short:             "Delete an ACL entry",
+		Args:              cobra.ExactArgs(1),
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}

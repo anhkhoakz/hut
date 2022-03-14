@@ -603,3 +603,13 @@ func CreateLabel(client *gqlclient.Client, ctx context.Context, trackerId int32,
 	err = client.Execute(ctx, op, &respData)
 	return respData.CreateLabel, err
 }
+
+func DeleteACL(client *gqlclient.Client, ctx context.Context, id int32) (deleteACL *TrackerACL, err error) {
+	op := gqlclient.NewOperation("mutation deleteACL ($id: Int!) {\n\tdeleteACL(id: $id) {\n\t\ttracker {\n\t\t\tname\n\t\t}\n\t\tentity {\n\t\t\tcanonicalName\n\t\t}\n\t}\n}\n")
+	op.Var("id", id)
+	var respData struct {
+		DeleteACL *TrackerACL
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.DeleteACL, err
+}

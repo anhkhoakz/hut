@@ -173,3 +173,14 @@ mutation createLabel(
         foregroundColor
     }
 }
+
+mutation deleteACL($id: Int!) {
+    deleteACL(id: $id) {
+        tracker {
+            name
+        }
+        entity {
+            canonicalName
+        }
+    }
+}
