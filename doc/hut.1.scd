@@ -423,6 +423,14 @@ Options are:
 	*-u*, *--user*
 		Username of the new assignee (required).
 
+*ticket unassign* <ID> [options...]
+	Unassign a user from a ticket.
+
+	Options are:
+
+	*-u*, *--user*
+		Username of the assignee (required).
+
 *label list*
 	List labels.
 

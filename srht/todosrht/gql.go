@@ -677,3 +677,15 @@ func AssignUser(client *gqlclient.Client, ctx context.Context, trackerId int32, 
 	err = client.Execute(ctx, op, &respData)
 	return respData.AssignUser, err
 }
+
+func UnassignUser(client *gqlclient.Client, ctx context.Context, trackerId int32, ticketId int32, userId int32) (unassignUser *Event, err error) {
+	op := gqlclient.NewOperation("mutation unassignUser ($trackerId: Int!, $ticketId: Int!, $userId: Int!) {\n\tunassignUser(trackerId: $trackerId, ticketId: $ticketId, userId: $userId) {\n\t\tticket {\n\t\t\tsubject\n\t\t}\n\t}\n}\n")
+	op.Var("trackerId", trackerId)
+	op.Var("ticketId", ticketId)
+	op.Var("userId", userId)
+	var respData struct {
+		UnassignUser *Event
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.UnassignUser, err
+}
