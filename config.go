@@ -30,6 +30,8 @@ type InstanceConfig struct {
 
 	AccessToken    string
 	AccessTokenCmd []string
+
+	Origins map[string]string
 }
 
 func loadConfig(filename string) (*Config, error) {
@@ -41,7 +43,10 @@ func loadConfig(filename string) (*Config, error) {
 	cfg := new(Config)
 	instanceNames := make(map[string]struct{})
 	for _, instanceDir := range rootBlock.GetAll("instance") {
-		instance := new(InstanceConfig)
+		instance := &InstanceConfig{
+			Origins: make(map[string]string),
+		}
+
 		if err := instanceDir.ParseParams(&instance.Name); err != nil {
 			return nil, err
 		}
@@ -61,6 +66,25 @@ func loadConfig(filename string) (*Config, error) {
 				return nil, fmt.Errorf("instance %q: missing command name in access-token-cmd directive", instance.Name)
 			}
 			instance.AccessTokenCmd = dir.Params
+		}
+
+		for _, service := range []string{"builds", "git", "hg", "lists", "meta", "pages", "paste", "todo"} {
+			serviceDir := instanceDir.Children.Get(service)
+			if serviceDir == nil {
+				continue
+			}
+
+			originDir := serviceDir.Children.Get("origin")
+			if originDir == nil {
+				continue
+			}
+
+			var origin string
+			if err := originDir.ParseParams(&origin); err != nil {
+				return nil, err
+			}
+
+			instance.Origins[service] = origin
 		}
 
 		if instance.AccessToken == "" && len(instance.AccessTokenCmd) == 0 {
@@ -126,7 +150,7 @@ func createClientWithInstance(service string, cmd *cobra.Command, instanceName s
 	var inst *InstanceConfig
 	if instanceName != "" {
 		for _, instance := range cfg.Instances {
-			if instancesEqual(instanceName, instance.Name) {
+			if instance.match(instanceName) {
 				inst = instance
 				break
 			}
@@ -153,7 +177,10 @@ func createClientWithInstance(service string, cmd *cobra.Command, instanceName s
 	}
 
 	hostname := inst.Name
-	baseURL := fmt.Sprintf("https://%s.%s", service, hostname)
+	baseURL := inst.Origins[service]
+	if baseURL == "" {
+		baseURL = fmt.Sprintf("https://%s.%s", service, hostname)
+	}
 	return createClientWithToken(hostname, baseURL, token)
 }
 
@@ -171,6 +198,24 @@ func createClientWithToken(hostname, baseURL, token string) *Client {
 
 func instancesEqual(a, b string) bool {
 	return a == b || strings.HasSuffix(a, "."+b) || strings.HasSuffix(b, "."+a)
+}
+
+func (instance InstanceConfig) match(name string) bool {
+	if instancesEqual(name, instance.Name) {
+		return true
+	}
+
+	for _, origin := range instance.Origins {
+		i := strings.Index(origin, "://")
+		if i != -1 {
+			origin = origin[i+3:]
+		}
+
+		if origin == name {
+			return true
+		}
+	}
+	return false
 }
 
 func defaultConfigFilename() string {
