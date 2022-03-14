@@ -412,6 +412,9 @@ Options are:
 *ticket subscribe* <ID>
 	Subscribe to a ticket.
 
+*ticket unsubscribe* <ID>
+	Unsubscribe from a ticket.
+
 *label list*
 	List labels.
 

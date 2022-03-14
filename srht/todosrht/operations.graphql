@@ -215,3 +215,11 @@ mutation ticketSubscribe($trackerId: Int!, $ticketId: Int!) {
         }
     }
 }
+
+mutation ticketUnsubscribe($trackerId: Int!, $ticketId: Int!) {
+    ticketUnsubscribe(trackerId: $trackerId, ticketId: $ticketId) {
+        ticket {
+            id
+        }
+    }
+}

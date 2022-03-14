@@ -644,3 +644,14 @@ func TicketSubscribe(client *gqlclient.Client, ctx context.Context, trackerId in
 	err = client.Execute(ctx, op, &respData)
 	return respData.TicketSubscribe, err
 }
+
+func TicketUnsubscribe(client *gqlclient.Client, ctx context.Context, trackerId int32, ticketId int32) (ticketUnsubscribe *TicketSubscription, err error) {
+	op := gqlclient.NewOperation("mutation ticketUnsubscribe ($trackerId: Int!, $ticketId: Int!) {\n\tticketUnsubscribe(trackerId: $trackerId, ticketId: $ticketId) {\n\t\tticket {\n\t\t\tid\n\t\t}\n\t}\n}\n")
+	op.Var("trackerId", trackerId)
+	op.Var("ticketId", ticketId)
+	var respData struct {
+		TicketUnsubscribe *TicketSubscription
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.TicketUnsubscribe, err
+}

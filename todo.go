@@ -181,6 +181,7 @@ func newTodoTicketCommand() *cobra.Command {
 	cmd.AddCommand(newTodoTicketCommentCommand())
 	cmd.AddCommand(newTodoTicketStatusCommand())
 	cmd.AddCommand(newTodoTicketSubscribeCommand())
+	cmd.AddCommand(newTodoTicketUnsubscribeCommand())
 	return cmd
 }
 
@@ -404,6 +405,34 @@ func newTodoTicketSubscribeCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:               "subscribe <ID>",
 		Short:             "Subscribe to a ticket",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	return cmd
+}
+
+func newTodoTicketUnsubscribeCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		ticketID, name, owner, instance := parseTicketResource(ctx, cmd, args[0])
+		c := createClientWithInstance("todo", cmd, instance)
+		trackerID := getTrackerID(c, ctx, name, owner)
+
+		subscription, err := todosrht.TicketUnsubscribe(c.Client, ctx, trackerID, ticketID)
+		if err != nil {
+			log.Fatal(err)
+		} else if subscription == nil {
+			log.Fatalf("you were not subscribed to ticket with ID %d", ticketID)
+		}
+
+		fmt.Printf("Unsubscribed from %s/%s/%s/%d\n", c.BaseURL, owner, name, subscription.Ticket.Id)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "unsubscribe <ID>",
+		Short:             "Unsubscribe from a ticket",
 		Args:              cobra.ExactArgs(1),
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
