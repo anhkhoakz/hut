@@ -373,6 +373,9 @@ Options are:
 	*-y*, *--yes*
 		Confirm deletion without prompt.
 
+*subscribe* [tracker]
+	Subscribe to a tracker.
+
 *ticket list*
 	List tickets.
 

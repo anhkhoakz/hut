@@ -184,3 +184,14 @@ mutation deleteACL($id: Int!) {
         }
     }
 }
+
+mutation trackerSubscribe($trackerId: Int!) {
+    trackerSubscribe(trackerId: $trackerId) {
+        tracker {
+            name
+            owner {
+                canonicalName
+            }
+        }
+    }
+}

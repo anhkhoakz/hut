@@ -613,3 +613,13 @@ func DeleteACL(client *gqlclient.Client, ctx context.Context, id int32) (deleteA
 	err = client.Execute(ctx, op, &respData)
 	return respData.DeleteACL, err
 }
+
+func TrackerSubscribe(client *gqlclient.Client, ctx context.Context, trackerId int32) (trackerSubscribe *TrackerSubscription, err error) {
+	op := gqlclient.NewOperation("mutation trackerSubscribe ($trackerId: Int!) {\n\ttrackerSubscribe(trackerId: $trackerId) {\n\t\ttracker {\n\t\t\tname\n\t\t\towner {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op.Var("trackerId", trackerId)
+	var respData struct {
+		TrackerSubscribe *TrackerSubscription
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.TrackerSubscribe, err
+}
