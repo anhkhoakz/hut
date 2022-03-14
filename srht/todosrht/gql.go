@@ -547,6 +547,16 @@ func AclByTrackerName(client *gqlclient.Client, ctx context.Context, name string
 	return respData.TrackerByName, err
 }
 
+func UserIDByName(client *gqlclient.Client, ctx context.Context, username string) (user *User, err error) {
+	op := gqlclient.NewOperation("query userIDByName ($username: String!) {\n\tuser(username: $username) {\n\t\tid\n\t}\n}\n")
+	op.Var("username", username)
+	var respData struct {
+		User *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.User, err
+}
+
 func DeleteTracker(client *gqlclient.Client, ctx context.Context, id int32) (deleteTracker *Tracker, err error) {
 	op := gqlclient.NewOperation("mutation deleteTracker ($id: Int!) {\n\tdeleteTracker(id: $id) {\n\t\tname\n\t}\n}\n")
 	op.Var("id", id)
@@ -654,4 +664,16 @@ func TicketUnsubscribe(client *gqlclient.Client, ctx context.Context, trackerId 
 	}
 	err = client.Execute(ctx, op, &respData)
 	return respData.TicketUnsubscribe, err
+}
+
+func AssignUser(client *gqlclient.Client, ctx context.Context, trackerId int32, ticketId int32, userId int32) (assignUser *Event, err error) {
+	op := gqlclient.NewOperation("mutation assignUser ($trackerId: Int!, $ticketId: Int!, $userId: Int!) {\n\tassignUser(trackerId: $trackerId, ticketId: $ticketId, userId: $userId) {\n\t\tticket {\n\t\t\tsubject\n\t\t}\n\t}\n}\n")
+	op.Var("trackerId", trackerId)
+	op.Var("ticketId", ticketId)
+	op.Var("userId", userId)
+	var respData struct {
+		AssignUser *Event
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.AssignUser, err
 }

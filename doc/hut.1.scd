@@ -415,6 +415,14 @@ Options are:
 *ticket unsubscribe* <ID>
 	Unsubscribe from a ticket.
 
+*ticket assign* <ID> [options...]
+	Assign a user to a ticket.
+
+	Options are:
+
+	*-u*, *--user*
+		Username of the new assignee (required).
+
 *label list*
 	List labels.
 

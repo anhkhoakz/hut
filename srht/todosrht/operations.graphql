@@ -116,6 +116,12 @@ query aclByTrackerName($name: String!) {
     }
 }
 
+query userIDByName($username: String!) {
+    user(username: $username) {
+        id
+    }
+}
+
 mutation deleteTracker($id: Int!) {
     deleteTracker(id: $id) {
         name
@@ -220,6 +226,14 @@ mutation ticketUnsubscribe($trackerId: Int!, $ticketId: Int!) {
     ticketUnsubscribe(trackerId: $trackerId, ticketId: $ticketId) {
         ticket {
             id
+        }
+    }
+}
+
+mutation assignUser($trackerId: Int!, $ticketId: Int!, $userId: Int!) {
+    assignUser(trackerId: $trackerId, ticketId: $ticketId, userId: $userId) {
+        ticket {
+            subject
         }
     }
 }

@@ -182,6 +182,7 @@ func newTodoTicketCommand() *cobra.Command {
 	cmd.AddCommand(newTodoTicketStatusCommand())
 	cmd.AddCommand(newTodoTicketSubscribeCommand())
 	cmd.AddCommand(newTodoTicketUnsubscribeCommand())
+	cmd.AddCommand(newTodoTicketAssignCommand())
 	return cmd
 }
 
@@ -437,6 +438,45 @@ func newTodoTicketUnsubscribeCommand() *cobra.Command {
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
+	return cmd
+}
+
+func newTodoTicketAssignCommand() *cobra.Command {
+	var userName string
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		ticketID, name, owner, instance := parseTicketResource(ctx, cmd, args[0])
+		c := createClientWithInstance("todo", cmd, instance)
+		trackerID := getTrackerID(c, ctx, name, owner)
+
+		user, err := todosrht.UserIDByName(c.Client, ctx, userName)
+		if err != nil {
+			log.Fatal(err)
+		} else if user == nil {
+			log.Fatalf("no such user %q", userName)
+		}
+
+		event, err := todosrht.AssignUser(c.Client, ctx, trackerID, ticketID, user.Id)
+		if err != nil {
+			log.Fatal(err)
+		} else if event == nil {
+			log.Fatal("failed to assign user")
+		}
+
+		fmt.Printf("Assigned %q to %q\n", userName, event.Ticket.Subject)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "assign <ID>",
+		Short:             "Assign a user to a ticket",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	cmd.Flags().StringVarP(&userName, "user", "u", "", "username")
+	cmd.MarkFlagRequired("user")
+	cmd.RegisterFlagCompletionFunc("user", cobra.NoFileCompletions)
 	return cmd
 }
 
