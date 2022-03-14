@@ -159,7 +159,7 @@ func newListsUnsubscribeCommand() *cobra.Command {
 		if err != nil {
 			log.Fatal(err)
 		} else if subscription == nil {
-			log.Fatalf("you were not subscribed to %s/%s/%s", c.BaseURL, owner, args[0])
+			log.Fatalf("you were not subscribed to %s/%s/%s", c.BaseURL, owner, name)
 		}
 
 		fmt.Printf("Unsubscribed from %s/%s/%s\n", c.BaseURL, subscription.List.Owner.CanonicalName, subscription.List.Name)
