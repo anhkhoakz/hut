@@ -93,6 +93,30 @@ func timeDelta(t time.Time) string {
 	return fmt.Sprintf("%.f seconds", d.Seconds())
 }
 
+func parseOwnerName(name string) (owner, instance string) {
+	i := strings.Index(name, "://")
+	if i != -1 {
+		name = name[i+3:]
+	}
+
+	parsed := strings.Split(name, "/")
+	switch len(parsed) {
+	case 1:
+		owner = name
+	case 2:
+		instance = parsed[0]
+		owner = parsed[1]
+
+		if strings.IndexAny(owner, ownerPrefixes) != 0 {
+			log.Fatalf("Invalid owner name %q: must start with %q", owner, ownerPrefixes)
+		}
+	default:
+		log.Fatalf("Invalid owner name %q", name)
+	}
+
+	return owner, instance
+}
+
 func parseResourceName(name string) (resource, owner, instance string) {
 	i := strings.Index(name, "://")
 	if i != -1 {
