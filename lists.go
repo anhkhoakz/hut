@@ -365,6 +365,7 @@ func newListsACLListCommand() *cobra.Command {
 
 		var name, instance string
 		if len(args) > 0 {
+			// TODO: handle owner
 			name, _, instance = parseResourceName(args[0])
 		} else {
 			name, _, instance = getMailingListName(ctx, cmd)

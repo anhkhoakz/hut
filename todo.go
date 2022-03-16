@@ -511,6 +511,7 @@ func newTodoACLListCommand() *cobra.Command {
 		ctx := cmd.Context()
 		var name, instance string
 		if len(args) > 0 {
+			// TODO: handle owner
 			name, _, instance = parseResourceName(args[0])
 		} else {
 			name, _, instance = getTrackerName(ctx, cmd)
