@@ -60,7 +60,7 @@ func HexString(s string, fg string, bg string) string {
 		return s
 	}
 
-	return RGBString(s, hexToRGB(fg), hexToRGB(bg))
+	return RGBString(s, HexToRGB(fg), HexToRGB(bg))
 }
 
 func RGBString(s string, fg, bg RGB) string {
@@ -80,7 +80,7 @@ func (style Style) Sprintf(format string, args ...interface{}) string {
 	return style.String(fmt.Sprintf(format, args...))
 }
 
-func hexToRGB(hex string) RGB {
+func HexToRGB(hex string) RGB {
 	var rgb RGB
 	hex = strings.TrimPrefix(hex, "#")
 	if len(hex) != 6 {

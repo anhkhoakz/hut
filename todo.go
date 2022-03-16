@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
 	"os"
 	"strings"
 
@@ -608,6 +609,10 @@ func newTodoLabelCreateCommand() *cobra.Command {
 
 		id := getTrackerID(c, ctx, name, owner)
 
+		if fg == "" {
+			fg = calcLabelForeground(bg)
+		}
+
 		label, err := todosrht.CreateLabel(c.Client, ctx, id, args[0], fg, bg)
 		if err != nil {
 			log.Fatal(err)
@@ -626,7 +631,6 @@ func newTodoLabelCreateCommand() *cobra.Command {
 		Run:               run,
 	}
 	cmd.Flags().StringVarP(&fg, "foreground", "f", "", "foreground color")
-	cmd.MarkFlagRequired("foreground")
 	cmd.RegisterFlagCompletionFunc("foreground", cobra.NoFileCompletions)
 	cmd.Flags().StringVarP(&bg, "background", "b", "", "background color")
 	cmd.MarkFlagRequired("background")
@@ -780,6 +784,55 @@ func parseTicketResource(ctx context.Context, cmd *cobra.Command, ticket string)
 	}
 
 	return ticketID, name, owner, instance
+}
+
+func calcLabelForeground(bg string) string {
+	const white = "#FFFFFF"
+	const black = "#000000"
+	bgLuminance := calcLuminance(bg)
+	contrastWhite := calcContrastRatio(bgLuminance, calcLuminance(white))
+	contrastBlack := calcContrastRatio(bgLuminance, calcLuminance(black))
+
+	if contrastBlack > contrastWhite {
+		return black
+	}
+	return white
+}
+
+func calcLuminance(hex string) float64 {
+	// https://www.w3.org/TR/WCAG/#dfn-relative-luminance
+	rgb := termfmt.HexToRGB(hex)
+	rsRGB := float64(rgb.Red) / 255
+	gsRGB := float64(rgb.Green) / 255
+	bsRGB := float64(rgb.Blue) / 255
+
+	var r, g, b float64
+	if rsRGB <= 0.03928 {
+		r = rsRGB / 12.92
+	} else {
+		r = math.Pow((rsRGB+0.055)/1.055, 2.4)
+	}
+	if gsRGB <= 0.03928 {
+		g = gsRGB / 12.92
+	} else {
+		g = math.Pow((gsRGB+0.055)/1.055, 2.4)
+	}
+	if bsRGB <= 0.03928 {
+		b = bsRGB / 12.92
+	} else {
+		b = math.Pow((bsRGB+0.055)/1.055, 2.4)
+	}
+
+	return 0.2126*r + 0.7152*g + 0.0722*b
+}
+
+func calcContrastRatio(l1, l2 float64) float64 {
+	// https://www.w3.org/TR/WCAG/#dfn-contrast-ratio
+	if l1 > l2 {
+		return (l1 + 0.05) / (l2 + 0.05)
+	}
+
+	return (l2 + 0.05) / (l1 + 0.05)
 }
 
 func completeTicketStatus(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

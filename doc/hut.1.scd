@@ -443,7 +443,8 @@ Options are:
 	Options are:
 
 	*-f*, *--foreground*
-		Foreground color in hex format (required).
+		Foreground color in hex format. If omitted either black or white will be
+		selected for an optimized contrast.
 
 	*-b*, *--background*
 		Background color in hex format (required).
