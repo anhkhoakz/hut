@@ -600,11 +600,11 @@ func (c *Client) followJobShow(ctx context.Context, id int32) (*buildssrht.Job, 
 		for _, task := range job.Tasks {
 			taskString += fmt.Sprintf("%s %s ", task.Status.TermIcon(), task.Name)
 		}
-		fmt.Printf("\x1b[1K\r%v: %s with %s", termfmt.DarkYellow.Sprintf("#%d", job.Id),
+		fmt.Printf("%v%v: %s with %s", termfmt.ReplaceLine(), termfmt.DarkYellow.Sprintf("#%d", job.Id),
 			job.Status.TermString(), taskString)
 
 		if jobStatusDone(job.Status) {
-			fmt.Print("\x1b[1K\r")
+			fmt.Print(termfmt.ReplaceLine())
 			return job, nil
 		}
 

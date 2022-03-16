@@ -104,3 +104,10 @@ func hexToRGB(hex string) RGB {
 	}
 	return rgb
 }
+
+func ReplaceLine() string {
+	if !isTerminal {
+		return "\n"
+	}
+	return "\x1b[1K\r"
+}
