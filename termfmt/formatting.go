@@ -35,11 +35,12 @@ func (style Style) String(s string) string {
 		return s
 	}
 
+	// All formatting strings have to be the same length for tabwriter to work
 	switch style {
 	case Bold:
-		return fmt.Sprintf("\033[1m%s\033[0m", s)
+		return fmt.Sprintf("\033[01m%s\033[0m", s)
 	case Dim:
-		return fmt.Sprintf("\033[2m%s\033[0m", s)
+		return fmt.Sprintf("\033[02m%s\033[0m", s)
 	case Red:
 		return fmt.Sprintf("\033[91m%s\033[0m", s)
 	case Green:
