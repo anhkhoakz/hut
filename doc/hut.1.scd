@@ -86,6 +86,9 @@ Options are:
 	*-c*, *--clone*
 		Clone repository to _CWD_.
 
+	*--import-url*
+		Import the repository from the given URL.
+
 *list* [owner]
 	List repositories.
 

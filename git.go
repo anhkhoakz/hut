@@ -35,7 +35,7 @@ func newGitCommand() *cobra.Command {
 }
 
 func newGitCreateCommand() *cobra.Command {
-	var visibility, desc string
+	var visibility, desc, importURL string
 	var clone bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
@@ -46,8 +46,13 @@ func newGitCreateCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
+		var url *string
+		if importURL != "" {
+			url = &importURL
+		}
+
 		repo, err := gitsrht.CreateRepository(c.Client, ctx, args[0],
-			gitVisibility, desc)
+			gitVisibility, desc, url)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -86,6 +91,7 @@ func newGitCreateCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&desc, "description", "d", "", "repo description")
 	cmd.RegisterFlagCompletionFunc("description", cobra.NoFileCompletions)
 	cmd.Flags().BoolVarP(&clone, "clone", "c", false, "autoclone repo")
+	cmd.Flags().StringVar(&importURL, "import-url", "", "import repo from given URL")
 	return cmd
 }
 

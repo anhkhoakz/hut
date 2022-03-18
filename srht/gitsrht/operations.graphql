@@ -176,11 +176,13 @@ mutation createRepository(
     $name: String!
     $visibility: Visibility!
     $description: String!
+    $cloneUrl: String
 ) {
     createRepository(
         name: $name
         visibility: $visibility
         description: $description
+        cloneUrl: $cloneUrl
     ) {
         owner {
             canonicalName

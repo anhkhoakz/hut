@@ -565,11 +565,12 @@ func DeleteArtifact(client *gqlclient.Client, ctx context.Context, id int32) (de
 	return respData.DeleteArtifact, err
 }
 
-func CreateRepository(client *gqlclient.Client, ctx context.Context, name string, visibility Visibility, description string) (createRepository *Repository, err error) {
-	op := gqlclient.NewOperation("mutation createRepository ($name: String!, $visibility: Visibility!, $description: String!) {\n\tcreateRepository(name: $name, visibility: $visibility, description: $description) {\n\t\towner {\n\t\t\tcanonicalName\n\t\t}\n\t\tname\n\t}\n}\n")
+func CreateRepository(client *gqlclient.Client, ctx context.Context, name string, visibility Visibility, description string, cloneUrl *string) (createRepository *Repository, err error) {
+	op := gqlclient.NewOperation("mutation createRepository ($name: String!, $visibility: Visibility!, $description: String!, $cloneUrl: String) {\n\tcreateRepository(name: $name, visibility: $visibility, description: $description, cloneUrl: $cloneUrl) {\n\t\towner {\n\t\t\tcanonicalName\n\t\t}\n\t\tname\n\t}\n}\n")
 	op.Var("name", name)
 	op.Var("visibility", visibility)
 	op.Var("description", description)
+	op.Var("cloneUrl", cloneUrl)
 	var respData struct {
 		CreateRepository *Repository
 	}
