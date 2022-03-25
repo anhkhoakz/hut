@@ -14,13 +14,13 @@ hut is a CLI companion utility to interact with sr.ht.
 
 # OPTIONS
 
-*--config*
-	Explicitly select a configuration file that should be used over
-	the default configuration.
-
 *-h*, *--help*
 	Show help message and quit.
 	Can be used after a command to get more information it.
+
+*--config*
+	Explicitly select a configuration file that should be used over
+	the default configuration.
 
 *--instance*
 	Select which sr.ht instance from the config file should be used.
@@ -65,85 +65,43 @@ hut is a CLI companion utility to interact with sr.ht.
 *init*
 	Initialize hut's configuration file.
 
-## git
-
-Options are:
-
-	*-r*, *--repo* <string>
-		Name of repository.
-
-*create* <name> [options...]
-	Create a repository.
-
-	Options are:
-
-	*-v*, *--visibility* <string>
-		Visibility to use (public, unlisted, private). Defaults to unlisted.
-
-	*-d*, *--description* <string>
-		Description of the repository.
-
-	*-c*, *--clone*
-		Clone repository to _CWD_.
-
-	*--import-url*
-		Import the repository from the given URL.
-
-*list* [owner]
-	List repositories.
-
-*delete* [repo] [options...]
-	Delete a repository. By default the current repo will be deleted.
-
-	Options are:
-
-	*-y*, *--yes*
-		Confirm deletion without prompt.
-
-*artifact upload* <filename> [options...]
-	Upload an artifact.
-
-	Options are:
-
-	*--rev* <string>
-		Revision tag. Defaults to the last Git tag.
-
-*artifact list* [options...]
-	List artifacts.
-
-*artifact delete* <ID>
-	Delete an artifact.
-
-*acl list* [repo]
-	List ACL entries of a repo. Defaults to current repo.
-
-*acl update* <user> [options...]
-	Update or add an ACL entry for user.
-
-	Options are:
-
-	*-m*, *--mode* <string>
-		Access mode to set (RW, RO).
-
-*acl delete* <ID>
-	Delete an ACL entry.
-
-*webhook create* <URL> [options...]
-	Create a webhook. Write the query with _$EDITOR_.
-
-	Options are:
-
-	*-e*, *--events* <strings...>
-		List of events that should trigger the webhook (REPO_CREATED,
-		REPO_UPDATE, REPO_DELETED). Required.
-
-*webhook list*
-	List webhooks.
-
-*webhook delete* <ID>
-	Delete a webhook.
-
 ## builds
+
+*cancel* <IDs...>
+	Cancel jobs.
+
+*list*
+	List jobs.
+
+*resubmit* <ID>
+	Resubmit a build.
+
+	Options are:
+
+	*-e*, *--edit*
+		Edit manifest with _$EDITOR_.
+
+	*-f*, *--follow*
+		Follow build logs.
+
+	*-n*, *--note* <string>
+		Provide a short job description.
+
+*secrets*
+	List secrets.
+
+*show* [ID] [options...]
+	Show job status.
+
+	If no ID is specified, the latest build will be printed.
+
+	Options are:
+
+	*-f*, *--follow*
+		Follow job status.
+
+*ssh* <ID>
+	Connect with SSH to a job.
 
 *submit* [manifest...] [options...]
 	Submit a build manifest.
@@ -159,67 +117,145 @@ Options are:
 	*-n*, *--note* <string>
 		Provide a short job description.
 
-*resubmit* <ID>
-	Resubmit a build.
+## git
+
+Options are:
+
+	*-r*, *--repo* <string>
+		Name of repository.
+
+*acl delete* <ID>
+	Delete an ACL entry.
+
+*acl list* [repo]
+	List ACL entries of a repo. Defaults to current repo.
+
+*acl update* <user> [options...]
+	Update or add an ACL entry for user.
 
 	Options are:
 
-	*-f*, *--follow*
-		Follow build logs.
+	*-m*, *--mode* <string>
+		Access mode to set (RW, RO).
 
-	*-e*, *--edit*
-		Edit manifest with _$EDITOR_.
+*artifact delete* <ID>
+	Delete an artifact.
 
-	*-n*, *--note* <string>
-		Provide a short job description.
+*artifact list* [options...]
+	List artifacts.
 
-*cancel* <IDs...>
-	Cancel jobs.
-
-*show* [ID] [options...]
-	Show job status.
-
-	If no ID is specified, the latest build will be printed.
+*artifact upload* <filename> [options...]
+	Upload an artifact.
 
 	Options are:
 
-	*-f*, *--follow*
-		Follow job status.
+	*--rev* <string>
+		Revision tag. Defaults to the last Git tag.
 
-*list*
-	List jobs.
+*create* <name> [options...]
+	Create a repository.
 
-*secrets*
-	List secrets.
+	Options are:
 
-*ssh* <ID>
-	Connect with SSH to a job.
+	*-c*, *--clone*
+		Clone repository to _CWD_.
+
+	*-d*, *--description* <string>
+		Description of the repository.
+
+	*--import-url*
+		Import the repository from the given URL.
+
+	*-v*, *--visibility* <string>
+		Visibility to use (public, unlisted, private). Defaults to unlisted.
+
+*delete* [repo] [options...]
+	Delete a repository. By default the current repo will be deleted.
+
+	Options are:
+
+	*-y*, *--yes*
+		Confirm deletion without prompt.
+
+*list* [owner]
+	List repositories.
+
+*webhook create* <URL> [options...]
+	Create a webhook. Write the query with _$EDITOR_.
+
+	Options are:
+
+	*-e*, *--events* <strings...>
+		List of events that should trigger the webhook (REPO_CREATED,
+		REPO_UPDATE, REPO_DELETED). Required.
+
+*webhook delete* <ID>
+	Delete a webhook.
+
+*webhook list*
+	List webhooks.
+
+## hg
+
+*list* [owner]
+	List repositories.
+
+## lists
+
+Options are:
+
+	*-l*, *--mailing-list* <name>
+		Select a mailing list.
+
+		By default, the mailing list configured for the current Git repository
+		will be selected.
+
+*acl delete* <ID>
+	Delete an ACL entry.
+
+*acl list* [list]
+	List ACL entries of a mailing list.
+
+*delete* [list] [options...]
+	Delete a mailing list.
+
+	Options are:
+
+	*-y*, *--yes*
+		Confirm deletion without prompt.
+
+*list* [owner]
+	List mailing lists.
+
+*patchset apply* <ID>
+	Apply a patchset.
+
+*patchset list* [list] [options...]
+	List patchsets in list.
+
+	Options are:
+
+	*-u*, *--user*
+		List patchsets by user instead of by list.
+
+*patchset update* <ID>
+	Update a patchset.
+
+	Options are:
+
+	*-s*, *--status* <string>
+		Patchset status to set (required).
+
+*subscribe* [list]
+	Subscribe to a mailing list.
+
+*unsubscribe* [list]
+	Unsubscribe from a mailing list.
 
 ## meta
 
-*show* [username]
-	Show a user's profile.
-
-	If _username_ is not specified, your profile is displayed.
-
 *audit-log*
 	Display your audit log.
-
-*ssh-key create* [path]
-	Upload an SSH public key and associate it with your account.
-
-	If _path_ is not specified, the default SSH public key is used.
-
-*ssh-key delete* <ID>
-	Delete an SSH public key from your account.
-
-*ssh-key list* [username] [options...]
-	List SSH public keys.
-
-	Options are:
-
-	*-r*, *--raw*
-		Only print raw public key
 
 *pgp-key create* [path]
 	Upload a PGP public key and associate it with your account.
@@ -239,6 +275,61 @@ Options are:
 
 	*-r*, *--raw*
 		Only print raw public key
+
+*show* [username]
+	Show a user's profile.
+
+	If _username_ is not specified, your profile is displayed.
+
+*ssh-key create* [path]
+	Upload an SSH public key and associate it with your account.
+
+	If _path_ is not specified, the default SSH public key is used.
+
+*ssh-key delete* <ID>
+	Delete an SSH public key from your account.
+
+*ssh-key list* [username] [options...]
+	List SSH public keys.
+
+	Options are:
+
+	*-r*, *--raw*
+		Only print raw public key
+
+## pages
+
+*list*
+	List registered sites.
+
+*publish* <tarball> [options...]
+	Publish a website.
+
+	Options are:
+
+	*-d*, *--domain* <string>
+		Fully qualified domain name.
+
+	*--not-found* <string>
+		Path to serve for page not found responses
+
+	*-p*, *--protocol* <string>
+		Protocol to use (either HTTPS or GEMINI; defaults to HTTPS)
+
+	*-s*, *--subdirectory* <string>
+		If specified, only this subdirectory is updated, the rest of the site
+		is left untouched.
+
+*unpublish* [options...]
+	Unpublish a website.
+
+	Options are:
+
+	*-d*, *--domain* <string>
+		Fully qualified domain name.
+
+	*-p*, *--protocol* <string>
+		Protocol to use (either HTTPS or GEMINI; defaults to HTTPS)
 
 ## paste
 
@@ -267,97 +358,6 @@ Options are:
 	*-v*, *--visibility* <string>
 		Visibility to use (public, unlisted, private)
 
-## pages
-
-*publish* <tarball> [options...]
-	Publish a website.
-
-	Options are:
-
-	*-d*, *--domain* <string>
-		Fully qualified domain name.
-
-	*-p*, *--protocol* <string>
-		Protocol to use (either HTTPS or GEMINI; defaults to HTTPS)
-
-	*-s*, *--subdirectory* <string>
-		If specified, only this subdirectory is updated, the rest of the site
-		is left untouched.
-
-	*--not-found* <string>
-		Path to serve for page not found responses
-
-*unpublish* [options...]
-	Unpublish a website.
-
-	Options are:
-
-	*-d*, *--domain* <string>
-		Fully qualified domain name.
-
-	*-p*, *--protocol* <string>
-		Protocol to use (either HTTPS or GEMINI; defaults to HTTPS)
-
-*list*
-	List registered sites.
-
-## lists
-
-Options are:
-
-	*-l*, *--mailing-list* <name>
-		Select a mailing list.
-
-		By default, the mailing list configured for the current Git repository
-		will be selected.
-
-*delete* [list] [options...]
-	Delete a mailing list.
-
-	Options are:
-
-	*-y*, *--yes*
-		Confirm deletion without prompt.
-
-*list* [owner]
-	List mailing lists.
-
-*subscribe* [list]
-	Subscribe to a mailing list.
-
-*unsubscribe* [list]
-	Unsubscribe from a mailing list.
-
-*patchset list* [list] [options...]
-	List patchsets in list.
-
-	Options are:
-
-	*-u*, *--user*
-		List patchsets by user instead of by list.
-
-*patchset update* <ID>
-	Update a patchset.
-
-	Options are:
-
-	*-s*, *--status* <string>
-		Patchset status to set (required).
-
-*patchset apply* <ID>
-	Apply a patchset.
-
-*acl list* [list]
-	List ACL entries of a mailing list.
-
-*acl delete* <ID>
-	Delete an ACL entry.
-
-## hg
-
-*list* [owner]
-	List repositories.
-
 ## todo
 
 Options are:
@@ -365,8 +365,11 @@ Options are:
 	*-t*, *--tracker* <string>
 		Name of tracker.
 
-*list* [owner]
-	List trackers.
+*acl delete* <ID>
+	Delete an ACL entry.
+
+*acl list* [tracker]
+	List ACL entries of a tracker.
 
 *delete* <tracker> [options...]
 	Delete a tracker.
@@ -376,47 +379,29 @@ Options are:
 	*-y*, *--yes*
 		Confirm deletion without prompt.
 
+*label create* <name> [options...]
+	Create a label.
+
+	Options are:
+
+	*-b*, *--background*
+		Background color in hex format (required).
+
+	*-f*, *--foreground*
+		Foreground color in hex format. If omitted either black or white will be
+		selected for an optimized contrast.
+
+*label delete* <ID>
+	Delete a label.
+
+*label list*
+	List labels.
+
+*list* [owner]
+	List trackers.
+
 *subscribe* [tracker]
 	Subscribe to a tracker.
-
-*unsubscribe* [tracker]
-	Unsubscribe from a tracker.
-
-*ticket list*
-	List tickets.
-
-*ticket comment* <ID> [options...]
-	Comment on a ticket with _$EDITOR_.
-
-	Options are:
-
-	*--stdin*
-		Read comment from _stdin_.
-
-	*-s*, *--status*
-		New ticket status.
-
-	*-r*, *--resolution*
-		Resolution for resolved tickets (required if status _RESOLVED_ is used).
-		If status is omitted, it will be set to _RESOLVED_.
-
-*ticket update-status* <ID> [options...]
-	Update status of a ticket.
-
-	Options are:
-
-	*-s*, *--status*
-		New ticket status.
-
-	*-r*, *--resolution*
-		Resolution for resolved tickets (required if status _RESOLVED_ is used).
-		If status is omitted, it will be set to _RESOLVED_.
-
-*ticket subscribe* <ID>
-	Subscribe to a ticket.
-
-*ticket unsubscribe* <ID>
-	Unsubscribe from a ticket.
 
 *ticket assign* <ID> [options...]
 	Assign a user to a ticket.
@@ -426,6 +411,27 @@ Options are:
 	*-u*, *--user*
 		Username of the new assignee (required).
 
+*ticket comment* <ID> [options...]
+	Comment on a ticket with _$EDITOR_.
+
+	Options are:
+
+	*-r*, *--resolution*
+		Resolution for resolved tickets (required if status _RESOLVED_ is used).
+		If status is omitted, it will be set to _RESOLVED_.
+
+	*-s*, *--status*
+		New ticket status.
+
+	*--stdin*
+		Read comment from _stdin_.
+
+*ticket list*
+	List tickets.
+
+*ticket subscribe* <ID>
+	Subscribe to a ticket.
+
 *ticket unassign* <ID> [options...]
 	Unassign a user from a ticket.
 
@@ -434,29 +440,23 @@ Options are:
 	*-u*, *--user*
 		Username of the assignee (required).
 
-*label list*
-	List labels.
+*ticket unsubscribe* <ID>
+	Unsubscribe from a ticket.
 
-*label delete* <ID>
-	Delete a label.
-
-*label create* <name> [options...]
-	Create a label.
+*ticket update-status* <ID> [options...]
+	Update status of a ticket.
 
 	Options are:
 
-	*-f*, *--foreground*
-		Foreground color in hex format. If omitted either black or white will be
-		selected for an optimized contrast.
+	*-r*, *--resolution*
+		Resolution for resolved tickets (required if status _RESOLVED_ is used).
+		If status is omitted, it will be set to _RESOLVED_.
 
-	*-b*, *--background*
-		Background color in hex format (required).
+	*-s*, *--status*
+		New ticket status.
 
-*acl list* [tracker]
-	List ACL entries of a tracker.
-
-*acl delete* <ID>
-	Delete an ACL entry.
+*unsubscribe* [tracker]
+	Unsubscribe from a tracker.
 
 # CONFIGURATION
 
