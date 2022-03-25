@@ -112,3 +112,7 @@ func ReplaceLine() string {
 	}
 	return "\x1b[1K\r"
 }
+
+func IsTerminal() bool {
+	return isTerminal
+}
