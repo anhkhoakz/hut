@@ -10,7 +10,8 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
-	"text/tabwriter"
+
+	"github.com/juju/ansiterm/tabwriter"
 
 	"github.com/spf13/cobra"
 
