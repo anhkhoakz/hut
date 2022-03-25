@@ -116,3 +116,9 @@ func ReplaceLine() string {
 func IsTerminal() bool {
 	return isTerminal
 }
+
+func Bell() {
+	if isTerminal {
+		fmt.Print("\a")
+	}
+}

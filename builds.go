@@ -79,12 +79,13 @@ func newBuildsSubmitCommand() *cobra.Command {
 			fmt.Printf("%v/%v/job/%v\n", c.BaseURL, job.Owner.CanonicalName, job.Id)
 
 			if follow {
+				id := job.Id
 				job, err := c.followJob(context.Background(), job.Id)
 				if err != nil {
 					log.Fatal(err)
 				}
 				if job.Status != buildssrht.JobStatusSuccess {
-					os.Exit(1)
+					c.offerSSHConnection(context.Background(), id)
 				}
 			}
 		}
@@ -148,12 +149,13 @@ func newBuildsResubmitCommand() *cobra.Command {
 		fmt.Printf("%v/%v/job/%v\n", c.BaseURL, job.Owner.CanonicalName, job.Id)
 
 		if follow {
+			id := job.Id
 			job, err := c.followJob(context.Background(), job.Id)
 			if err != nil {
 				log.Fatal(err)
 			}
 			if job.Status != buildssrht.JobStatusSuccess {
-				os.Exit(1)
+				c.offerSSHConnection(context.Background(), id)
 			}
 		}
 	}
@@ -650,4 +652,27 @@ func completeRunningJobs(cmd *cobra.Command, args []string, toComplete string) (
 	}
 
 	return jobList, cobra.ShellCompDirectiveNoFileComp
+}
+
+func (c *Client) offerSSHConnection(ctx context.Context, id int32) {
+	if !termfmt.IsTerminal() {
+		os.Exit(1)
+	}
+
+	termfmt.Bell()
+	if !getConfirmation(fmt.Sprintf("\n%s Do you want to log in with SSH?", termfmt.Red.String("Build failed."))) {
+		return
+	}
+
+	job, ver, err := buildssrht.GetSSHInfo(c.Client, ctx, id)
+	if err != nil {
+		log.Fatal(err)
+	} else if job == nil {
+		log.Fatalf("no such job with ID %d", id)
+	}
+
+	err = sshConnection(job, ver.Settings.SshUser)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
