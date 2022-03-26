@@ -237,7 +237,7 @@ func newListsPatchsetListCommand() *cobra.Command {
 			patches = list.Patches
 		}
 
-		tw := tabwriter.NewWriter(os.Stdout, 0, 4, 1, ' ', 0)
+		tw := tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
 		defer tw.Flush()
 		for _, patchset := range patches.Results {
 			s := fmt.Sprintf("%s %s\t", termfmt.DarkYellow.Sprintf("#%d", patchset.Id), patchset.Status.TermString())
@@ -250,10 +250,10 @@ func newListsPatchsetListCommand() *cobra.Command {
 			}
 
 			if byUser {
-				s += fmt.Sprintf("\t(%s/%s %s ago)", patchset.List.Owner.CanonicalName,
+				s += fmt.Sprintf("\t%s/%s %s ago", patchset.List.Owner.CanonicalName,
 					patchset.List.Name, timeDelta(patchset.Created))
 			} else {
-				s += fmt.Sprintf("\t(%s %s ago)", patchset.Submitter.CanonicalName,
+				s += fmt.Sprintf("\t%s %s ago", patchset.Submitter.CanonicalName,
 					timeDelta(patchset.Created))
 			}
 			fmt.Fprintln(tw, s)
