@@ -319,10 +319,11 @@ func newTodoTicketCommentCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:   "comment <ID>",
-		Short: "Comment on a ticket",
-		Args:  cobra.ExactArgs(1),
-		Run:   run,
+		Use:               "comment <ID>",
+		Short:             "Comment on a ticket",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: completeTicketID,
+		Run:               run,
 	}
 	cmd.Flags().BoolVar(&stdin, "stdin", false, "read comment from stdin")
 	cmd.Flags().StringVarP(&status, "status", "s", "", "ticket status")
@@ -385,7 +386,7 @@ func newTodoTicketStatusCommand() *cobra.Command {
 		Use:               "update-status <ID>",
 		Short:             "Update ticket status",
 		Args:              cobra.ExactArgs(1),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction: completeTicketID,
 		Run:               run,
 	}
 	cmd.Flags().StringVarP(&status, "status", "s", "", "ticket status")
@@ -421,7 +422,7 @@ func newTodoTicketSubscribeCommand() *cobra.Command {
 		Use:               "subscribe <ID>",
 		Short:             "Subscribe to a ticket",
 		Args:              cobra.ExactArgs(1),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction: completeTicketID,
 		Run:               run,
 	}
 	return cmd
@@ -493,7 +494,7 @@ func newTodoTicketAssignCommand() *cobra.Command {
 		Use:               "assign <ID>",
 		Short:             "Assign a user to a ticket",
 		Args:              cobra.ExactArgs(1),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction: completeTicketID,
 		Run:               run,
 	}
 	cmd.Flags().StringVarP(&userName, "user", "u", "", "username")
@@ -536,7 +537,7 @@ func newTodoTicketUnassignCommand() *cobra.Command {
 		Use:               "unassign <ID>",
 		Short:             "Unassign a user from a ticket",
 		Args:              cobra.ExactArgs(1),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction: completeTicketID,
 		Run:               run,
 	}
 	cmd.Flags().StringVarP(&userName, "user", "u", "", "username")
@@ -857,6 +858,36 @@ func calcContrastRatio(l1, l2 float64) float64 {
 	}
 
 	return (l2 + 0.05) / (l1 + 0.05)
+}
+
+func completeTicketID(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	var tickets []string
+	ctx := cmd.Context()
+
+	// TODO: handle error
+	name, owner, instance := getTrackerName(ctx, cmd)
+	c := createClientWithInstance("todo", cmd, instance)
+
+	var (
+		err     error
+		tracker *todosrht.Tracker
+	)
+
+	if owner != "" {
+		tracker, err = todosrht.CompleteTicketIdByOwner(c.Client, ctx, owner, name)
+	} else {
+		tracker, err = todosrht.CompleteTicketId(c.Client, ctx, name)
+	}
+	if err != nil || tracker == nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	for _, ticket := range tracker.Tickets.Results {
+		s := fmt.Sprintf("%d\t%s", ticket.Id, ticket.Subject)
+		tickets = append(tickets, s)
+	}
+
+	return tickets, cobra.ShellCompDirectiveNoFileComp
 }
 
 func completeTicketStatus(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

@@ -142,6 +142,27 @@ query assigneesByOwner($owner: String!, $tracker: String!, $id: Int!) {
     }
 }
 
+query completeTicketId($name: String!) {
+    trackerByName(name: $name) {
+        ...completeTicket
+    }
+}
+
+query completeTicketIdByOwner($owner: String!, $tracker: String!) {
+    trackerByOwner(owner: $owner, tracker: $tracker) {
+        ...completeTicket
+    }
+}
+
+fragment completeTicket on Tracker {
+    tickets {
+        results {
+            id
+            subject
+        }
+    }
+}
+
 mutation deleteTracker($id: Int!) {
     deleteTracker(id: $id) {
         name
