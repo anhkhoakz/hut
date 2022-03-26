@@ -122,6 +122,26 @@ query userIDByName($username: String!) {
     }
 }
 
+query assignees($name: String!, $id: Int!) {
+    trackerByName(name: $name) {
+        ticket(id: $id) {
+            assignees {
+                canonicalName
+            }
+        }
+    }
+}
+
+query assigneesByOwner($owner: String!, $tracker: String!, $id: Int!) {
+    trackerByOwner(owner: $owner, tracker: $tracker) {
+        ticket(id: $id) {
+            assignees {
+                canonicalName
+            }
+        }
+    }
+}
+
 mutation deleteTracker($id: Int!) {
     deleteTracker(id: $id) {
         name

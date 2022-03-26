@@ -557,6 +557,29 @@ func UserIDByName(client *gqlclient.Client, ctx context.Context, username string
 	return respData.User, err
 }
 
+func Assignees(client *gqlclient.Client, ctx context.Context, name string, id int32) (trackerByName *Tracker, err error) {
+	op := gqlclient.NewOperation("query assignees ($name: String!, $id: Int!) {\n\ttrackerByName(name: $name) {\n\t\tticket(id: $id) {\n\t\t\tassignees {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op.Var("name", name)
+	op.Var("id", id)
+	var respData struct {
+		TrackerByName *Tracker
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.TrackerByName, err
+}
+
+func AssigneesByOwner(client *gqlclient.Client, ctx context.Context, owner string, tracker string, id int32) (trackerByOwner *Tracker, err error) {
+	op := gqlclient.NewOperation("query assigneesByOwner ($owner: String!, $tracker: String!, $id: Int!) {\n\ttrackerByOwner(owner: $owner, tracker: $tracker) {\n\t\tticket(id: $id) {\n\t\t\tassignees {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op.Var("owner", owner)
+	op.Var("tracker", tracker)
+	op.Var("id", id)
+	var respData struct {
+		TrackerByOwner *Tracker
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.TrackerByOwner, err
+}
+
 func DeleteTracker(client *gqlclient.Client, ctx context.Context, id int32) (deleteTracker *Tracker, err error) {
 	op := gqlclient.NewOperation("mutation deleteTracker ($id: Int!) {\n\tdeleteTracker(id: $id) {\n\t\tname\n\t}\n}\n")
 	op.Var("id", id)

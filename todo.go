@@ -541,7 +541,7 @@ func newTodoTicketUnassignCommand() *cobra.Command {
 	}
 	cmd.Flags().StringVarP(&userName, "user", "u", "", "username")
 	cmd.MarkFlagRequired("user")
-	cmd.RegisterFlagCompletionFunc("user", cobra.NoFileCompletions)
+	cmd.RegisterFlagCompletionFunc("user", completeTicketUnassign)
 	return cmd
 }
 
@@ -867,4 +867,37 @@ func completeTicketStatus(cmd *cobra.Command, args []string, toComplete string) 
 func completeTicketResolution(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	return []string{"unresolved", "fixed", "implemented", "wont_fix", "by_design",
 		"invalid", "duplicate", "not_our_bug"}, cobra.ShellCompDirectiveNoFileComp
+}
+
+func completeTicketUnassign(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	if len(args) == 0 {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	ctx := cmd.Context()
+	var assignees []string
+	ticketID, name, owner, instance, err := parseTicketResource(ctx, cmd, args[0])
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	c := createClientWithInstance("todo", cmd, instance)
+
+	var tracker *todosrht.Tracker
+
+	if owner != "" {
+		tracker, err = todosrht.AssigneesByOwner(c.Client, ctx, owner, name, ticketID)
+	} else {
+		tracker, err = todosrht.Assignees(c.Client, ctx, name, ticketID)
+	}
+	if err != nil || tracker == nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	for _, user := range tracker.Ticket.Assignees {
+		userName := strings.TrimLeft(user.CanonicalName, ownerPrefixes)
+		assignees = append(assignees, userName)
+	}
+
+	return assignees, cobra.ShellCompDirectiveNoFileComp
 }
