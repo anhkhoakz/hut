@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net/url"
 	"os"
@@ -531,6 +532,7 @@ func newGitWebhookCommand() *cobra.Command {
 
 func newGitWebhookCreateCommand() *cobra.Command {
 	var events []string
+	var stdin bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("git", cmd)
@@ -538,16 +540,31 @@ func newGitWebhookCreateCommand() *cobra.Command {
 		var config gitsrht.UserWebhookInput
 		config.Url = args[0]
 
-		text, err := getInputWithEditor("hut_query*.graphql", "")
-		if err != nil {
-			log.Fatalf("failed to read webhook query: %v", err)
+		// Disable $EDITOR support when not in interactive terminal
+		if !termfmt.IsTerminal() {
+			stdin = true
 		}
 
-		if text == "" {
+		var query string
+		if stdin {
+			b, err := io.ReadAll(os.Stdin)
+			if err != nil {
+				log.Fatalf("failed to read webhook query: %v", err)
+			}
+			query = string(b)
+		} else {
+			var err error
+			query, err = getInputWithEditor("hut_query*.graphql", "")
+			if err != nil {
+				log.Fatalf("failed to read webhook query: %v", err)
+			}
+		}
+
+		if query == "" {
 			fmt.Println("Aborting due to empty query.")
 			os.Exit(1)
 		}
-		config.Query = text
+		config.Query = query
 
 		whEvents, err := gitsrht.ParseEvents(events)
 		if err != nil {
@@ -575,6 +592,7 @@ func newGitWebhookCreateCommand() *cobra.Command {
 	cmd.Flags().StringSliceVarP(&events, "events", "e", nil, "webhook events")
 	cmd.RegisterFlagCompletionFunc("events", completeEvents)
 	cmd.MarkFlagRequired("events")
+	cmd.Flags().BoolVar(&stdin, "stdin", false, "read webhook query from stdin")
 	return cmd
 }
 

@@ -185,13 +185,17 @@ Options are:
 	List repositories.
 
 *webhook create* <URL> [options...]
-	Create a webhook. Write the query with _$EDITOR_.
+	Create a webhook. When this command is run from a terminal, the query will
+	be read from _$EDITOR_, otherwise it defaults to stdin.
 
 	Options are:
 
 	*-e*, *--events* <strings...>
 		List of events that should trigger the webhook (REPO_CREATED,
 		REPO_UPDATE, REPO_DELETED). Required.
+
+	*--stdin*
+		Read query from _stdin_.
 
 *webhook delete* <ID>
 	Delete a webhook.
