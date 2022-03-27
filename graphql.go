@@ -8,22 +8,38 @@ import (
 	"strings"
 
 	"git.sr.ht/~emersion/gqlclient"
+	"git.sr.ht/~emersion/hut/termfmt"
 	"github.com/spf13/cobra"
 )
 
 func newGraphqlCommand() *cobra.Command {
 	var stringVars []string
+	var stdin bool
 	run := func(cmd *cobra.Command, args []string) {
 		service := args[0]
 
 		ctx := cmd.Context()
 		c := createClient(service, cmd)
 
-		b, err := io.ReadAll(os.Stdin)
-		if err != nil {
-			log.Fatalf("failed to read GraphQL query: %v", err)
+		// Disable $EDITOR support when not in interactive terminal
+		if !termfmt.IsTerminal() {
+			stdin = true
 		}
-		query := string(b)
+
+		var query string
+		if stdin {
+			b, err := io.ReadAll(os.Stdin)
+			if err != nil {
+				log.Fatalf("failed to read GraphQL query: %v", err)
+			}
+			query = string(b)
+		} else {
+			var err error
+			query, err = getInputWithEditor("hut_query*.graphql", "")
+			if err != nil {
+				log.Fatalf("failed to read GraphQL query: %v", err)
+			}
+		}
 
 		op := gqlclient.NewOperation(query)
 
@@ -51,6 +67,7 @@ func newGraphqlCommand() *cobra.Command {
 		Run:               run,
 	}
 	cmd.Flags().StringSliceVarP(&stringVars, "var", "v", nil, "set string variable")
+	cmd.Flags().BoolVar(&stdin, "stdin", false, "read query from stdin")
 	// TODO: JSON and file variables
 	return cmd
 }

@@ -32,9 +32,10 @@ hut is a CLI companion utility to interact with sr.ht.
 	Help about any command.
 
 *graphql* <service>
-	Read a GraphQL query from stdin and execute it. The JSON response is
-	written to stdout. _service_ is the sr.ht service to execute to query on
-	(for instance "meta" or "builds").
+	Write a GraphQL query and execute it. The JSON response is written to
+	stdout. _service_ is the sr.ht service to execute the query on (for instance
+	"meta" or "builds"). When this command is run from a terminal, the query
+	will be read from _$EDITOR_, otherwise it defaults to stdin.
 
 	A tool like *jq*(1) can be used to prettify the output and process the
 	data. Example:
@@ -48,6 +49,9 @@ hut is a CLI companion utility to interact with sr.ht.
 	```
 
 	Options are:
+
+	*--stdin*
+		Read query from _stdin_.
 
 	*-v*, *--var* <key>=<value>
 		Set a raw variable. Example:
