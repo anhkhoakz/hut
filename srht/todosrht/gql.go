@@ -601,6 +601,31 @@ func CompleteTicketIdByOwner(client *gqlclient.Client, ctx context.Context, owne
 	return respData.TrackerByOwner, err
 }
 
+func CompleteTicketAssign(client *gqlclient.Client, ctx context.Context, name string, id int32) (me *User, trackerByName *Tracker, err error) {
+	op := gqlclient.NewOperation("query completeTicketAssign ($name: String!, $id: Int!) {\n\tme {\n\t\tcanonicalName\n\t}\n\ttrackerByName(name: $name) {\n\t\tticket(id: $id) {\n\t\t\tassignees {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t}\n\t\ttickets {\n\t\t\tresults {\n\t\t\t\tassignees {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op.Var("name", name)
+	op.Var("id", id)
+	var respData struct {
+		Me            *User
+		TrackerByName *Tracker
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Me, respData.TrackerByName, err
+}
+
+func CompleteTicketAssignByOwner(client *gqlclient.Client, ctx context.Context, owner string, tracker string, id int32) (me *User, trackerByOwner *Tracker, err error) {
+	op := gqlclient.NewOperation("query completeTicketAssignByOwner ($owner: String!, $tracker: String!, $id: Int!) {\n\tme {\n\t\tcanonicalName\n\t}\n\ttrackerByOwner(owner: $owner, tracker: $tracker) {\n\t\tticket(id: $id) {\n\t\t\tassignees {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t}\n\t\ttickets {\n\t\t\tresults {\n\t\t\t\tassignees {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op.Var("owner", owner)
+	op.Var("tracker", tracker)
+	op.Var("id", id)
+	var respData struct {
+		Me             *User
+		TrackerByOwner *Tracker
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Me, respData.TrackerByOwner, err
+}
+
 func DeleteTracker(client *gqlclient.Client, ctx context.Context, id int32) (deleteTracker *Tracker, err error) {
 	op := gqlclient.NewOperation("mutation deleteTracker ($id: Int!) {\n\tdeleteTracker(id: $id) {\n\t\tname\n\t}\n}\n")
 	op.Var("id", id)

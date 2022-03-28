@@ -163,6 +163,52 @@ fragment completeTicket on Tracker {
     }
 }
 
+query completeTicketAssign($name: String!, $id: Int!) {
+    me {
+        canonicalName
+    }
+
+    trackerByName(name: $name) {
+        ticket(id: $id) {
+            assignees {
+                canonicalName
+            }
+        }
+        tickets {
+            results {
+                assignees {
+                    canonicalName
+                }
+            }
+        }
+    }
+}
+
+query completeTicketAssignByOwner(
+    $owner: String!
+    $tracker: String!
+    $id: Int!
+) {
+    me {
+        canonicalName
+    }
+
+    trackerByOwner(owner: $owner, tracker: $tracker) {
+        ticket(id: $id) {
+            assignees {
+                canonicalName
+            }
+        }
+        tickets {
+            results {
+                assignees {
+                    canonicalName
+                }
+            }
+        }
+    }
+}
+
 mutation deleteTracker($id: Int!) {
     deleteTracker(id: $id) {
         name

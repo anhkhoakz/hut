@@ -499,7 +499,7 @@ func newTodoTicketAssignCommand() *cobra.Command {
 	}
 	cmd.Flags().StringVarP(&userName, "user", "u", "", "username")
 	cmd.MarkFlagRequired("user")
-	cmd.RegisterFlagCompletionFunc("user", cobra.NoFileCompletions)
+	cmd.RegisterFlagCompletionFunc("user", completeTicketAssign)
 	return cmd
 }
 
@@ -931,4 +931,59 @@ func completeTicketUnassign(cmd *cobra.Command, args []string, toComplete string
 	}
 
 	return assignees, cobra.ShellCompDirectiveNoFileComp
+}
+
+func completeTicketAssign(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	if len(args) == 0 {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	ctx := cmd.Context()
+	ticketID, name, owner, instance, err := parseTicketResource(ctx, cmd, args[0])
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	c := createClientWithInstance("todo", cmd, instance)
+
+	var (
+		me      *todosrht.User
+		tracker *todosrht.Tracker
+	)
+
+	if owner != "" {
+		me, tracker, err = todosrht.CompleteTicketAssignByOwner(c.Client, ctx, owner, name, ticketID)
+	} else {
+		me, tracker, err = todosrht.CompleteTicketAssign(c.Client, ctx, name, ticketID)
+	}
+	if err != nil || tracker == nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	candidates := make(map[string]struct{})
+	candidates[me.CanonicalName] = struct{}{}
+
+	for _, ticket := range tracker.Tickets.Results {
+		for _, user := range ticket.Assignees {
+			candidates[user.CanonicalName] = struct{}{}
+		}
+	}
+
+	assignedUsers := make(map[string]struct{})
+	for _, user := range tracker.Ticket.Assignees {
+		assignedUsers[user.CanonicalName] = struct{}{}
+	}
+
+	var potentialAssignees []string
+	for user := range candidates {
+		// user already assigned
+		if _, ok := assignedUsers[user]; ok {
+			continue
+		}
+
+		userName := strings.TrimLeft(user, ownerPrefixes)
+		potentialAssignees = append(potentialAssignees, userName)
+	}
+
+	return potentialAssignees, cobra.ShellCompDirectiveNoFileComp
 }
