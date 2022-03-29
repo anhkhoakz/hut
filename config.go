@@ -176,23 +176,21 @@ func createClientWithInstance(service string, cmd *cobra.Command, instanceName s
 		token = inst.AccessToken
 	}
 
-	hostname := inst.Name
 	baseURL := inst.Origins[service]
 	if baseURL == "" {
-		baseURL = fmt.Sprintf("https://%s.%s", service, hostname)
+		baseURL = fmt.Sprintf("https://%s.%s", service, inst.Name)
 	}
-	return createClientWithToken(hostname, baseURL, token)
+	return createClientWithToken(baseURL, token)
 }
 
-func createClientWithToken(hostname, baseURL, token string) *Client {
+func createClientWithToken(baseURL, token string) *Client {
 	gqlEndpoint := baseURL + "/query"
 	tokenSrc := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
 	httpClient := oauth2.NewClient(context.Background(), tokenSrc)
 	return &Client{
-		Client:   gqlclient.New(gqlEndpoint, httpClient),
-		Hostname: hostname,
-		BaseURL:  baseURL,
-		HTTP:     httpClient,
+		Client:  gqlclient.New(gqlEndpoint, httpClient),
+		BaseURL: baseURL,
+		HTTP:    httpClient,
 	}
 }
 
@@ -265,7 +263,7 @@ func newInitCommand() *cobra.Command {
 
 		config := fmt.Sprintf("instance %q {\n	access-token %q\n}\n", instance, token)
 
-		c := createClientWithToken(instance, baseURL, token)
+		c := createClientWithToken(baseURL, token)
 		user, err := metasrht.FetchMe(c.Client, ctx)
 		if err != nil {
 			log.Fatalf("failed to check OAuth2 token: %v", err)
