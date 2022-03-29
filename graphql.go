@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -11,6 +12,11 @@ import (
 	"git.sr.ht/~emersion/hut/termfmt"
 	"github.com/spf13/cobra"
 )
+
+const graphqlPrefill = `
+# Please write the GraphQL query you want to execute above. The GraphQL schema
+# for %v.sr.ht is available at:
+# %v`
 
 func newGraphqlCommand() *cobra.Command {
 	var stringVars []string
@@ -34,8 +40,10 @@ func newGraphqlCommand() *cobra.Command {
 			}
 			query = string(b)
 		} else {
+			prefill := fmt.Sprintf(graphqlPrefill, service, graphqlSchemaURL(service))
+
 			var err error
-			query, err = getInputWithEditor("hut_query*.graphql", "")
+			query, err = getInputWithEditor("hut_query*.graphql", prefill)
 			if err != nil {
 				log.Fatalf("failed to read GraphQL query: %v", err)
 			}
@@ -78,4 +86,15 @@ func splitKeyValue(kv string) (string, string) {
 		log.Fatalf("in variable definition %q: missing equal sign", kv)
 	}
 	return parts[0], parts[1]
+}
+
+func graphqlSchemaURL(service string) string {
+	var filename string
+	switch service {
+	case "pages":
+		filename = "graph/schema.graphqls"
+	default:
+		filename = "api/graph/schema.graphqls"
+	}
+	return fmt.Sprintf("https://git.sr.ht/~sircmpwn/%v.sr.ht/tree/master/item/%v", service, filename)
 }
