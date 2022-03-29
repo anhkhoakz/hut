@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/spf13/cobra"
 )
@@ -187,4 +188,13 @@ func getInputWithEditor(pattern, initialText string) (string, error) {
 	}
 
 	return string(content), nil
+}
+
+func dropComment(text, comment string) string {
+	// Drop our prefilled comment, but without stripping leading
+	// whitespace
+	text = strings.TrimRightFunc(text, unicode.IsSpace)
+	text = strings.TrimSuffix(text, comment)
+	text = strings.TrimRightFunc(text, unicode.IsSpace)
+	return text
 }

@@ -47,6 +47,13 @@ func newGraphqlCommand() *cobra.Command {
 			if err != nil {
 				log.Fatalf("failed to read GraphQL query: %v", err)
 			}
+
+			query = dropComment(query, prefill)
+		}
+
+		if strings.TrimSpace(query) == "" {
+			fmt.Fprintf(os.Stderr, "Aborting due to empty query")
+			os.Exit(1)
 		}
 
 		op := gqlclient.NewOperation(query)
