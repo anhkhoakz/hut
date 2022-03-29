@@ -626,6 +626,15 @@ func CompleteTicketAssignByOwner(client *gqlclient.Client, ctx context.Context, 
 	return respData.Me, respData.TrackerByOwner, err
 }
 
+func TrackerNames(client *gqlclient.Client, ctx context.Context) (trackers *TrackerCursor, err error) {
+	op := gqlclient.NewOperation("query trackerNames {\n\ttrackers {\n\t\tresults {\n\t\t\tname\n\t\t}\n\t}\n}\n")
+	var respData struct {
+		Trackers *TrackerCursor
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Trackers, err
+}
+
 func DeleteTracker(client *gqlclient.Client, ctx context.Context, id int32) (deleteTracker *Tracker, err error) {
 	op := gqlclient.NewOperation("mutation deleteTracker ($id: Int!) {\n\tdeleteTracker(id: $id) {\n\t\tname\n\t}\n}\n")
 	op.Var("id", id)

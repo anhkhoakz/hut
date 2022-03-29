@@ -209,6 +209,14 @@ query completeTicketAssignByOwner(
     }
 }
 
+query trackerNames {
+    trackers {
+        results {
+            name
+        }
+    }
+}
+
 mutation deleteTracker($id: Int!) {
     deleteTracker(id: $id) {
         name

@@ -28,6 +28,7 @@ func newTodoCommand() *cobra.Command {
 	cmd.AddCommand(newTodoLabelCommand())
 	cmd.AddCommand(newTodoACLCommand())
 	cmd.PersistentFlags().StringP("tracker", "t", "", "name of tracker")
+	cmd.RegisterFlagCompletionFunc("tracker", completeTracker)
 	return cmd
 }
 
@@ -101,7 +102,7 @@ func newTodoDeleteCommand() *cobra.Command {
 		Use:               "delete <tracker>",
 		Short:             "Delete a tracker",
 		Args:              cobra.ExactArgs(1),
-		ValidArgsFunction: completeRepo,
+		ValidArgsFunction: completeTracker,
 		Run:               run,
 	}
 	cmd.Flags().BoolVarP(&autoConfirm, "yes", "y", false, "auto confirm")
@@ -986,4 +987,21 @@ func completeTicketAssign(cmd *cobra.Command, args []string, toComplete string) 
 	}
 
 	return potentialAssignees, cobra.ShellCompDirectiveNoFileComp
+}
+
+func completeTracker(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	ctx := cmd.Context()
+	c := createClient("todo", cmd)
+	var trackerList []string
+
+	trackers, err := todosrht.TrackerNames(c.Client, ctx)
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	for _, tracker := range trackers.Results {
+		trackerList = append(trackerList, tracker.Name)
+	}
+
+	return trackerList, cobra.ShellCompDirectiveNoFileComp
 }
