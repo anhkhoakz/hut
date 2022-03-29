@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/exec"
@@ -177,8 +178,11 @@ func createClientWithInstance(service string, cmd *cobra.Command, instanceName s
 	}
 
 	baseURL := inst.Origins[service]
-	if baseURL == "" {
+	if baseURL == "" && strings.Contains(inst.Name, ".") && net.ParseIP(inst.Name) == nil {
 		baseURL = fmt.Sprintf("https://%s.%s", service, inst.Name)
+	}
+	if baseURL == "" {
+		log.Fatalf("failed to get origin for service %q in instance %q", service, inst.Name)
 	}
 	return createClientWithToken(baseURL, token)
 }
