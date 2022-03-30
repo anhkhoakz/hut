@@ -148,8 +148,8 @@ Options are:
 *artifact list* [options...]
 	List artifacts.
 
-*artifact upload* <filename> [options...]
-	Upload an artifact.
+*artifact upload* <filename...> [options...]
+	Upload artifacts.
 
 	Options are:
 

@@ -209,28 +209,27 @@ func newGitArtifactUploadCommand() *cobra.Command {
 			}
 		}
 
-		filename := args[0]
+		for _, filename := range args {
+			f, err := os.Open(filename)
+			if err != nil {
+				log.Fatalf("failed to open input file: %v", err)
+			}
+			defer f.Close()
 
-		f, err := os.Open(filename)
-		if err != nil {
-			log.Fatalf("failed to open input file: %v", err)
+			file := gqlclient.Upload{Filename: filepath.Base(filename), Body: f}
+			artifact, err := gitsrht.UploadArtifact(c.Client, ctx, repoID, rev, file)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			fmt.Printf("Uploaded %s\n", artifact.Filename)
 		}
-		defer f.Close()
-
-		file := gqlclient.Upload{Filename: filepath.Base(filename), Body: f}
-
-		artifact, err := gitsrht.UploadArtifact(c.Client, ctx, repoID, rev, file)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		fmt.Printf("Uploaded %s\n", artifact.Filename)
 	}
 
 	cmd := &cobra.Command{
-		Use:   "upload <filename>",
-		Short: "Upload an artifact",
-		Args:  cobra.ExactArgs(1),
+		Use:   "upload <filename...>",
+		Short: "Upload artifacts",
+		Args:  cobra.MinimumNArgs(1),
 		Run:   run,
 	}
 	cmd.Flags().StringVar(&rev, "rev", "", "revision tag")
