@@ -24,6 +24,8 @@ For end users, a `Makefile` is provided:
 
 Send patches to the [mailing list], report bugs on the [issue tracker].
 
+Join the IRC channel: [#emersion on Libera Chat].
+
 ## License
 
 AGPLv3 only, see [LICENSE].
@@ -33,4 +35,5 @@ Copyright (C) 2021 Simon Ser
 [hut]: https://sr.ht/~emersion/hut/
 [mailing list]: https://lists.sr.ht/~emersion/hut-dev
 [issue tracker]: https://todo.sr.ht/~emersion/hut
+[#emersion on Libera Chat]: ircs://irc.libera.chat/#emersion
 [LICENSE]: LICENSE
