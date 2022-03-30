@@ -52,7 +52,7 @@ func newGraphqlCommand() *cobra.Command {
 		}
 
 		if strings.TrimSpace(query) == "" {
-			fmt.Fprintf(os.Stderr, "Aborting due to empty query")
+			fmt.Fprintln(os.Stderr, "Aborting due to empty query")
 			os.Exit(1)
 		}
 
