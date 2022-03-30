@@ -80,12 +80,12 @@ func newBuildsSubmitCommand() *cobra.Command {
 
 			if follow {
 				id := job.Id
-				job, err := c.followJob(context.Background(), job.Id)
+				job, err := c.followJob(ctx, job.Id)
 				if err != nil {
 					log.Fatal(err)
 				}
 				if job.Status != buildssrht.JobStatusSuccess {
-					c.offerSSHConnection(context.Background(), id)
+					c.offerSSHConnection(ctx, id)
 				}
 			}
 		}
@@ -150,12 +150,12 @@ func newBuildsResubmitCommand() *cobra.Command {
 
 		if follow {
 			id := job.Id
-			job, err := c.followJob(context.Background(), job.Id)
+			job, err := c.followJob(ctx, job.Id)
 			if err != nil {
 				log.Fatal(err)
 			}
 			if job.Status != buildssrht.JobStatusSuccess {
-				c.offerSSHConnection(context.Background(), id)
+				c.offerSSHConnection(ctx, id)
 			}
 		}
 	}
@@ -242,7 +242,7 @@ func newBuildsShowCommand() *cobra.Command {
 		)
 
 		if follow {
-			job, err = c.followJobShow(context.Background(), id)
+			job, err = c.followJobShow(ctx, id)
 			if err != nil {
 				log.Fatal(err)
 			}

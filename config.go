@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"git.sr.ht/~emersion/go-scfg"
 	"git.sr.ht/~emersion/gqlclient"
@@ -191,6 +192,7 @@ func createClientWithToken(baseURL, token string) *Client {
 	gqlEndpoint := baseURL + "/query"
 	tokenSrc := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
 	httpClient := oauth2.NewClient(context.Background(), tokenSrc)
+	httpClient.Timeout = 30 * time.Second
 	return &Client{
 		Client:  gqlclient.New(gqlEndpoint, httpClient),
 		BaseURL: baseURL,
