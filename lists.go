@@ -240,7 +240,7 @@ func newListsPatchsetListCommand() *cobra.Command {
 		tw := tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
 		defer tw.Flush()
 		for _, patchset := range patches.Results {
-			s := fmt.Sprintf("%s %s\t", termfmt.DarkYellow.Sprintf("#%d", patchset.Id), patchset.Status.TermString())
+			s := fmt.Sprintf("%s\t%s\t", termfmt.DarkYellow.Sprintf("#%d", patchset.Id), patchset.Status.TermString())
 			if patchset.Prefix != nil && *patchset.Prefix != "" {
 				s += fmt.Sprintf("[%s] ", *patchset.Prefix)
 			}
@@ -249,12 +249,13 @@ func newListsPatchsetListCommand() *cobra.Command {
 				s += fmt.Sprintf(" v%d", patchset.Version)
 			}
 
+			created := termfmt.Dim.Sprintf("%s ago", timeDelta(patchset.Created))
+
 			if byUser {
-				s += fmt.Sprintf("\t%s/%s %s ago", patchset.List.Owner.CanonicalName,
-					patchset.List.Name, timeDelta(patchset.Created))
+				s += fmt.Sprintf("\t%s/%s\t%s", patchset.List.Owner.CanonicalName,
+					patchset.List.Name, created)
 			} else {
-				s += fmt.Sprintf("\t%s %s ago", patchset.Submitter.CanonicalName,
-					timeDelta(patchset.Created))
+				s += fmt.Sprintf("\t%s\t%s", patchset.Submitter.CanonicalName, created)
 			}
 			fmt.Fprintln(tw, s)
 		}
