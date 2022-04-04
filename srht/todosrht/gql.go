@@ -580,9 +580,10 @@ func AssigneesByOwner(client *gqlclient.Client, ctx context.Context, owner strin
 	return respData.TrackerByOwner, err
 }
 
-func CompleteTicketId(client *gqlclient.Client, ctx context.Context, name string) (trackerByName *Tracker, err error) {
-	op := gqlclient.NewOperation("query completeTicketId ($name: String!) {\n\ttrackerByName(name: $name) {\n\t\t... completeTicket\n\t}\n}\nfragment completeTicket on Tracker {\n\ttickets {\n\t\tresults {\n\t\t\tid\n\t\t\tsubject\n\t\t}\n\t}\n}\n")
+func CompleteTicketId(client *gqlclient.Client, ctx context.Context, name string, subscription bool) (trackerByName *Tracker, err error) {
+	op := gqlclient.NewOperation("query completeTicketId ($name: String!, $subscription: Boolean!) {\n\ttrackerByName(name: $name) {\n\t\t... completeTicket\n\t}\n}\nfragment completeTicket on Tracker {\n\ttickets {\n\t\tresults {\n\t\t\tid\n\t\t\tsubject\n\t\t\t... on Ticket @include(if: $subscription) {\n\t\t\t\tsubscription {\n\t\t\t\t\tid\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	op.Var("name", name)
+	op.Var("subscription", subscription)
 	var respData struct {
 		TrackerByName *Tracker
 	}
@@ -590,10 +591,11 @@ func CompleteTicketId(client *gqlclient.Client, ctx context.Context, name string
 	return respData.TrackerByName, err
 }
 
-func CompleteTicketIdByOwner(client *gqlclient.Client, ctx context.Context, owner string, tracker string) (trackerByOwner *Tracker, err error) {
-	op := gqlclient.NewOperation("query completeTicketIdByOwner ($owner: String!, $tracker: String!) {\n\ttrackerByOwner(owner: $owner, tracker: $tracker) {\n\t\t... completeTicket\n\t}\n}\nfragment completeTicket on Tracker {\n\ttickets {\n\t\tresults {\n\t\t\tid\n\t\t\tsubject\n\t\t}\n\t}\n}\n")
+func CompleteTicketIdByOwner(client *gqlclient.Client, ctx context.Context, owner string, tracker string, subscription bool) (trackerByOwner *Tracker, err error) {
+	op := gqlclient.NewOperation("query completeTicketIdByOwner ($owner: String!, $tracker: String!, $subscription: Boolean!) {\n\ttrackerByOwner(owner: $owner, tracker: $tracker) {\n\t\t... completeTicket\n\t}\n}\nfragment completeTicket on Tracker {\n\ttickets {\n\t\tresults {\n\t\t\tid\n\t\t\tsubject\n\t\t\t... on Ticket @include(if: $subscription) {\n\t\t\t\tsubscription {\n\t\t\t\t\tid\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	op.Var("owner", owner)
 	op.Var("tracker", tracker)
+	op.Var("subscription", subscription)
 	var respData struct {
 		TrackerByOwner *Tracker
 	}

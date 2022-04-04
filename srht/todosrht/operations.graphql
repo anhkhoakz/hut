@@ -142,13 +142,17 @@ query assigneesByOwner($owner: String!, $tracker: String!, $id: Int!) {
     }
 }
 
-query completeTicketId($name: String!) {
+query completeTicketId($name: String!, $subscription: Boolean!) {
     trackerByName(name: $name) {
         ...completeTicket
     }
 }
 
-query completeTicketIdByOwner($owner: String!, $tracker: String!) {
+query completeTicketIdByOwner(
+    $owner: String!
+    $tracker: String!
+    $subscription: Boolean!
+) {
     trackerByOwner(owner: $owner, tracker: $tracker) {
         ...completeTicket
     }
@@ -159,6 +163,11 @@ fragment completeTicket on Tracker {
         results {
             id
             subject
+            ... on Ticket @include(if: $subscription) {
+                subscription {
+                    id
+                }
+            }
         }
     }
 }

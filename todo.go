@@ -457,7 +457,7 @@ func newTodoTicketUnsubscribeCommand() *cobra.Command {
 		Use:               "unsubscribe <ID>",
 		Short:             "Unsubscribe from a ticket",
 		Args:              cobra.ExactArgs(1),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction: completeTicketID,
 		Run:               run,
 	}
 	return cmd
@@ -876,16 +876,27 @@ func completeTicketID(cmd *cobra.Command, args []string, toComplete string) ([]s
 		tracker *todosrht.Tracker
 	)
 
+	includeSubscription := false
+	if cmd.Name() == "subscribe" || cmd.Name() == "unsubscribe" {
+		includeSubscription = true
+	}
+
 	if owner != "" {
-		tracker, err = todosrht.CompleteTicketIdByOwner(c.Client, ctx, owner, name)
+		tracker, err = todosrht.CompleteTicketIdByOwner(c.Client, ctx, owner, name, includeSubscription)
 	} else {
-		tracker, err = todosrht.CompleteTicketId(c.Client, ctx, name)
+		tracker, err = todosrht.CompleteTicketId(c.Client, ctx, name, includeSubscription)
 	}
 	if err != nil || tracker == nil {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
 	for _, ticket := range tracker.Tickets.Results {
+		if cmd.Name() == "subscribe" && ticket.Subscription != nil {
+			continue
+		} else if cmd.Name() == "unsubscribe" && ticket.Subscription == nil {
+			continue
+		}
+
 		s := fmt.Sprintf("%d\t%s", ticket.Id, ticket.Subject)
 		tickets = append(tickets, s)
 	}
