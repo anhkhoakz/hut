@@ -464,7 +464,7 @@ func fetchJobLogs(ctx context.Context, l *buildLog, job *buildssrht.Job) error {
 	return nil
 }
 
-func fetchTaskLogs(ctx context.Context, l *buildLog, task *buildssrht.Task) error {
+func fetchTaskLogs(ctx context.Context, l *buildLog, task buildssrht.Task) error {
 	switch task.Status {
 	case buildssrht.TaskStatusPending:
 		return nil
@@ -561,13 +561,13 @@ func indent(s, prefix string) string {
 func formatJobTags(job *buildssrht.Job) string {
 	var s string
 	for i, tag := range job.Tags {
-		if tag == nil || *tag == "" {
+		if tag == "" {
 			break
 		}
 		if i > 0 {
 			s += "/"
 		}
-		s += *tag
+		s += tag
 	}
 	return s
 }
