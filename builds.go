@@ -103,6 +103,7 @@ func newBuildsSubmitCommand() *cobra.Command {
 	}
 	cmd.Flags().BoolVarP(&follow, "follow", "f", false, "follow build logs")
 	cmd.Flags().StringVarP(&note, "note", "n", "", "short job description")
+	cmd.RegisterFlagCompletionFunc("note", cobra.NoFileCompletions)
 	cmd.Flags().StringVarP(&tagString, "tags", "t", "", "job tags (slash separated)")
 	cmd.RegisterFlagCompletionFunc("tags", cobra.NoFileCompletions)
 	return cmd
@@ -174,6 +175,7 @@ func newBuildsResubmitCommand() *cobra.Command {
 	cmd.Flags().BoolVarP(&follow, "follow", "f", false, "follow build logs")
 	cmd.Flags().BoolVarP(&edit, "edit", "e", false, "edit manifest")
 	cmd.Flags().StringVarP(&note, "note", "n", "", "short job description")
+	cmd.RegisterFlagCompletionFunc("note", cobra.NoFileCompletions)
 	return cmd
 }
 
@@ -321,6 +323,7 @@ func newBuildsListCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List jobs",
+		Args:  cobra.ExactArgs(0),
 		Run:   run,
 	}
 	return cmd
@@ -401,6 +404,7 @@ func newBuildsSecretsCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "secrets",
 		Short: "List secrets",
+		Args:  cobra.ExactArgs(0),
 		Run:   run,
 	}
 	return cmd
