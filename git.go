@@ -815,5 +815,13 @@ func completeArtifacts(cmd *cobra.Command, args []string, toComplete string) ([]
 }
 
 func completeEvents(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	return []string{"repo_created", "repo_update", "repo_deleted"}, cobra.ShellCompDirectiveNoFileComp
+	var eventList []string
+	events := [3]string{"repo_created", "repo_update", "repo_deleted"}
+	set := strings.ToLower(cmd.Flag("events").Value.String())
+	for _, event := range events {
+		if !strings.Contains(set, event) {
+			eventList = append(eventList, event)
+		}
+	}
+	return eventList, cobra.ShellCompDirectiveNoFileComp
 }
