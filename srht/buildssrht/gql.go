@@ -70,20 +70,20 @@ type Job struct {
 	Status   JobStatus `json:"status"`
 	Manifest string    `json:"manifest"`
 	Note     *string   `json:"note,omitempty"`
-	Tags     []*string `json:"tags"`
+	Tags     []string  `json:"tags"`
 	// Name of the build image
 	Image string `json:"image"`
 	// Name of the build runner which picked up this job, or null if the job is
 	// pending or queued.
-	Runner    *string     `json:"runner,omitempty"`
-	Owner     *Entity     `json:"owner"`
-	Group     *JobGroup   `json:"group,omitempty"`
-	Tasks     []*Task     `json:"tasks"`
-	Artifacts []*Artifact `json:"artifacts"`
+	Runner    *string    `json:"runner,omitempty"`
+	Owner     *Entity    `json:"owner"`
+	Group     *JobGroup  `json:"group,omitempty"`
+	Tasks     []Task     `json:"tasks"`
+	Artifacts []Artifact `json:"artifacts"`
 	// The job's top-level log file, not associated with any tasks
 	Log *Log `json:"log,omitempty"`
 	// List of secrets available to this job, or null if they were disabled
-	Secrets []*Secret `json:"secrets,omitempty"`
+	Secrets []Secret `json:"secrets,omitempty"`
 }
 
 // A cursor for enumerating a list of jobs
@@ -97,12 +97,12 @@ type JobCursor struct {
 }
 
 type JobGroup struct {
-	Id       int32      `json:"id"`
-	Created  time.Time  `json:"created"`
-	Note     *string    `json:"note,omitempty"`
-	Owner    *Entity    `json:"owner"`
-	Jobs     []*Job     `json:"jobs"`
-	Triggers []*Trigger `json:"triggers"`
+	Id       int32     `json:"id"`
+	Created  time.Time `json:"created"`
+	Note     *string   `json:"note,omitempty"`
+	Owner    *Entity   `json:"owner"`
+	Jobs     []Job     `json:"jobs"`
+	Triggers []Trigger `json:"triggers"`
 }
 
 type JobStatus string
