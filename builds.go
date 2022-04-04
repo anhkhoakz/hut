@@ -37,7 +37,7 @@ func newBuildsCommand() *cobra.Command {
 
 func newBuildsSubmitCommand() *cobra.Command {
 	var follow bool
-	var note string
+	var note, tagString string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("builds", cmd)
@@ -71,7 +71,9 @@ func newBuildsSubmitCommand() *cobra.Command {
 				log.Fatalf("failed to read manifest from %q: %v", name, err)
 			}
 
-			job, err := buildssrht.Submit(c.Client, ctx, string(b), &note)
+			tags := strings.Split(tagString, "/")
+
+			job, err := buildssrht.Submit(c.Client, ctx, string(b), tags, &note)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -101,6 +103,8 @@ func newBuildsSubmitCommand() *cobra.Command {
 	}
 	cmd.Flags().BoolVarP(&follow, "follow", "f", false, "follow build logs")
 	cmd.Flags().StringVarP(&note, "note", "n", "", "short job description")
+	cmd.Flags().StringVarP(&tagString, "tags", "t", "", "job tags (slash separated)")
+	cmd.RegisterFlagCompletionFunc("tags", cobra.NoFileCompletions)
 	return cmd
 }
 
@@ -141,7 +145,7 @@ func newBuildsResubmitCommand() *cobra.Command {
 			}
 		}
 
-		job, err := buildssrht.Submit(c.Client, ctx, oldJob.Manifest, &note)
+		job, err := buildssrht.Submit(c.Client, ctx, oldJob.Manifest, nil, &note)
 		if err != nil {
 			log.Fatal(err)
 		}

@@ -91,6 +91,9 @@ hut is a CLI companion utility to interact with sr.ht.
 	*-n*, *--note* <string>
 		Provide a short job description.
 
+	*-t*, *--tags* <string>
+		Slash separated tags (e.g. "hut/test").
+
 *secrets*
 	List secrets.
 

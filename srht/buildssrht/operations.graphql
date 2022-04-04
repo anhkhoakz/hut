@@ -1,8 +1,10 @@
-mutation submit($manifest: String!, $note: String) {
-	submit(manifest: $manifest, note: $note) {
-		id
-		owner { canonicalName }
-	}
+mutation submit($manifest: String!, $tags: [String!], $note: String) {
+    submit(manifest: $manifest, tags: $tags, note: $note) {
+        id
+        owner {
+            canonicalName
+        }
+    }
 }
 
 mutation cancel($jobId: Int!) {
