@@ -184,6 +184,9 @@ Options are:
 *list* [owner]
 	List repositories.
 
+*show* [repo]
+	Display information about a repository.
+
 *webhook create* <URL> [options...]
 	Create a webhook. When this command is run from a terminal, the query will
 	be read from _$EDITOR_, otherwise it defaults to stdin.
