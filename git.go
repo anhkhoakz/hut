@@ -98,6 +98,7 @@ func newGitCreateCommand() *cobra.Command {
 	cmd.RegisterFlagCompletionFunc("description", cobra.NoFileCompletions)
 	cmd.Flags().BoolVarP(&clone, "clone", "c", false, "autoclone repo")
 	cmd.Flags().StringVar(&importURL, "import-url", "", "import repo from given URL")
+	cmd.RegisterFlagCompletionFunc("import-url", cobra.NoFileCompletions)
 	return cmd
 }
 
@@ -136,10 +137,11 @@ func newGitListCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:   "list [user]",
-		Short: "List repos",
-		Args:  cobra.MaximumNArgs(1),
-		Run:   run,
+		Use:               "list [user]",
+		Short:             "List repos",
+		Args:              cobra.MaximumNArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
 	}
 	return cmd
 }
