@@ -169,7 +169,7 @@ func newBuildsResubmitCommand() *cobra.Command {
 		Use:               "resubmit <ID>",
 		Short:             "Resubmit a build",
 		Args:              cobra.ExactArgs(1),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction: completeAnyJobs,
 		Run:               run,
 	}
 	cmd.Flags().BoolVarP(&follow, "follow", "f", false, "follow build logs")
@@ -298,7 +298,7 @@ func newBuildsShowCommand() *cobra.Command {
 		Use:               "show [ID]",
 		Short:             "Show job status",
 		Args:              cobra.MaximumNArgs(1),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction: completeAnyJobs,
 		Run:               run,
 	}
 	cmd.Flags().BoolVarP(&follow, "follow", "f", false, "follow job status")
@@ -628,6 +628,14 @@ func (c *Client) followJobShow(ctx context.Context, id int32) (*buildssrht.Job, 
 }
 
 func completeRunningJobs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return completeJobs(cmd, true)
+}
+
+func completeAnyJobs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return completeJobs(cmd, false)
+}
+
+func completeJobs(cmd *cobra.Command, onlyRunning bool) ([]string, cobra.ShellCompDirective) {
 	ctx := cmd.Context()
 	c := createClient("builds", cmd)
 	var jobList []string
@@ -639,7 +647,7 @@ func completeRunningJobs(cmd *cobra.Command, args []string, toComplete string) (
 
 	for _, job := range jobs.Results {
 		// TODO: filter with API
-		if jobStatusDone(job.Status) {
+		if onlyRunning && jobStatusDone(job.Status) {
 			continue
 		}
 
