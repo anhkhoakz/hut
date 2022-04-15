@@ -2,7 +2,7 @@
 
 [![builds.sr.ht status](https://builds.sr.ht/~emersion/hut/commits.svg)](https://builds.sr.ht/~emersion/hut/commits?)
 
-A CLI tool for sr.ht.
+A CLI tool for [sr.ht].
 
 ## Usage
 
@@ -33,6 +33,7 @@ AGPLv3 only, see [LICENSE].
 Copyright (C) 2021 Simon Ser
 
 [hut]: https://sr.ht/~emersion/hut/
+[sr.ht]: https://sr.ht/~sircmpwn/sourcehut/
 [mailing list]: https://lists.sr.ht/~emersion/hut-dev
 [issue tracker]: https://todo.sr.ht/~emersion/hut
 [#emersion on Libera Chat]: ircs://irc.libera.chat/#emersion
