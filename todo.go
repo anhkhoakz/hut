@@ -117,7 +117,11 @@ func newTodoSubscribeCommand() *cobra.Command {
 		if len(args) > 0 {
 			name, owner, instance = parseResourceName(args[0])
 		} else {
-			name, owner, instance = getTrackerName(ctx, cmd)
+			var err error
+			name, owner, instance, err = getTrackerName(ctx, cmd)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 		c := createClientWithInstance("todo", cmd, instance)
 		id := getTrackerID(c, ctx, name, owner)
@@ -150,7 +154,11 @@ func newTodoUnsubscribeCommand() *cobra.Command {
 		if len(args) > 0 {
 			name, owner, instance = parseResourceName(args[0])
 		} else {
-			name, owner, instance = getTrackerName(ctx, cmd)
+			var err error
+			name, owner, instance, err = getTrackerName(ctx, cmd)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 		c := createClientWithInstance("todo", cmd, instance)
 		id := getTrackerID(c, ctx, name, owner)
@@ -194,13 +202,13 @@ func newTodoTicketListCommand() *cobra.Command {
 	// TODO: Filter by ticket status
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		name, owner, instance := getTrackerName(ctx, cmd)
-		c := createClientWithInstance("todo", cmd, instance)
+		name, owner, instance, err := getTrackerName(ctx, cmd)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-		var (
-			tracker *todosrht.Tracker
-			err     error
-		)
+		c := createClientWithInstance("todo", cmd, instance)
+		var tracker *todosrht.Tracker
 
 		if owner != "" {
 			tracker, err = todosrht.TicketsByOwner(c.Client, ctx, owner, name)
@@ -563,13 +571,13 @@ func newTodoLabelCommand() *cobra.Command {
 func newTodoLabelListCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		name, owner, instance := getTrackerName(ctx, cmd)
-		c := createClientWithInstance("todo", cmd, instance)
+		name, owner, instance, err := getTrackerName(ctx, cmd)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-		var (
-			tracker *todosrht.Tracker
-			err     error
-		)
+		c := createClientWithInstance("todo", cmd, instance)
+		var tracker *todosrht.Tracker
 
 		if owner != "" {
 			tracker, err = todosrht.LabelsByOwner(c.Client, ctx, owner, name)
@@ -600,7 +608,11 @@ func newTodoLabelListCommand() *cobra.Command {
 func newTodoLabelDeleteCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		_, _, instance := getTrackerName(ctx, cmd)
+		_, _, instance, err := getTrackerName(ctx, cmd)
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		c := createClientWithInstance("todo", cmd, instance)
 
 		id, err := parseInt32(args[0])
@@ -632,9 +644,12 @@ func newTodoLabelCreateCommand() *cobra.Command {
 	var fg, bg string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		name, owner, instance := getTrackerName(ctx, cmd)
-		c := createClientWithInstance("todo", cmd, instance)
+		name, owner, instance, err := getTrackerName(ctx, cmd)
+		if err != nil {
+			log.Fatal(err)
+		}
 
+		c := createClientWithInstance("todo", cmd, instance)
 		id := getTrackerID(c, ctx, name, owner)
 
 		if fg == "" {
@@ -684,7 +699,11 @@ func newTodoACLListCommand() *cobra.Command {
 			// TODO: handle owner
 			name, _, instance = parseResourceName(args[0])
 		} else {
-			name, _, instance = getTrackerName(ctx, cmd)
+			var err error
+			name, _, instance, err = getTrackerName(ctx, cmd)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 
 		c := createClientWithInstance("todo", cmd, instance)
@@ -771,20 +790,22 @@ func getTrackerID(c *Client, ctx context.Context, name, owner string) int32 {
 	return tracker.Id
 }
 
-func getTrackerName(ctx context.Context, cmd *cobra.Command) (name, owner, instance string) {
-	if s, err := cmd.Flags().GetString("tracker"); err != nil {
-		log.Fatal(err)
+func getTrackerName(ctx context.Context, cmd *cobra.Command) (name, owner, instance string, err error) {
+	s, err := cmd.Flags().GetString("tracker")
+	if err != nil {
+		return "", "", "", err
 	} else if s != "" {
-		return parseResourceName(s)
+		name, owner, instance = parseResourceName(s)
+		return name, owner, instance, nil
 	}
 
 	// TODO: Use hub.sr.ht API to determine trackers
-	name, owner, instance, err := guessGitRepoName(ctx)
+	name, owner, instance, err = guessGitRepoName(ctx)
 	if err != nil {
-		log.Fatal(err)
+		return "", "", "", err
 	}
 
-	return name, owner, instance
+	return name, owner, instance, nil
 }
 
 func parseTicketResource(ctx context.Context, cmd *cobra.Command, ticket string) (ticketID int32, name, owner, instance string, err error) {
@@ -808,7 +829,10 @@ func parseTicketResource(ctx context.Context, cmd *cobra.Command, ticket string)
 		if err != nil {
 			return 0, "", "", "", err
 		}
-		name, owner, instance = getTrackerName(ctx, cmd)
+		name, owner, instance, err = getTrackerName(ctx, cmd)
+		if err != nil {
+			return 0, "", "", "", err
+		}
 	}
 
 	return ticketID, name, owner, instance, nil
@@ -867,14 +891,14 @@ func completeTicketID(cmd *cobra.Command, args []string, toComplete string) ([]s
 	var tickets []string
 	ctx := cmd.Context()
 
-	// TODO: handle error
-	name, owner, instance := getTrackerName(ctx, cmd)
+	name, owner, instance, err := getTrackerName(ctx, cmd)
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
 	c := createClientWithInstance("todo", cmd, instance)
 
-	var (
-		err     error
-		tracker *todosrht.Tracker
-	)
+	var tracker *todosrht.Tracker
 
 	includeSubscription := false
 	if cmd.Name() == "subscribe" || cmd.Name() == "unsubscribe" {
