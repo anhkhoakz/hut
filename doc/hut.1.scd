@@ -385,6 +385,17 @@ Options are:
 *acl list* [tracker]
 	List ACL entries of a tracker.
 
+*create* <name> [options...]
+	Create a tracker.
+
+	Options are:
+
+	*--stdin*
+		Read description from _stdin_.
+
+	*-v*, *--visibility* <string>
+		Visibility to use (public, unlisted, private). Defaults to unlisted.
+
 *delete* <tracker> [options...]
 	Delete a tracker.
 

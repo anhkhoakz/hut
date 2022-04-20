@@ -769,3 +769,15 @@ func UnassignUser(client *gqlclient.Client, ctx context.Context, trackerId int32
 	err = client.Execute(ctx, op, &respData)
 	return respData.UnassignUser, err
 }
+
+func CreateTracker(client *gqlclient.Client, ctx context.Context, name string, description *string, visibility Visibility) (createTracker *Tracker, err error) {
+	op := gqlclient.NewOperation("mutation createTracker ($name: String!, $description: String, $visibility: Visibility!) {\n\tcreateTracker(name: $name, description: $description, visibility: $visibility) {\n\t\tname\n\t}\n}\n")
+	op.Var("name", name)
+	op.Var("description", description)
+	op.Var("visibility", visibility)
+	var respData struct {
+		CreateTracker *Tracker
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.CreateTracker, err
+}

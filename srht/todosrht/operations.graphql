@@ -349,3 +349,17 @@ mutation unassignUser($trackerId: Int!, $ticketId: Int!, $userId: Int!) {
         }
     }
 }
+
+mutation createTracker(
+    $name: String!
+    $description: String
+    $visibility: Visibility!
+) {
+    createTracker(
+        name: $name
+        description: $description
+        visibility: $visibility
+    ) {
+        name
+    }
+}

@@ -24,6 +24,7 @@ func newTodoCommand() *cobra.Command {
 	cmd.AddCommand(newTodoDeleteCommand())
 	cmd.AddCommand(newTodoSubscribeCommand())
 	cmd.AddCommand(newTodoUnsubscribeCommand())
+	cmd.AddCommand(newTodoCreateCommand())
 	cmd.AddCommand(newTodoTicketCommand())
 	cmd.AddCommand(newTodoLabelCommand())
 	cmd.AddCommand(newTodoACLCommand())
@@ -180,6 +181,65 @@ func newTodoUnsubscribeCommand() *cobra.Command {
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
+	return cmd
+}
+
+const todoCreatePrefill = `
+<!--
+Please write the Markdown description of the new tracker above.
+-->`
+
+func newTodoCreateCommand() *cobra.Command {
+	var visibility string
+	var stdin bool
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("todo", cmd)
+
+		todoVisibility, err := todosrht.ParseVisibility(visibility)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		var description *string
+
+		if stdin {
+			b, err := io.ReadAll(os.Stdin)
+			if err != nil {
+				log.Fatalf("failed to read tracker description: %v", err)
+			}
+
+			desc := string(b)
+			description = &desc
+		} else {
+			text, err := getInputWithEditor("hut_tracker*.md", todoCreatePrefill)
+			if err != nil {
+				log.Fatalf("failed to read description: %v", err)
+			}
+
+			text = dropComment(text, todoCreatePrefill)
+			description = &text
+		}
+
+		tracker, err := todosrht.CreateTracker(c.Client, ctx, args[0], description, todoVisibility)
+		if err != nil {
+			log.Fatal(err)
+		} else if tracker == nil {
+			log.Fatal("failed to create tracker")
+		}
+
+		fmt.Printf("Created tracker %q\n", tracker.Name)
+	}
+	cmd := &cobra.Command{
+		Use:               "create <name>",
+		Short:             "Create a tracker",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	cmd.Flags().StringVarP(&visibility, "visibility", "v", "unlisted", "tracker visibility")
+	cmd.RegisterFlagCompletionFunc("visibility", completeVisibility)
+	cmd.Flags().BoolVar(&stdin, "stdin", false, "read tracker from stdin")
 	return cmd
 }
 

@@ -45,6 +45,19 @@ func (label Label) TermString() string {
 	return termfmt.HexString(fmt.Sprintf(" %s ", label.Name), label.ForegroundColor, label.BackgroundColor)
 }
 
+func ParseVisibility(s string) (Visibility, error) {
+	switch strings.ToLower(s) {
+	case "unlisted":
+		return VisibilityUnlisted, nil
+	case "private":
+		return VisibilityPrivate, nil
+	case "public":
+		return VisibilityPublic, nil
+	default:
+		return "", fmt.Errorf("invalid visibility: %s", s)
+	}
+}
+
 func ParseTicketStatus(s string) (TicketStatus, error) {
 	switch strings.ToLower(s) {
 	case "reported":
