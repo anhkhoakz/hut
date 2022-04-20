@@ -208,3 +208,9 @@ mutation deleteACL($id: Int!) {
         }
     }
 }
+
+mutation createMailingList($name: String!, $description: String) {
+    createMailingList(name: $name, description: $description) {
+        name
+    }
+}

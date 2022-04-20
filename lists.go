@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/mail"
 	"os"
@@ -28,6 +29,7 @@ func newListsCommand() *cobra.Command {
 	cmd.AddCommand(newListsListCommand())
 	cmd.AddCommand(newListsSubscribeCommand())
 	cmd.AddCommand(newListsUnsubscribeCommand())
+	cmd.AddCommand(newListsCreateCommand())
 	cmd.AddCommand(newListsPatchsetCommand())
 	cmd.AddCommand(newListsACLCommand())
 	cmd.PersistentFlags().StringP("mailing-list", "l", "", "mailing list name")
@@ -174,6 +176,57 @@ func newListsUnsubscribeCommand() *cobra.Command {
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
+	return cmd
+}
+
+const listsCreatePrefill = `
+<!--
+Please write the Markdown description of the new mailing list above.
+-->`
+
+func newListsCreateCommand() *cobra.Command {
+	var stdin bool
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("lists", cmd)
+
+		var description *string
+
+		if stdin {
+			b, err := ioutil.ReadAll(os.Stdin)
+			if err != nil {
+				log.Fatalf("failed to read mailing list description: %v", err)
+			}
+
+			desc := string(b)
+			description = &desc
+		} else {
+			text, err := getInputWithEditor("hut_mailing-list*.md", listsCreatePrefill)
+			if err != nil {
+				log.Fatalf("failed to read mailing list description: %v", err)
+			}
+
+			text = dropComment(text, listsCreatePrefill)
+			description = &text
+		}
+
+		tracker, err := listssrht.CreateMailingList(c.Client, ctx, args[0], description)
+		if err != nil {
+			log.Fatal(err)
+		} else if tracker == nil {
+			log.Fatal("failed to create mailing list")
+		}
+
+		fmt.Printf("Created mailing list %q\n", tracker.Name)
+	}
+	cmd := &cobra.Command{
+		Use:               "create <name>",
+		Short:             "Create a mailing list",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	cmd.Flags().BoolVar(&stdin, "stdin", false, "read mailing list from stdin")
 	return cmd
 }
 

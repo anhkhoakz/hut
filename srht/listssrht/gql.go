@@ -520,3 +520,14 @@ func DeleteACL(client *gqlclient.Client, ctx context.Context, id int32) (deleteA
 	err = client.Execute(ctx, op, &respData)
 	return respData.DeleteACL, err
 }
+
+func CreateMailingList(client *gqlclient.Client, ctx context.Context, name string, description *string) (createMailingList *MailingList, err error) {
+	op := gqlclient.NewOperation("mutation createMailingList ($name: String!, $description: String) {\n\tcreateMailingList(name: $name, description: $description) {\n\t\tname\n\t}\n}\n")
+	op.Var("name", name)
+	op.Var("description", description)
+	var respData struct {
+		CreateMailingList *MailingList
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.CreateMailingList, err
+}

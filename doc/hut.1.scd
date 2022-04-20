@@ -230,6 +230,14 @@ Options are:
 *acl list* [list]
 	List ACL entries of a mailing list.
 
+*create* <name> [options...]
+	Create a mailing list.
+
+	Options are:
+
+	*--stdin*
+		Read description from _stdin_.
+
 *delete* [list] [options...]
 	Delete a mailing list.
 
