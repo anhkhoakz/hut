@@ -211,6 +211,17 @@ Options are:
 
 ## hg
 
+*create* <name> [options...]
+	Create a repository.
+
+	Options are:
+
+	*-d*, *--description* <string>
+		Description of the repository.
+
+	*-v*, *--visibility* <string>
+		Visibility to use (public, unlisted, private). Defaults to unlisted.
+
 *list* [owner]
 	List repositories.
 

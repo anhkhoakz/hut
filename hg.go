@@ -16,6 +16,7 @@ func newHgCommand() *cobra.Command {
 		Short: "Use the hg API",
 	}
 	cmd.AddCommand(newHgListCommand())
+	cmd.AddCommand(newHgCreateCommand())
 	return cmd
 }
 
@@ -58,5 +59,40 @@ func newHgListCommand() *cobra.Command {
 		Args:  cobra.MaximumNArgs(1),
 		Run:   run,
 	}
+	return cmd
+}
+
+func newHgCreateCommand() *cobra.Command {
+	var visibility, desc string
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("hg", cmd)
+
+		hgVisibility, err := hgsrht.ParseVisibility(visibility)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		repo, err := hgsrht.CreateRepository(c.Client, ctx, args[0], hgVisibility, desc)
+		if err != nil {
+			log.Fatal(err)
+		} else if repo == nil {
+			log.Fatal("failed to create repository")
+		}
+
+		fmt.Printf("Created repository %s\n", repo.Name)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "create <name>",
+		Short:             "Create a repository",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	cmd.Flags().StringVarP(&visibility, "visibility", "v", "unlisted", "repo visibility")
+	cmd.RegisterFlagCompletionFunc("visibility", completeVisibility)
+	cmd.Flags().StringVarP(&desc, "description", "d", "", "repo description")
+	cmd.RegisterFlagCompletionFunc("description", cobra.NoFileCompletions)
 	return cmd
 }
