@@ -155,7 +155,11 @@ func newGitDeleteCommand() *cobra.Command {
 		if len(args) > 0 {
 			name, owner, instance = parseResourceName(args[0])
 		} else {
-			name, owner, instance = getRepoName(ctx, cmd)
+			var err error
+			name, owner, instance, err = getRepoName(ctx, cmd)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 
 		c := createClientWithInstance("git", cmd, instance)
@@ -199,7 +203,11 @@ func newGitArtifactUploadCommand() *cobra.Command {
 	var rev string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		repoName, owner, instance := getRepoName(ctx, cmd)
+		repoName, owner, instance, err := getRepoName(ctx, cmd)
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		c := createClientWithInstance("git", cmd, instance)
 		repoID := getRepoID(c, ctx, repoName, owner)
 
@@ -244,11 +252,14 @@ func newGitArtifactListCommand() *cobra.Command {
 
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		repoName, owner, instance := getRepoName(ctx, cmd)
+		repoName, owner, instance, err := getRepoName(ctx, cmd)
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		c := createClientWithInstance("git", cmd, instance)
 
 		var (
-			err      error
 			username string
 			user     *gitsrht.User
 		)
@@ -337,7 +348,11 @@ func newGitACLListCommand() *cobra.Command {
 			// TODO: handle owner
 			name, _, instance = parseResourceName(args[0])
 		} else {
-			name, _, instance = getRepoName(ctx, cmd)
+			var err error
+			name, _, instance, err = getRepoName(ctx, cmd)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 
 		c := createClientWithInstance("git", cmd, instance)
@@ -385,7 +400,11 @@ func newGitACLUpdateCommand() *cobra.Command {
 			log.Fatal("user must be in canonical form")
 		}
 
-		name, owner, instance := getRepoName(ctx, cmd)
+		name, owner, instance, err := getRepoName(ctx, cmd)
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		c := createClientWithInstance("git", cmd, instance)
 		id := getRepoID(c, ctx, name, owner)
 
@@ -448,7 +467,11 @@ func newGitShowCommand() *cobra.Command {
 		if len(args) > 0 {
 			name, owner, instance = parseResourceName(args[0])
 		} else {
-			name, owner, instance = getRepoName(ctx, cmd)
+			var err error
+			name, owner, instance, err = getRepoName(ctx, cmd)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 
 		c := createClientWithInstance("git", cmd, instance)
@@ -659,20 +682,21 @@ func newGitWebhookDeleteCommand() *cobra.Command {
 	return cmd
 }
 
-func getRepoName(ctx context.Context, cmd *cobra.Command) (repoName, owner, instance string) {
-	if repoName, err := cmd.Flags().GetString("repo"); err != nil {
-		log.Fatal(err)
+func getRepoName(ctx context.Context, cmd *cobra.Command) (repoName, owner, instance string, err error) {
+	repoName, err = cmd.Flags().GetString("repo")
+	if err != nil {
+		return "", "", "", err
 	} else if repoName != "" {
 		repoName, owner, instance = parseResourceName(repoName)
-		return repoName, owner, instance
+		return repoName, owner, instance, nil
 	}
 
-	repoName, owner, instance, err := guessGitRepoName(ctx)
+	repoName, owner, instance, err = guessGitRepoName(ctx)
 	if err != nil {
-		log.Fatal(err)
+		return "", "", "", err
 	}
 
-	return repoName, owner, instance
+	return repoName, owner, instance, nil
 }
 
 func guessGitRepoName(ctx context.Context) (repoName, owner, instance string, err error) {
@@ -797,7 +821,11 @@ func completeAccessMode(cmd *cobra.Command, args []string, toComplete string) ([
 
 func completeArtifacts(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	ctx := cmd.Context()
-	repoName, _, instance := getRepoName(ctx, cmd)
+	repoName, _, instance, err := getRepoName(ctx, cmd)
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
 	c := createClientWithInstance("git", cmd, instance)
 	var artifactList []string
 
