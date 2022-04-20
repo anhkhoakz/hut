@@ -36,7 +36,7 @@ clean:
 	$(RM) -f hut doc/hut.1 hut.bash hut.zsh hut.fish
 
 install:
-	$(INSTALL) -dp \
+	$(INSTALL) -d \
 		$(DESTDIR)$(PREFIX)/$(BINDIR)/ \
 		$(DESTDIR)$(PREFIX)/$(MANDIR)/man1/ \
 		$(DESTDIR)$(BASHCOMPDIR) \
