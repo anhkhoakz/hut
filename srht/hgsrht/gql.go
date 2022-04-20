@@ -16,6 +16,11 @@ type ACL struct {
 	Mode       *AccessMode `json:"mode,omitempty"`
 }
 
+// A cursor for enumerating access control list entries
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
 type ACLCursor struct {
 	Results []*ACL  `json:"results"`
 	Cursor  *Cursor `json:"cursor,omitempty"`
@@ -31,7 +36,9 @@ const (
 type AccessMode string
 
 const (
+	// Read-only
 	AccessModeRo AccessMode = "RO"
+	// Read/write
 	AccessModeRw AccessMode = "RW"
 )
 
@@ -47,13 +54,19 @@ const (
 type Cursor string
 
 type Entity struct {
-	Id            int32             `json:"id"`
-	Created       time.Time         `json:"created"`
-	Updated       time.Time         `json:"updated"`
-	CanonicalName string            `json:"canonicalName"`
-	Repositories  *RepositoryCursor `json:"repositories"`
+	Id      int32     `json:"id"`
+	Created time.Time `json:"created"`
+	Updated time.Time `json:"updated"`
+	// The canonical name of this entity. For users, this is their username
+	// prefixed with '~'. Additional entity types will be supported in the future.
+	CanonicalName string `json:"canonicalName"`
+	// Returns a specific repository owned by the entity.
+	Repository *Repository `json:"repository,omitempty"`
+	// Returns a list of repositories owned by the entity.
+	Repositories *RepositoryCursor `json:"repositories"`
 }
 
+// Describes the status of optional features
 type Features struct {
 	Artifacts bool `json:"artifacts"`
 }
@@ -63,40 +76,85 @@ type NamedRevision struct {
 	Id   string `json:"id"`
 }
 
+// A cursor for enumerating bookmarks, tags, and branches
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
 type NamedRevisionCursor struct {
 	Results []*NamedRevision `json:"results"`
 	Cursor  *Cursor          `json:"cursor,omitempty"`
 }
 
+type OAuthClient struct {
+	Uuid string `json:"uuid"`
+}
+
 type RepoInput struct {
+	// Omit these fields to leave them unchanged, or set them to null to clear
+	// their value.
 	Name        *string     `json:"name,omitempty"`
 	Description *string     `json:"description,omitempty"`
 	Visibility  *Visibility `json:"visibility,omitempty"`
-	Readme      *string     `json:"readme,omitempty"`
+	// Updates the custom README associated with this repository. Note that the
+	// provided HTML will be sanitized when displayed on the web; see
+	// https://man.sr.ht/markdown/#post-processing
+	Readme *string `json:"readme,omitempty"`
+	// Controls whether this repository is a non-publishing repository.
+	NonPublishing *bool `json:"nonPublishing,omitempty"`
 }
 
 type Repository struct {
-	Id                int32                `json:"id"`
-	Created           time.Time            `json:"created"`
-	Updated           time.Time            `json:"updated"`
-	Owner             *Entity              `json:"owner"`
-	Name              string               `json:"name"`
-	Description       *string              `json:"description,omitempty"`
-	Visibility        Visibility           `json:"visibility"`
-	Readme            *string              `json:"readme,omitempty"`
-	UpstreamUrl       *string              `json:"upstreamUrl,omitempty"`
-	AccessControlList *ACLCursor           `json:"accessControlList"`
-	Tip               *Revision            `json:"tip,omitempty"`
-	Heads             *RevisionCursor      `json:"heads"`
-	Log               *RevisionCursor      `json:"log"`
-	Bookmarks         *NamedRevisionCursor `json:"bookmarks"`
-	Branches          *NamedRevisionCursor `json:"branches"`
-	Tags              *NamedRevisionCursor `json:"tags"`
+	Id          int32      `json:"id"`
+	Created     time.Time  `json:"created"`
+	Updated     time.Time  `json:"updated"`
+	Owner       *Entity    `json:"owner"`
+	Name        string     `json:"name"`
+	Description *string    `json:"description,omitempty"`
+	Visibility  Visibility `json:"visibility"`
+	// The repository's custom README, if set.
+	//
+	// NOTICE: This returns unsanitized HTML. It is the client's responsibility to
+	// sanitize this for display on the web, if so desired.
+	Readme *string `json:"readme,omitempty"`
+	// If this repository was cloned from another, this is set to the original
+	// clone URL.
+	UpstreamUrl *string `json:"upstreamUrl,omitempty"`
+	// Whether or not this repository is a non-publishing repository.
+	NonPublishing     bool       `json:"nonPublishing"`
+	AccessControlList *ACLCursor `json:"accessControlList"`
+	// The tip reference for this repository (latest commit)
+	Tip *Revision `json:"tip,omitempty"`
+	// Returns the list of open heads in the repository (like `hg heads`)
+	// If `rev` is specified, return only open heads on the branch associated with
+	// the given revision (like `hg heads REV`)
+	Heads *RevisionCursor `json:"heads"`
+	// Returns a list of commits (like `hg log`)
+	// If `rev` is specified, only show the given commit (like `hg log --rev REV`)
+	Log *RevisionCursor `json:"log"`
+	// Returns a list of bookmarks
+	Bookmarks *NamedRevisionCursor `json:"bookmarks"`
+	// Returns a list of branches
+	Branches *NamedRevisionCursor `json:"branches"`
+	// Returns a list of tags
+	Tags *NamedRevisionCursor `json:"tags"`
 }
 
+// A cursor for enumerating a list of repositories
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
 type RepositoryCursor struct {
 	Results []*Repository `json:"results"`
 	Cursor  *Cursor       `json:"cursor,omitempty"`
+}
+
+type RepositoryEvent struct {
+	Uuid       string       `json:"uuid"`
+	Event      WebhookEvent `json:"event"`
+	Date       time.Time    `json:"date"`
+	Repository *Repository  `json:"repository"`
 }
 
 type Revision struct {
@@ -107,6 +165,11 @@ type Revision struct {
 	Description string    `json:"description"`
 }
 
+// A cursor for enumerating revisions
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
 type RevisionCursor struct {
 	Results []*Revision `json:"results"`
 	Cursor  *Cursor     `json:"cursor,omitempty"`
@@ -127,24 +190,111 @@ type User struct {
 	Url           *string           `json:"url,omitempty"`
 	Location      *string           `json:"location,omitempty"`
 	Bio           *string           `json:"bio,omitempty"`
+	Repository    *Repository       `json:"repository,omitempty"`
 	Repositories  *RepositoryCursor `json:"repositories"`
 }
 
+type UserWebhookInput struct {
+	Url    string         `json:"url"`
+	Events []WebhookEvent `json:"events"`
+	Query  string         `json:"query"`
+}
+
+type UserWebhookSubscription struct {
+	Id         int32                  `json:"id"`
+	Events     []WebhookEvent         `json:"events"`
+	Query      string                 `json:"query"`
+	Url        string                 `json:"url"`
+	Client     *OAuthClient           `json:"client,omitempty"`
+	Deliveries *WebhookDeliveryCursor `json:"deliveries"`
+	Sample     string                 `json:"sample"`
+}
+
 type Version struct {
-	Major           int32     `json:"major"`
-	Minor           int32     `json:"minor"`
-	Patch           int32     `json:"patch"`
+	Major int32 `json:"major"`
+	Minor int32 `json:"minor"`
+	Patch int32 `json:"patch"`
+	// If this API version is scheduled for deprecation, this is the date on which
+	// it will stop working; or null if this API version is not scheduled for
+	// deprecation.
 	DeprecationDate time.Time `json:"deprecationDate,omitempty"`
-	Features        *Features `json:"features"`
+	// Optional features
+	Features *Features `json:"features"`
 }
 
 type Visibility string
 
 const (
-	VisibilityPublic   Visibility = "PUBLIC"
+	// Visible to everyone, listed on your profile
+	VisibilityPublic Visibility = "PUBLIC"
+	// Visible to everyone (if they know the URL), not listed on your profile
 	VisibilityUnlisted Visibility = "UNLISTED"
-	VisibilityPrivate  Visibility = "PRIVATE"
+	// Not visible to anyone except those explicitly added to the access list
+	VisibilityPrivate Visibility = "PRIVATE"
 )
+
+type WebhookDelivery struct {
+	Uuid         string               `json:"uuid"`
+	Date         time.Time            `json:"date"`
+	Event        WebhookEvent         `json:"event"`
+	Subscription *WebhookSubscription `json:"subscription"`
+	RequestBody  string               `json:"requestBody"`
+	// These details are provided only after a response is received from the
+	// remote server. If a response is sent whose Content-Type is not text/*, or
+	// cannot be decoded as UTF-8, the response body will be null. It will be
+	// truncated after 64 KiB.
+	ResponseBody    *string `json:"responseBody,omitempty"`
+	ResponseHeaders *string `json:"responseHeaders,omitempty"`
+	ResponseStatus  *int32  `json:"responseStatus,omitempty"`
+}
+
+// A cursor for enumerating a list of webhook deliveries
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
+type WebhookDeliveryCursor struct {
+	Results []WebhookDelivery `json:"results"`
+	Cursor  *Cursor           `json:"cursor,omitempty"`
+}
+
+type WebhookEvent string
+
+const (
+	WebhookEventRepoCreated WebhookEvent = "REPO_CREATED"
+	WebhookEventRepoUpdate  WebhookEvent = "REPO_UPDATE"
+	WebhookEventRepoDeleted WebhookEvent = "REPO_DELETED"
+)
+
+type WebhookPayload struct {
+	Uuid  string       `json:"uuid"`
+	Event WebhookEvent `json:"event"`
+	Date  time.Time    `json:"date"`
+}
+
+type WebhookSubscription struct {
+	Id     int32          `json:"id"`
+	Events []WebhookEvent `json:"events"`
+	Query  string         `json:"query"`
+	Url    string         `json:"url"`
+	// If this webhook was registered by an authorized OAuth 2.0 client, this
+	// field is non-null.
+	Client *OAuthClient `json:"client,omitempty"`
+	// All deliveries which have been sent to this webhook.
+	Deliveries *WebhookDeliveryCursor `json:"deliveries"`
+	// Returns a sample payload for this subscription, for testing purposes
+	Sample string `json:"sample"`
+}
+
+// A cursor for enumerating a list of webhook subscriptions
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
+type WebhookSubscriptionCursor struct {
+	Results []WebhookSubscription `json:"results"`
+	Cursor  *Cursor               `json:"cursor,omitempty"`
+}
 
 func Repositories(client *gqlclient.Client, ctx context.Context) (repositories *RepositoryCursor, err error) {
 	op := gqlclient.NewOperation("query repositories {\n\trepositories {\n\t\t... repos\n\t}\n}\nfragment repos on RepositoryCursor {\n\tresults {\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t}\n}\n")
