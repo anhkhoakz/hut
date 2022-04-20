@@ -42,8 +42,8 @@ install:
 		$(DESTDIR)$(BASHCOMPDIR) \
 		$(DESTDIR)$(ZSHCOMPDIR) \
 		$(DESTDIR)$(FISHCOMPDIR)
-	$(INSTALL) -pm 0755 hut -t $(DESTDIR)$(PREFIX)/$(BINDIR)/
-	$(INSTALL) -pm 0644 doc/hut.1 -t $(DESTDIR)$(PREFIX)/$(MANDIR)/man1/
+	$(INSTALL) -pm 0755 hut $(DESTDIR)$(PREFIX)/$(BINDIR)/
+	$(INSTALL) -pm 0644 doc/hut.1 $(DESTDIR)$(PREFIX)/$(MANDIR)/man1/
 	$(INSTALL) -pm 0644 hut.bash $(DESTDIR)$(BASHCOMPDIR)/hut
 	$(INSTALL) -pm 0644 hut.zsh $(DESTDIR)$(ZSHCOMPDIR)/_hut
 	$(INSTALL) -pm 0644 hut.fish $(DESTDIR)$(FISHCOMPDIR)/hut.fish
