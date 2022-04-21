@@ -237,7 +237,7 @@ func newTodoCreateCommand() *cobra.Command {
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
-	cmd.Flags().StringVarP(&visibility, "visibility", "v", "unlisted", "tracker visibility")
+	cmd.Flags().StringVarP(&visibility, "visibility", "v", "public", "tracker visibility")
 	cmd.RegisterFlagCompletionFunc("visibility", completeVisibility)
 	cmd.Flags().BoolVar(&stdin, "stdin", false, "read tracker from stdin")
 	return cmd

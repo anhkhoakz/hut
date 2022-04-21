@@ -90,7 +90,7 @@ func newHgCreateCommand() *cobra.Command {
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
-	cmd.Flags().StringVarP(&visibility, "visibility", "v", "unlisted", "repo visibility")
+	cmd.Flags().StringVarP(&visibility, "visibility", "v", "public", "repo visibility")
 	cmd.RegisterFlagCompletionFunc("visibility", completeVisibility)
 	cmd.Flags().StringVarP(&desc, "description", "d", "", "repo description")
 	cmd.RegisterFlagCompletionFunc("description", cobra.NoFileCompletions)

@@ -174,7 +174,7 @@ Options are:
 		Import the repository from the given URL.
 
 	*-v*, *--visibility* <string>
-		Visibility to use (public, unlisted, private). Defaults to unlisted.
+		Visibility to use (public, unlisted, private). Defaults to public.
 
 *delete* [repo] [options...]
 	Delete a repository. By default the current repo will be deleted.
@@ -220,7 +220,7 @@ Options are:
 		Description of the repository.
 
 	*-v*, *--visibility* <string>
-		Visibility to use (public, unlisted, private). Defaults to unlisted.
+		Visibility to use (public, unlisted, private). Defaults to public.
 
 *list* [owner]
 	List repositories.
@@ -372,7 +372,7 @@ Options are:
 	Options are:
 
 	*-v*, *--visibility* <string>
-		Visibility to use (public, unlisted, private)
+		Visibility to use (public, unlisted, private). Defaults to unlisted.
 
 *delete* <IDs...>
 	Delete pastes.
@@ -413,7 +413,7 @@ Options are:
 		Read description from _stdin_.
 
 	*-v*, *--visibility* <string>
-		Visibility to use (public, unlisted, private). Defaults to unlisted.
+		Visibility to use (public, unlisted, private). Defaults to public.
 
 *delete* <tracker> [options...]
 	Delete a tracker.
