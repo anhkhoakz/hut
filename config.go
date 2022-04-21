@@ -209,12 +209,7 @@ func (instance InstanceConfig) match(name string) bool {
 	}
 
 	for _, origin := range instance.Origins {
-		i := strings.Index(origin, "://")
-		if i != -1 {
-			origin = origin[i+3:]
-		}
-
-		if origin == name {
+		if stripProtocol(origin) == name {
 			return true
 		}
 	}

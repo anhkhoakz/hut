@@ -94,11 +94,7 @@ func timeDelta(t time.Time) string {
 }
 
 func parseOwnerName(name string) (owner, instance string) {
-	i := strings.Index(name, "://")
-	if i != -1 {
-		name = name[i+3:]
-	}
-
+	name = stripProtocol(name)
 	parsed := strings.Split(name, "/")
 	switch len(parsed) {
 	case 1:
@@ -118,11 +114,7 @@ func parseOwnerName(name string) (owner, instance string) {
 }
 
 func parseResourceName(name string) (resource, owner, instance string) {
-	i := strings.Index(name, "://")
-	if i != -1 {
-		name = name[i+3:]
-	}
-
+	name = stripProtocol(name)
 	parsed := strings.Split(name, "/")
 	if len(parsed) == 1 {
 		return strings.TrimLeft(parsed[0], "#"), owner, instance
@@ -196,4 +188,13 @@ func dropComment(text, comment string) string {
 	text = strings.TrimSuffix(text, comment)
 	text = strings.TrimRightFunc(text, unicode.IsSpace)
 	return text
+}
+
+func stripProtocol(s string) string {
+	i := strings.Index(s, "://")
+	if i != -1 {
+		s = s[i+3:]
+	}
+
+	return s
 }
