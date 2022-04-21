@@ -69,6 +69,12 @@ func loadConfig(filename string) (*Config, error) {
 			}
 			instance.AccessTokenCmd = dir.Params
 		}
+		if instance.AccessToken == "" && len(instance.AccessTokenCmd) == 0 {
+			return nil, fmt.Errorf("instance %q: missing access-token or access-token-cmd", instance.Name)
+		}
+		if instance.AccessToken != "" && len(instance.AccessTokenCmd) > 0 {
+			return nil, fmt.Errorf("instance %q: access-token and access-token-cmd can't be both specified", instance.Name)
+		}
 
 		for _, service := range []string{"builds", "git", "hg", "lists", "meta", "pages", "paste", "todo"} {
 			serviceDir := instanceDir.Children.Get(service)
@@ -87,13 +93,6 @@ func loadConfig(filename string) (*Config, error) {
 			}
 
 			instance.Origins[service] = origin
-		}
-
-		if instance.AccessToken == "" && len(instance.AccessTokenCmd) == 0 {
-			return nil, fmt.Errorf("instance %q: missing access-token or access-token-cmd", instance.Name)
-		}
-		if instance.AccessToken != "" && len(instance.AccessTokenCmd) > 0 {
-			return nil, fmt.Errorf("instance %q: access-token and access-token-cmd can't be both specified", instance.Name)
 		}
 
 		cfg.Instances = append(cfg.Instances, instance)
