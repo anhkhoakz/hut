@@ -24,6 +24,8 @@ const ownerPrefixes = "~"
 const dateLayout = "Mon, 02 Jan 2006 15:04:05 -0700"
 
 func main() {
+	log.SetFlags(0) // disable date/time prefix
+
 	ctx := context.Background()
 
 	cmd := &cobra.Command{
