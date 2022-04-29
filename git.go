@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"git.sr.ht/~emersion/gqlclient"
+	"github.com/juju/ansiterm/tabwriter"
 	"github.com/spf13/cobra"
 
 	"git.sr.ht/~emersion/hut/srht/gitsrht"
@@ -366,13 +367,17 @@ func newGitACLListCommand() *cobra.Command {
 			log.Fatalf("no such repository %q", name)
 		}
 
+		tw := tabwriter.NewWriter(os.Stdout, 0, 2, 2, ' ', 0)
+		defer tw.Flush()
 		for _, acl := range user.Repository.AccessControlList.Results {
 			var mode string
 			if acl.Mode != nil {
 				mode = string(*acl.Mode)
 			}
-			fmt.Printf("%s %s %s %s ago\n", termfmt.DarkYellow.Sprintf("#%d", acl.Id),
-				acl.Entity.CanonicalName, mode, timeDelta(acl.Created))
+
+			created := termfmt.Dim.Sprintf("%s ago", timeDelta(acl.Created))
+			fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n", termfmt.DarkYellow.Sprintf("#%d", acl.Id),
+				acl.Entity.CanonicalName, mode, created)
 		}
 	}
 
