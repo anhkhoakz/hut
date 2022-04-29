@@ -438,10 +438,12 @@ func newListsACLListCommand() *cobra.Command {
 			log.Fatalf("no such list %q", name)
 		}
 
+		tw := tabwriter.NewWriter(os.Stdout, 0, 2, 2, ' ', 0)
 		fmt.Println(termfmt.Bold.Sprint("Global permissions"))
-		fmt.Printf("Non-subscriber %s\n", list.Nonsubscriber.TermString())
-		fmt.Printf("Subscriber %s\n", list.Subscriber.TermString())
-		fmt.Printf("Account holder %s\n", list.Identified.TermString())
+		fmt.Fprintf(tw, "Non-subscriber\t%s\n", list.Nonsubscriber.TermString())
+		fmt.Fprintf(tw, "Subscriber\t%s\n", list.Subscriber.TermString())
+		fmt.Fprintf(tw, "Account holder\t%s\n", list.Identified.TermString())
+		tw.Flush()
 
 		if len(list.Acl.Results) > 0 {
 			fmt.Println(termfmt.Bold.Sprint("\nUser permissions"))
@@ -450,9 +452,11 @@ func newListsACLListCommand() *cobra.Command {
 			s := fmt.Sprintf("%s browse  %s reply  %s post  %s moderate",
 				listssrht.PermissionIcon(acl.Browse), listssrht.PermissionIcon(acl.Reply),
 				listssrht.PermissionIcon(acl.Post), listssrht.PermissionIcon(acl.Moderate))
-			fmt.Printf("%s %s %s %s ago\n", termfmt.DarkYellow.Sprintf("#%d", acl.Id),
-				acl.Entity.CanonicalName, s, timeDelta(acl.Created))
+			created := termfmt.Dim.Sprintf("%s ago", timeDelta(acl.Created))
+			fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n", termfmt.DarkYellow.Sprintf("#%d", acl.Id),
+				acl.Entity.CanonicalName, s, created)
 		}
+		tw.Flush()
 	}
 
 	cmd := &cobra.Command{
