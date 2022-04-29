@@ -12,6 +12,7 @@ import (
 
 	"git.sr.ht/~emersion/hut/srht/todosrht"
 	"git.sr.ht/~emersion/hut/termfmt"
+	"github.com/juju/ansiterm/tabwriter"
 	"github.com/spf13/cobra"
 )
 
@@ -793,13 +794,17 @@ func newTodoACLListCommand() *cobra.Command {
 		if len(user.Tracker.Acls.Results) > 0 {
 			fmt.Println(termfmt.Bold.Sprint("\nUser permissions"))
 		}
+
+		tw := tabwriter.NewWriter(os.Stdout, 0, 2, 2, ' ', 0)
+		defer tw.Flush()
 		for _, acl := range user.Tracker.Acls.Results {
-			s := fmt.Sprintf("%s browse  %s submit  %s comment  %s edit %s triage",
+			s := fmt.Sprintf("%s browse  %s submit  %s comment  %s edit  %s triage",
 				todosrht.PermissionIcon(acl.Browse), todosrht.PermissionIcon(acl.Submit),
 				todosrht.PermissionIcon(acl.Comment), todosrht.PermissionIcon(acl.Edit),
 				todosrht.PermissionIcon(acl.Triage))
-			fmt.Printf("%s %s %s %s ago\n", termfmt.DarkYellow.Sprintf("#%d", acl.Id),
-				acl.Entity.CanonicalName, s, timeDelta(acl.Created))
+			created := termfmt.Dim.Sprintf("%s ago", timeDelta(acl.Created))
+			fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n", termfmt.DarkYellow.Sprintf("#%d", acl.Id),
+				acl.Entity.CanonicalName, s, created)
 		}
 	}
 
