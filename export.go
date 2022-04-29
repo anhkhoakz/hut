@@ -1,0 +1,77 @@
+package main
+
+import (
+	"encoding/json"
+	"log"
+	"os"
+	"path"
+	"time"
+
+	"github.com/spf13/cobra"
+
+	"git.sr.ht/~emersion/hut/export"
+)
+
+type ExportInfo struct {
+	Instance string    `json:"instance"`
+	Service  string    `json:"service"`
+	Date     time.Time `json:"date"`
+}
+
+func newExportCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		var exporters []export.Exporter
+
+		mc := createClient("meta", cmd)
+		meta := export.NewMetaExporter(mc.Client)
+		exporters = append(exporters, meta)
+
+		ctx := cmd.Context()
+		log.Println("Exporting account data...")
+
+		for _, ex := range exporters {
+			base := path.Join(args[0], ex.Name())
+
+			info := ExportInfo{
+				Instance: mc.BaseURL,
+				Service:  ex.Name(),
+				Date:     time.Now().UTC(),
+			}
+			if err := writeExportStamp(base, &info); err != nil {
+				log.Printf("Error writing stamp for %s: %s",
+					ex.Name(), err.Error())
+				continue
+			}
+
+			if err := ex.Export(ctx, base); err != nil {
+				log.Printf("Error exporting %s: %s", ex.Name(), err.Error())
+			}
+		}
+		log.Println("Export complete.")
+	}
+	cmd := &cobra.Command{
+		Use:   "export",
+		Short: "Exports your account data",
+		Args:  cobra.ExactArgs(1),
+		Run:   run,
+	}
+	return cmd
+}
+
+func writeExportStamp(base string, info *ExportInfo) error {
+	if err := os.MkdirAll(base, 0o755); err != nil {
+		log.Fatalf("Failed to create export directory: %s", err.Error())
+	}
+
+	file, err := os.Create(path.Join(base, "export-stamp.json"))
+	if err != nil {
+		log.Fatalf("Failed to create export info: %s", err.Error())
+	}
+	defer file.Close()
+
+	err = json.NewEncoder(file).Encode(info)
+	if err != nil {
+		log.Fatalf("Failed to marshal export info: %s", err.Error())
+	}
+	return nil
+}

@@ -69,6 +69,11 @@ hut is a CLI companion utility to interact with sr.ht.
 *init*
 	Initialize hut's configuration file.
 
+*export* <directory>
+	Export account data.
+
+	Note, only meta.sr.ht is supported at the moment.
+
 ## builds
 
 *cancel* <IDs...>

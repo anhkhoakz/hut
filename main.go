@@ -38,14 +38,15 @@ func main() {
 	cmd.PersistentFlags().String("config", "", "config file to use")
 
 	cmd.AddCommand(newBuildsCommand())
+	cmd.AddCommand(newExportCommand())
 	cmd.AddCommand(newGitCommand())
 	cmd.AddCommand(newGraphqlCommand())
 	cmd.AddCommand(newHgCommand())
 	cmd.AddCommand(newInitCommand())
 	cmd.AddCommand(newListsCommand())
 	cmd.AddCommand(newMetaCommand())
-	cmd.AddCommand(newPasteCommand())
 	cmd.AddCommand(newPagesCommand())
+	cmd.AddCommand(newPasteCommand())
 	cmd.AddCommand(newTodoCommand())
 
 	if err := cmd.ExecuteContext(ctx); err != nil {
