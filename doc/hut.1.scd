@@ -175,7 +175,7 @@ Options are:
 	*-d*, *--description* <string>
 		Description of the repository.
 
-	*--import-url*
+	*--import-url* <url>
 		Import the repository from the given URL.
 
 	*-v*, *--visibility* <string>
