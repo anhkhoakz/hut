@@ -131,7 +131,7 @@ func newPasteListCommand() *cobra.Command {
 			fmt.Printf("%s %s %s ago\n", termfmt.DarkYellow.Sprint(paste.Id),
 				paste.Visibility.TermString(), timeDelta(paste.Created))
 			for _, file := range paste.Files {
-				if *file.Filename != "" {
+				if file.Filename != nil && *file.Filename != "" {
 					fmt.Printf("  %s\n", *file.Filename)
 				}
 			}
