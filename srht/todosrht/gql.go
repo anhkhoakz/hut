@@ -147,6 +147,13 @@ type Event struct {
 	Ticket  *Ticket       `json:"ticket"`
 }
 
+type EventCreated struct {
+	Uuid     string       `json:"uuid"`
+	Event    WebhookEvent `json:"event"`
+	Date     time.Time    `json:"date"`
+	NewEvent *Event       `json:"newEvent"`
+}
+
 // A cursor for enumerating events
 //
 // If there are additional results available, the cursor object may be passed
@@ -220,11 +227,22 @@ type LabelCursor struct {
 	Cursor  *Cursor `json:"cursor,omitempty"`
 }
 
+type LabelEvent struct {
+	Uuid  string       `json:"uuid"`
+	Event WebhookEvent `json:"event"`
+	Date  time.Time    `json:"date"`
+	Label *Label       `json:"label"`
+}
+
 type LabelUpdate struct {
 	EventType EventType `json:"eventType"`
 	Ticket    *Ticket   `json:"ticket"`
 	Labeler   *Entity   `json:"labeler"`
 	Label     *Label    `json:"label"`
+}
+
+type OAuthClient struct {
+	Uuid string `json:"uuid"`
 }
 
 type StatusChange struct {
@@ -246,6 +264,14 @@ type SubmitCommentInput struct {
 	Resolution *TicketResolution `json:"resolution,omitempty"`
 	// For use by the tracker owner only
 	Import *ImportInput `json:"import,omitempty"`
+}
+
+// For internal use only.
+type SubmitEmailInput struct {
+	Subject   string  `json:"subject"`
+	Body      *string `json:"body,omitempty"`
+	SenderId  int32   `json:"senderId"`
+	MessageId string  `json:"messageId"`
 }
 
 type SubmitTicketInput struct {
@@ -279,6 +305,14 @@ type Ticket struct {
 	// If the authenticated user is subscribed to this ticket, this is that
 	// subscription.
 	Subscription *TicketSubscription `json:"subscription,omitempty"`
+	// Returns a list of ticket webhook subscriptions. For clients
+	// authenticated with a personal access token, this returns all webhooks
+	// configured by all GraphQL clients for your account. For clients
+	// authenticated with an OAuth 2.0 access token, this returns only webhooks
+	// registered for your client.
+	Webhooks *WebhookSubscriptionCursor `json:"webhooks"`
+	// Returns details of a ticket webhook subscription by its ID.
+	Webhook *WebhookSubscription `json:"webhook,omitempty"`
 }
 
 // A cursor for enumerating tickets
@@ -289,6 +323,13 @@ type Ticket struct {
 type TicketCursor struct {
 	Results []Ticket `json:"results"`
 	Cursor  *Cursor  `json:"cursor,omitempty"`
+}
+
+type TicketEvent struct {
+	Uuid   string       `json:"uuid"`
+	Event  WebhookEvent `json:"event"`
+	Date   time.Time    `json:"date"`
+	Ticket *Ticket      `json:"ticket"`
 }
 
 type TicketMention struct {
@@ -329,6 +370,23 @@ type TicketSubscription struct {
 	Ticket  *Ticket   `json:"ticket"`
 }
 
+type TicketWebhookInput struct {
+	Url    string         `json:"url"`
+	Events []WebhookEvent `json:"events"`
+	Query  string         `json:"query"`
+}
+
+type TicketWebhookSubscription struct {
+	Id         int32                  `json:"id"`
+	Events     []WebhookEvent         `json:"events"`
+	Query      string                 `json:"query"`
+	Url        string                 `json:"url"`
+	Client     *OAuthClient           `json:"client,omitempty"`
+	Deliveries *WebhookDeliveryCursor `json:"deliveries"`
+	Sample     string                 `json:"sample"`
+	Ticket     *Ticket                `json:"ticket"`
+}
+
 type Tracker struct {
 	Id          int32         `json:"id"`
 	Created     time.Time     `json:"created"`
@@ -351,6 +409,14 @@ type Tracker struct {
 	// Returns a URL from which the tracker owner may download a gzipped JSON
 	// archive of the tracker.
 	Export URL `json:"export"`
+	// Returns a list of tracker webhook subscriptions. For clients
+	// authenticated with a personal access token, this returns all webhooks
+	// configured by all GraphQL clients for your account. For clients
+	// authenticated with an OAuth 2.0 access token, this returns only webhooks
+	// registered for your client.
+	Webhooks *WebhookSubscriptionCursor `json:"webhooks"`
+	// Returns details of a tracker webhook subscription by its ID.
+	Webhook *WebhookSubscription `json:"webhook,omitempty"`
 }
 
 // These ACLs are configured for specific entities, and may be used to expand or
@@ -377,6 +443,13 @@ type TrackerCursor struct {
 	Cursor  *Cursor   `json:"cursor,omitempty"`
 }
 
+type TrackerEvent struct {
+	Uuid    string       `json:"uuid"`
+	Event   WebhookEvent `json:"event"`
+	Date    time.Time    `json:"date"`
+	Tracker *Tracker     `json:"tracker"`
+}
+
 // You may omit any fields to leave them unchanged.
 type TrackerInput struct {
 	Description *string     `json:"description,omitempty"`
@@ -389,6 +462,23 @@ type TrackerSubscription struct {
 	Id      int32     `json:"id"`
 	Created time.Time `json:"created"`
 	Tracker *Tracker  `json:"tracker"`
+}
+
+type TrackerWebhookInput struct {
+	Url    string         `json:"url"`
+	Events []WebhookEvent `json:"events"`
+	Query  string         `json:"query"`
+}
+
+type TrackerWebhookSubscription struct {
+	Id         int32                  `json:"id"`
+	Events     []WebhookEvent         `json:"events"`
+	Query      string                 `json:"query"`
+	Url        string                 `json:"url"`
+	Client     *OAuthClient           `json:"client,omitempty"`
+	Deliveries *WebhookDeliveryCursor `json:"deliveries"`
+	Sample     string                 `json:"sample"`
+	Tracker    *Tracker               `json:"tracker"`
 }
 
 type URL string
@@ -418,16 +508,18 @@ type UpdateTicketInput struct {
 }
 
 type User struct {
-	Id            int32          `json:"id"`
-	Created       time.Time      `json:"created"`
-	Updated       time.Time      `json:"updated"`
-	CanonicalName string         `json:"canonicalName"`
-	Username      string         `json:"username"`
-	Email         string         `json:"email"`
-	Url           *string        `json:"url,omitempty"`
-	Location      *string        `json:"location,omitempty"`
-	Bio           *string        `json:"bio,omitempty"`
-	Trackers      *TrackerCursor `json:"trackers"`
+	Id            int32     `json:"id"`
+	Created       time.Time `json:"created"`
+	Updated       time.Time `json:"updated"`
+	CanonicalName string    `json:"canonicalName"`
+	Username      string    `json:"username"`
+	Email         string    `json:"email"`
+	Url           *string   `json:"url,omitempty"`
+	Location      *string   `json:"location,omitempty"`
+	Bio           *string   `json:"bio,omitempty"`
+	// Returns a specific tracker.
+	Tracker  *Tracker       `json:"tracker,omitempty"`
+	Trackers *TrackerCursor `json:"trackers"`
 }
 
 type UserMention struct {
@@ -435,6 +527,22 @@ type UserMention struct {
 	Ticket    *Ticket   `json:"ticket"`
 	Author    *Entity   `json:"author"`
 	Mentioned *Entity   `json:"mentioned"`
+}
+
+type UserWebhookInput struct {
+	Url    string         `json:"url"`
+	Events []WebhookEvent `json:"events"`
+	Query  string         `json:"query"`
+}
+
+type UserWebhookSubscription struct {
+	Id         int32                  `json:"id"`
+	Events     []WebhookEvent         `json:"events"`
+	Query      string                 `json:"query"`
+	Url        string                 `json:"url"`
+	Client     *OAuthClient           `json:"client,omitempty"`
+	Deliveries *WebhookDeliveryCursor `json:"deliveries"`
+	Sample     string                 `json:"sample"`
 }
 
 type Version struct {
@@ -455,6 +563,75 @@ const (
 	VisibilityPrivate  Visibility = "PRIVATE"
 )
 
+type WebhookDelivery struct {
+	Uuid         string               `json:"uuid"`
+	Date         time.Time            `json:"date"`
+	Event        WebhookEvent         `json:"event"`
+	Subscription *WebhookSubscription `json:"subscription"`
+	RequestBody  string               `json:"requestBody"`
+	// These details are provided only after a response is received from the
+	// remote server. If a response is sent whose Content-Type is not text/*, or
+	// cannot be decoded as UTF-8, the response body will be null. It will be
+	// truncated after 64 KiB.
+	ResponseBody    *string `json:"responseBody,omitempty"`
+	ResponseHeaders *string `json:"responseHeaders,omitempty"`
+	ResponseStatus  *int32  `json:"responseStatus,omitempty"`
+}
+
+// A cursor for enumerating a list of webhook deliveries
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
+type WebhookDeliveryCursor struct {
+	Results []WebhookDelivery `json:"results"`
+	Cursor  *Cursor           `json:"cursor,omitempty"`
+}
+
+type WebhookEvent string
+
+const (
+	WebhookEventTrackerCreated WebhookEvent = "TRACKER_CREATED"
+	WebhookEventTrackerUpdate  WebhookEvent = "TRACKER_UPDATE"
+	WebhookEventTrackerDeleted WebhookEvent = "TRACKER_DELETED"
+	WebhookEventTicketCreated  WebhookEvent = "TICKET_CREATED"
+	WebhookEventTicketUpdate   WebhookEvent = "TICKET_UPDATE"
+	WebhookEventLabelCreated   WebhookEvent = "LABEL_CREATED"
+	WebhookEventLabelUpdate    WebhookEvent = "LABEL_UPDATE"
+	WebhookEventLabelDeleted   WebhookEvent = "LABEL_DELETED"
+	WebhookEventEventCreated   WebhookEvent = "EVENT_CREATED"
+)
+
+type WebhookPayload struct {
+	Uuid  string       `json:"uuid"`
+	Event WebhookEvent `json:"event"`
+	Date  time.Time    `json:"date"`
+}
+
+type WebhookSubscription struct {
+	Id     int32          `json:"id"`
+	Events []WebhookEvent `json:"events"`
+	Query  string         `json:"query"`
+	Url    string         `json:"url"`
+	// If this webhook was registered by an authorized OAuth 2.0 client, this
+	// field is non-null.
+	Client *OAuthClient `json:"client,omitempty"`
+	// All deliveries which have been sent to this webhook.
+	Deliveries *WebhookDeliveryCursor `json:"deliveries"`
+	// Returns a sample payload for this subscription, for testing purposes
+	Sample string `json:"sample"`
+}
+
+// A cursor for enumerating a list of webhook subscriptions
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
+type WebhookSubscriptionCursor struct {
+	Results []WebhookSubscription `json:"results"`
+	Cursor  *Cursor               `json:"cursor,omitempty"`
+}
+
 func Trackers(client *gqlclient.Client, ctx context.Context) (trackers *TrackerCursor, err error) {
 	op := gqlclient.NewOperation("query trackers {\n\ttrackers {\n\t\t... trackers\n\t}\n}\nfragment trackers on TrackerCursor {\n\tresults {\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t}\n}\n")
 	var respData struct {
@@ -474,77 +651,77 @@ func TrackersByUser(client *gqlclient.Client, ctx context.Context, username stri
 	return respData.User, err
 }
 
-func TrackerIDByName(client *gqlclient.Client, ctx context.Context, name string) (trackerByName *Tracker, err error) {
-	op := gqlclient.NewOperation("query trackerIDByName ($name: String!) {\n\ttrackerByName(name: $name) {\n\t\tid\n\t}\n}\n")
+func TrackerIDByName(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
+	op := gqlclient.NewOperation("query trackerIDByName ($name: String!) {\n\tme {\n\t\ttracker(name: $name) {\n\t\t\tid\n\t\t}\n\t}\n}\n")
 	op.Var("name", name)
 	var respData struct {
-		TrackerByName *Tracker
+		Me *User
 	}
 	err = client.Execute(ctx, op, &respData)
-	return respData.TrackerByName, err
+	return respData.Me, err
 }
 
-func TrackerIDByOwner(client *gqlclient.Client, ctx context.Context, owner string, tracker string) (trackerByOwner *Tracker, err error) {
-	op := gqlclient.NewOperation("query trackerIDByOwner ($owner: String!, $tracker: String!) {\n\ttrackerByOwner(owner: $owner, tracker: $tracker) {\n\t\tid\n\t}\n}\n")
-	op.Var("owner", owner)
-	op.Var("tracker", tracker)
-	var respData struct {
-		TrackerByOwner *Tracker
-	}
-	err = client.Execute(ctx, op, &respData)
-	return respData.TrackerByOwner, err
-}
-
-func Tickets(client *gqlclient.Client, ctx context.Context, name string) (trackerByName *Tracker, err error) {
-	op := gqlclient.NewOperation("query tickets ($name: String!) {\n\ttrackerByName(name: $name) {\n\t\ttickets {\n\t\t\t... tickets\n\t\t}\n\t}\n}\nfragment tickets on TicketCursor {\n\tresults {\n\t\tid\n\t\tsubject\n\t\tstatus\n\t\tresolution\n\t\tcreated\n\t\tsubmitter {\n\t\t\tcanonicalName\n\t\t}\n\t\tlabels {\n\t\t\tname\n\t\t\tbackgroundColor\n\t\t\tforegroundColor\n\t\t}\n\t}\n}\n")
+func TrackerIDByUser(client *gqlclient.Client, ctx context.Context, username string, name string) (user *User, err error) {
+	op := gqlclient.NewOperation("query trackerIDByUser ($username: String!, $name: String!) {\n\tuser(username: $username) {\n\t\ttracker(name: $name) {\n\t\t\tid\n\t\t}\n\t}\n}\n")
+	op.Var("username", username)
 	op.Var("name", name)
 	var respData struct {
-		TrackerByName *Tracker
+		User *User
 	}
 	err = client.Execute(ctx, op, &respData)
-	return respData.TrackerByName, err
+	return respData.User, err
 }
 
-func TicketsByOwner(client *gqlclient.Client, ctx context.Context, owner string, tracker string) (trackerByOwner *Tracker, err error) {
-	op := gqlclient.NewOperation("query ticketsByOwner ($owner: String!, $tracker: String!) {\n\ttrackerByOwner(owner: $owner, tracker: $tracker) {\n\t\ttickets {\n\t\t\t... tickets\n\t\t}\n\t}\n}\nfragment tickets on TicketCursor {\n\tresults {\n\t\tid\n\t\tsubject\n\t\tstatus\n\t\tresolution\n\t\tcreated\n\t\tsubmitter {\n\t\t\tcanonicalName\n\t\t}\n\t\tlabels {\n\t\t\tname\n\t\t\tbackgroundColor\n\t\t\tforegroundColor\n\t\t}\n\t}\n}\n")
-	op.Var("owner", owner)
-	op.Var("tracker", tracker)
-	var respData struct {
-		TrackerByOwner *Tracker
-	}
-	err = client.Execute(ctx, op, &respData)
-	return respData.TrackerByOwner, err
-}
-
-func Labels(client *gqlclient.Client, ctx context.Context, name string) (trackerByName *Tracker, err error) {
-	op := gqlclient.NewOperation("query labels ($name: String!) {\n\ttrackerByName(name: $name) {\n\t\tlabels {\n\t\t\t... labels\n\t\t}\n\t}\n}\nfragment labels on LabelCursor {\n\tresults {\n\t\tid\n\t\tname\n\t\tbackgroundColor\n\t\tforegroundColor\n\t}\n}\n")
+func Tickets(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
+	op := gqlclient.NewOperation("query tickets ($name: String!) {\n\tme {\n\t\ttracker(name: $name) {\n\t\t\ttickets {\n\t\t\t\t... tickets\n\t\t\t}\n\t\t}\n\t}\n}\nfragment tickets on TicketCursor {\n\tresults {\n\t\tid\n\t\tsubject\n\t\tstatus\n\t\tresolution\n\t\tcreated\n\t\tsubmitter {\n\t\t\tcanonicalName\n\t\t}\n\t\tlabels {\n\t\t\tname\n\t\t\tbackgroundColor\n\t\t\tforegroundColor\n\t\t}\n\t}\n}\n")
 	op.Var("name", name)
 	var respData struct {
-		TrackerByName *Tracker
+		Me *User
 	}
 	err = client.Execute(ctx, op, &respData)
-	return respData.TrackerByName, err
+	return respData.Me, err
 }
 
-func LabelsByOwner(client *gqlclient.Client, ctx context.Context, owner string, tracker string) (trackerByOwner *Tracker, err error) {
-	op := gqlclient.NewOperation("query labelsByOwner ($owner: String!, $tracker: String!) {\n\ttrackerByOwner(owner: $owner, tracker: $tracker) {\n\t\tlabels {\n\t\t\t... labels\n\t\t}\n\t}\n}\nfragment labels on LabelCursor {\n\tresults {\n\t\tid\n\t\tname\n\t\tbackgroundColor\n\t\tforegroundColor\n\t}\n}\n")
-	op.Var("owner", owner)
-	op.Var("tracker", tracker)
-	var respData struct {
-		TrackerByOwner *Tracker
-	}
-	err = client.Execute(ctx, op, &respData)
-	return respData.TrackerByOwner, err
-}
-
-func AclByTrackerName(client *gqlclient.Client, ctx context.Context, name string) (trackerByName *Tracker, err error) {
-	op := gqlclient.NewOperation("query aclByTrackerName ($name: String!) {\n\ttrackerByName(name: $name) {\n\t\tdefaultACL {\n\t\t\tbrowse\n\t\t\tsubmit\n\t\t\tcomment\n\t\t\tedit\n\t\t\ttriage\n\t\t}\n\t\tacls {\n\t\t\tresults {\n\t\t\t\tid\n\t\t\t\tcreated\n\t\t\t\tentity {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t\tbrowse\n\t\t\t\tsubmit\n\t\t\t\tcomment\n\t\t\t\tedit\n\t\t\t\ttriage\n\t\t\t}\n\t\t}\n\t}\n}\n")
+func TicketsByUser(client *gqlclient.Client, ctx context.Context, username string, name string) (user *User, err error) {
+	op := gqlclient.NewOperation("query ticketsByUser ($username: String!, $name: String!) {\n\tuser(username: $username) {\n\t\ttracker(name: $name) {\n\t\t\ttickets {\n\t\t\t\t... tickets\n\t\t\t}\n\t\t}\n\t}\n}\nfragment tickets on TicketCursor {\n\tresults {\n\t\tid\n\t\tsubject\n\t\tstatus\n\t\tresolution\n\t\tcreated\n\t\tsubmitter {\n\t\t\tcanonicalName\n\t\t}\n\t\tlabels {\n\t\t\tname\n\t\t\tbackgroundColor\n\t\t\tforegroundColor\n\t\t}\n\t}\n}\n")
+	op.Var("username", username)
 	op.Var("name", name)
 	var respData struct {
-		TrackerByName *Tracker
+		User *User
 	}
 	err = client.Execute(ctx, op, &respData)
-	return respData.TrackerByName, err
+	return respData.User, err
+}
+
+func Labels(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
+	op := gqlclient.NewOperation("query labels ($name: String!) {\n\tme {\n\t\ttracker(name: $name) {\n\t\t\tlabels {\n\t\t\t\t... labels\n\t\t\t}\n\t\t}\n\t}\n}\nfragment labels on LabelCursor {\n\tresults {\n\t\tid\n\t\tname\n\t\tbackgroundColor\n\t\tforegroundColor\n\t}\n}\n")
+	op.Var("name", name)
+	var respData struct {
+		Me *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Me, err
+}
+
+func LabelsByUser(client *gqlclient.Client, ctx context.Context, username string, name string) (user *User, err error) {
+	op := gqlclient.NewOperation("query labelsByUser ($username: String!, $name: String!) {\n\tuser(username: $username) {\n\t\ttracker(name: $name) {\n\t\t\tlabels {\n\t\t\t\t... labels\n\t\t\t}\n\t\t}\n\t}\n}\nfragment labels on LabelCursor {\n\tresults {\n\t\tid\n\t\tname\n\t\tbackgroundColor\n\t\tforegroundColor\n\t}\n}\n")
+	op.Var("username", username)
+	op.Var("name", name)
+	var respData struct {
+		User *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.User, err
+}
+
+func AclByTrackerName(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
+	op := gqlclient.NewOperation("query aclByTrackerName ($name: String!) {\n\tme {\n\t\ttracker(name: $name) {\n\t\t\tdefaultACL {\n\t\t\t\tbrowse\n\t\t\t\tsubmit\n\t\t\t\tcomment\n\t\t\t\tedit\n\t\t\t\ttriage\n\t\t\t}\n\t\t\tacls {\n\t\t\t\tresults {\n\t\t\t\t\tid\n\t\t\t\t\tcreated\n\t\t\t\t\tentity {\n\t\t\t\t\t\tcanonicalName\n\t\t\t\t\t}\n\t\t\t\t\tbrowse\n\t\t\t\t\tsubmit\n\t\t\t\t\tcomment\n\t\t\t\t\tedit\n\t\t\t\t\ttriage\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op.Var("name", name)
+	var respData struct {
+		Me *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Me, err
 }
 
 func UserIDByName(client *gqlclient.Client, ctx context.Context, username string) (user *User, err error) {
@@ -557,75 +734,74 @@ func UserIDByName(client *gqlclient.Client, ctx context.Context, username string
 	return respData.User, err
 }
 
-func Assignees(client *gqlclient.Client, ctx context.Context, name string, id int32) (trackerByName *Tracker, err error) {
-	op := gqlclient.NewOperation("query assignees ($name: String!, $id: Int!) {\n\ttrackerByName(name: $name) {\n\t\tticket(id: $id) {\n\t\t\tassignees {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t}\n\t}\n}\n")
+func Assignees(client *gqlclient.Client, ctx context.Context, name string, id int32) (me *User, err error) {
+	op := gqlclient.NewOperation("query assignees ($name: String!, $id: Int!) {\n\tme {\n\t\ttracker(name: $name) {\n\t\t\tticket(id: $id) {\n\t\t\t\tassignees {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	op.Var("name", name)
 	op.Var("id", id)
 	var respData struct {
-		TrackerByName *Tracker
+		Me *User
 	}
 	err = client.Execute(ctx, op, &respData)
-	return respData.TrackerByName, err
+	return respData.Me, err
 }
 
-func AssigneesByOwner(client *gqlclient.Client, ctx context.Context, owner string, tracker string, id int32) (trackerByOwner *Tracker, err error) {
-	op := gqlclient.NewOperation("query assigneesByOwner ($owner: String!, $tracker: String!, $id: Int!) {\n\ttrackerByOwner(owner: $owner, tracker: $tracker) {\n\t\tticket(id: $id) {\n\t\t\tassignees {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t}\n\t}\n}\n")
-	op.Var("owner", owner)
-	op.Var("tracker", tracker)
+func AssigneesByUser(client *gqlclient.Client, ctx context.Context, username string, name string, id int32) (user *User, err error) {
+	op := gqlclient.NewOperation("query assigneesByUser ($username: String!, $name: String!, $id: Int!) {\n\tuser(username: $username) {\n\t\ttracker(name: $name) {\n\t\t\tticket(id: $id) {\n\t\t\t\tassignees {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op.Var("username", username)
+	op.Var("name", name)
 	op.Var("id", id)
 	var respData struct {
-		TrackerByOwner *Tracker
+		User *User
 	}
 	err = client.Execute(ctx, op, &respData)
-	return respData.TrackerByOwner, err
+	return respData.User, err
 }
 
-func CompleteTicketId(client *gqlclient.Client, ctx context.Context, name string, subscription bool) (trackerByName *Tracker, err error) {
-	op := gqlclient.NewOperation("query completeTicketId ($name: String!, $subscription: Boolean!) {\n\ttrackerByName(name: $name) {\n\t\t... completeTicket\n\t}\n}\nfragment completeTicket on Tracker {\n\ttickets {\n\t\tresults {\n\t\t\tid\n\t\t\tsubject\n\t\t\t... on Ticket @include(if: $subscription) {\n\t\t\t\tsubscription {\n\t\t\t\t\tid\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
+func CompleteTicketId(client *gqlclient.Client, ctx context.Context, name string, subscription bool) (me *User, err error) {
+	op := gqlclient.NewOperation("query completeTicketId ($name: String!, $subscription: Boolean!) {\n\tme {\n\t\ttracker(name: $name) {\n\t\t\t... completeTicket\n\t\t}\n\t}\n}\nfragment completeTicket on Tracker {\n\ttickets {\n\t\tresults {\n\t\t\tid\n\t\t\tsubject\n\t\t\t... on Ticket @include(if: $subscription) {\n\t\t\t\tsubscription {\n\t\t\t\t\tid\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	op.Var("name", name)
 	op.Var("subscription", subscription)
 	var respData struct {
-		TrackerByName *Tracker
+		Me *User
 	}
 	err = client.Execute(ctx, op, &respData)
-	return respData.TrackerByName, err
+	return respData.Me, err
 }
 
-func CompleteTicketIdByOwner(client *gqlclient.Client, ctx context.Context, owner string, tracker string, subscription bool) (trackerByOwner *Tracker, err error) {
-	op := gqlclient.NewOperation("query completeTicketIdByOwner ($owner: String!, $tracker: String!, $subscription: Boolean!) {\n\ttrackerByOwner(owner: $owner, tracker: $tracker) {\n\t\t... completeTicket\n\t}\n}\nfragment completeTicket on Tracker {\n\ttickets {\n\t\tresults {\n\t\t\tid\n\t\t\tsubject\n\t\t\t... on Ticket @include(if: $subscription) {\n\t\t\t\tsubscription {\n\t\t\t\t\tid\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
-	op.Var("owner", owner)
-	op.Var("tracker", tracker)
+func CompleteTicketIdByUser(client *gqlclient.Client, ctx context.Context, username string, name string, subscription bool) (user *User, err error) {
+	op := gqlclient.NewOperation("query completeTicketIdByUser ($username: String!, $name: String!, $subscription: Boolean!) {\n\tuser(username: $username) {\n\t\ttracker(name: $name) {\n\t\t\t... completeTicket\n\t\t}\n\t}\n}\nfragment completeTicket on Tracker {\n\ttickets {\n\t\tresults {\n\t\t\tid\n\t\t\tsubject\n\t\t\t... on Ticket @include(if: $subscription) {\n\t\t\t\tsubscription {\n\t\t\t\t\tid\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op.Var("username", username)
+	op.Var("name", name)
 	op.Var("subscription", subscription)
 	var respData struct {
-		TrackerByOwner *Tracker
+		User *User
 	}
 	err = client.Execute(ctx, op, &respData)
-	return respData.TrackerByOwner, err
+	return respData.User, err
 }
 
-func CompleteTicketAssign(client *gqlclient.Client, ctx context.Context, name string, id int32) (me *User, trackerByName *Tracker, err error) {
-	op := gqlclient.NewOperation("query completeTicketAssign ($name: String!, $id: Int!) {\n\tme {\n\t\tcanonicalName\n\t}\n\ttrackerByName(name: $name) {\n\t\tticket(id: $id) {\n\t\t\tassignees {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t}\n\t\ttickets {\n\t\t\tresults {\n\t\t\t\tassignees {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
+func CompleteTicketAssign(client *gqlclient.Client, ctx context.Context, name string, id int32) (me *User, err error) {
+	op := gqlclient.NewOperation("query completeTicketAssign ($name: String!, $id: Int!) {\n\tme {\n\t\tcanonicalName\n\t\ttracker(name: $name) {\n\t\t\tticket(id: $id) {\n\t\t\t\tassignees {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t}\n\t\t\ttickets {\n\t\t\t\tresults {\n\t\t\t\t\tassignees {\n\t\t\t\t\t\tcanonicalName\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	op.Var("name", name)
 	op.Var("id", id)
 	var respData struct {
-		Me            *User
-		TrackerByName *Tracker
+		Me *User
 	}
 	err = client.Execute(ctx, op, &respData)
-	return respData.Me, respData.TrackerByName, err
+	return respData.Me, err
 }
 
-func CompleteTicketAssignByOwner(client *gqlclient.Client, ctx context.Context, owner string, tracker string, id int32) (me *User, trackerByOwner *Tracker, err error) {
-	op := gqlclient.NewOperation("query completeTicketAssignByOwner ($owner: String!, $tracker: String!, $id: Int!) {\n\tme {\n\t\tcanonicalName\n\t}\n\ttrackerByOwner(owner: $owner, tracker: $tracker) {\n\t\tticket(id: $id) {\n\t\t\tassignees {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t}\n\t\ttickets {\n\t\t\tresults {\n\t\t\t\tassignees {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
-	op.Var("owner", owner)
-	op.Var("tracker", tracker)
+func CompleteTicketAssignByUser(client *gqlclient.Client, ctx context.Context, username string, name string, id int32) (me *User, user *User, err error) {
+	op := gqlclient.NewOperation("query completeTicketAssignByUser ($username: String!, $name: String!, $id: Int!) {\n\tme {\n\t\tcanonicalName\n\t}\n\tuser(username: $username) {\n\t\ttracker(name: $name) {\n\t\t\tticket(id: $id) {\n\t\t\t\tassignees {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t}\n\t\t\ttickets {\n\t\t\t\tresults {\n\t\t\t\t\tassignees {\n\t\t\t\t\t\tcanonicalName\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op.Var("username", username)
+	op.Var("name", name)
 	op.Var("id", id)
 	var respData struct {
-		Me             *User
-		TrackerByOwner *Tracker
+		Me   *User
+		User *User
 	}
 	err = client.Execute(ctx, op, &respData)
-	return respData.Me, respData.TrackerByOwner, err
+	return respData.Me, respData.User, err
 }
 
 func TrackerNames(client *gqlclient.Client, ctx context.Context) (trackers *TrackerCursor, err error) {
@@ -681,12 +857,12 @@ func DeleteLabel(client *gqlclient.Client, ctx context.Context, id int32) (delet
 	return respData.DeleteLabel, err
 }
 
-func CreateLabel(client *gqlclient.Client, ctx context.Context, trackerId int32, name string, foreground string, background string) (createLabel *Label, err error) {
-	op := gqlclient.NewOperation("mutation createLabel ($trackerId: Int!, $name: String!, $foreground: String!, $background: String!) {\n\tcreateLabel(trackerId: $trackerId, name: $name, foreground: $foreground, background: $background) {\n\t\tname\n\t\tbackgroundColor\n\t\tforegroundColor\n\t}\n}\n")
+func CreateLabel(client *gqlclient.Client, ctx context.Context, trackerId int32, name string, foregroundColor string, backgroundColor string) (createLabel *Label, err error) {
+	op := gqlclient.NewOperation("mutation createLabel ($trackerId: Int!, $name: String!, $foregroundColor: String!, $backgroundColor: String!) {\n\tcreateLabel(trackerId: $trackerId, name: $name, foregroundColor: $foregroundColor, backgroundColor: $backgroundColor) {\n\t\tname\n\t\tbackgroundColor\n\t\tforegroundColor\n\t}\n}\n")
 	op.Var("trackerId", trackerId)
 	op.Var("name", name)
-	op.Var("foreground", foreground)
-	op.Var("background", background)
+	op.Var("foregroundColor", foregroundColor)
+	op.Var("backgroundColor", backgroundColor)
 	var respData struct {
 		CreateLabel *Label
 	}

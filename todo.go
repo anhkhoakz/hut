@@ -268,21 +268,27 @@ func newTodoTicketListCommand() *cobra.Command {
 		}
 
 		c := createClientWithInstance("todo", cmd, instance)
-		var tracker *todosrht.Tracker
+		var (
+			user     *todosrht.User
+			username string
+		)
 
 		if owner != "" {
-			tracker, err = todosrht.TicketsByOwner(c.Client, ctx, owner, name)
+			username = strings.TrimLeft(owner, ownerPrefixes)
+			user, err = todosrht.TicketsByUser(c.Client, ctx, username, name)
 		} else {
-			tracker, err = todosrht.Tickets(c.Client, ctx, name)
+			user, err = todosrht.Tickets(c.Client, ctx, name)
 		}
 
 		if err != nil {
 			log.Fatal(err)
-		} else if tracker == nil {
+		} else if user == nil {
+			log.Fatalf("no such user %q", username)
+		} else if user.Tracker == nil {
 			log.Fatalf("no such tracker %q", name)
 		}
 
-		for _, ticket := range tracker.Tickets.Results {
+		for _, ticket := range user.Tracker.Tickets.Results {
 			var labels string
 			s := termfmt.DarkYellow.Sprintf("#%d %s ", ticket.Id, ticket.Status.TermString())
 			if ticket.Status == todosrht.TicketStatusResolved {
@@ -637,21 +643,27 @@ func newTodoLabelListCommand() *cobra.Command {
 		}
 
 		c := createClientWithInstance("todo", cmd, instance)
-		var tracker *todosrht.Tracker
+		var (
+			user     *todosrht.User
+			username string
+		)
 
 		if owner != "" {
-			tracker, err = todosrht.LabelsByOwner(c.Client, ctx, owner, name)
+			username = strings.TrimLeft(owner, ownerPrefixes)
+			user, err = todosrht.LabelsByUser(c.Client, ctx, username, name)
 		} else {
-			tracker, err = todosrht.Labels(c.Client, ctx, name)
+			user, err = todosrht.Labels(c.Client, ctx, name)
 		}
 
 		if err != nil {
 			log.Fatal(err)
-		} else if tracker == nil {
+		} else if user == nil {
+			log.Fatalf("no such user %q", username)
+		} else if user.Tracker == nil {
 			log.Fatalf("no such tracker %q", name)
 		}
 
-		for _, label := range tracker.Labels.Results {
+		for _, label := range user.Tracker.Labels.Results {
 			fmt.Printf("%s %s\n", termfmt.DarkYellow.Sprintf("#%d", label.Id), label.TermString())
 		}
 	}
@@ -768,20 +780,20 @@ func newTodoACLListCommand() *cobra.Command {
 
 		c := createClientWithInstance("todo", cmd, instance)
 
-		tracker, err := todosrht.AclByTrackerName(c.Client, ctx, name)
+		user, err := todosrht.AclByTrackerName(c.Client, ctx, name)
 		if err != nil {
 			log.Fatal(err)
-		} else if tracker == nil {
+		} else if user.Tracker == nil {
 			log.Fatalf("no such tracker %q", name)
 		}
 
 		fmt.Println(termfmt.Bold.Sprint("Default permissions"))
-		fmt.Println(tracker.DefaultACL.TermString())
+		fmt.Println(user.Tracker.DefaultACL.TermString())
 
-		if len(tracker.Acls.Results) > 0 {
+		if len(user.Tracker.Acls.Results) > 0 {
 			fmt.Println(termfmt.Bold.Sprint("\nUser permissions"))
 		}
-		for _, acl := range tracker.Acls.Results {
+		for _, acl := range user.Tracker.Acls.Results {
 			s := fmt.Sprintf("%s browse  %s submit  %s comment  %s edit %s triage",
 				todosrht.PermissionIcon(acl.Browse), todosrht.PermissionIcon(acl.Submit),
 				todosrht.PermissionIcon(acl.Comment), todosrht.PermissionIcon(acl.Edit),
@@ -833,21 +845,26 @@ func newTodoACLDeleteCommand() *cobra.Command {
 
 func getTrackerID(c *Client, ctx context.Context, name, owner string) int32 {
 	var (
-		tracker *todosrht.Tracker
-		err     error
+		user     *todosrht.User
+		username string
+		err      error
 	)
 
 	if owner == "" {
-		tracker, err = todosrht.TrackerIDByName(c.Client, ctx, name)
+		user, err = todosrht.TrackerIDByName(c.Client, ctx, name)
 	} else {
-		tracker, err = todosrht.TrackerIDByOwner(c.Client, ctx, owner, name)
+		username = strings.TrimLeft(owner, ownerPrefixes)
+		user, err = todosrht.TrackerIDByUser(c.Client, ctx, username, name)
 	}
 	if err != nil {
 		log.Fatalf("failed to get tracker ID: %v", err)
-	} else if tracker == nil {
+	} else if user == nil {
+		log.Fatalf("user %q does not exist", username)
+	} else if user.Tracker == nil {
 		log.Fatalf("tracker %q does not exist", name)
 	}
-	return tracker.Id
+
+	return user.Tracker.Id
 }
 
 func getTrackerName(ctx context.Context, cmd *cobra.Command) (name, owner, instance string, err error) {
@@ -957,8 +974,7 @@ func completeTicketID(cmd *cobra.Command, args []string, toComplete string) ([]s
 	}
 
 	c := createClientWithInstance("todo", cmd, instance)
-
-	var tracker *todosrht.Tracker
+	var user *todosrht.User
 
 	includeSubscription := false
 	if cmd.Name() == "subscribe" || cmd.Name() == "unsubscribe" {
@@ -966,15 +982,16 @@ func completeTicketID(cmd *cobra.Command, args []string, toComplete string) ([]s
 	}
 
 	if owner != "" {
-		tracker, err = todosrht.CompleteTicketIdByOwner(c.Client, ctx, owner, name, includeSubscription)
+		username := strings.TrimLeft(owner, ownerPrefixes)
+		user, err = todosrht.CompleteTicketIdByUser(c.Client, ctx, username, name, includeSubscription)
 	} else {
-		tracker, err = todosrht.CompleteTicketId(c.Client, ctx, name, includeSubscription)
+		user, err = todosrht.CompleteTicketId(c.Client, ctx, name, includeSubscription)
 	}
-	if err != nil || tracker == nil {
+	if err != nil || user == nil || user.Tracker == nil {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	for _, ticket := range tracker.Tickets.Results {
+	for _, ticket := range user.Tracker.Tickets.Results {
 		if cmd.Name() == "subscribe" && ticket.Subscription != nil {
 			continue
 		} else if cmd.Name() == "unsubscribe" && ticket.Subscription == nil {
@@ -1012,18 +1029,19 @@ func completeTicketUnassign(cmd *cobra.Command, args []string, toComplete string
 
 	c := createClientWithInstance("todo", cmd, instance)
 
-	var tracker *todosrht.Tracker
+	var user *todosrht.User
 
 	if owner != "" {
-		tracker, err = todosrht.AssigneesByOwner(c.Client, ctx, owner, name, ticketID)
+		username := strings.TrimLeft(owner, ownerPrefixes)
+		user, err = todosrht.AssigneesByUser(c.Client, ctx, username, name, ticketID)
 	} else {
-		tracker, err = todosrht.Assignees(c.Client, ctx, name, ticketID)
+		user, err = todosrht.Assignees(c.Client, ctx, name, ticketID)
 	}
-	if err != nil || tracker == nil {
+	if err != nil || user == nil || user.Tracker == nil {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	for _, user := range tracker.Ticket.Assignees {
+	for _, user := range user.Tracker.Ticket.Assignees {
 		userName := strings.TrimLeft(user.CanonicalName, ownerPrefixes)
 		assignees = append(assignees, userName)
 	}
@@ -1045,30 +1063,31 @@ func completeTicketAssign(cmd *cobra.Command, args []string, toComplete string) 
 	c := createClientWithInstance("todo", cmd, instance)
 
 	var (
-		me      *todosrht.User
-		tracker *todosrht.Tracker
+		me   *todosrht.User
+		user *todosrht.User
 	)
+	candidates := make(map[string]struct{})
 
 	if owner != "" {
-		me, tracker, err = todosrht.CompleteTicketAssignByOwner(c.Client, ctx, owner, name, ticketID)
+		username := strings.TrimLeft(owner, ownerPrefixes)
+		me, user, err = todosrht.CompleteTicketAssignByUser(c.Client, ctx, username, name, ticketID)
+		candidates[me.CanonicalName] = struct{}{}
 	} else {
-		me, tracker, err = todosrht.CompleteTicketAssign(c.Client, ctx, name, ticketID)
+		user, err = todosrht.CompleteTicketAssign(c.Client, ctx, name, ticketID)
+		candidates[user.CanonicalName] = struct{}{}
 	}
-	if err != nil || tracker == nil {
+	if err != nil || user == nil || user.Tracker == nil {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	candidates := make(map[string]struct{})
-	candidates[me.CanonicalName] = struct{}{}
-
-	for _, ticket := range tracker.Tickets.Results {
+	for _, ticket := range user.Tracker.Tickets.Results {
 		for _, user := range ticket.Assignees {
 			candidates[user.CanonicalName] = struct{}{}
 		}
 	}
 
 	assignedUsers := make(map[string]struct{})
-	for _, user := range tracker.Ticket.Assignees {
+	for _, user := range user.Tracker.Ticket.Assignees {
 		assignedUsers[user.CanonicalName] = struct{}{}
 	}
 

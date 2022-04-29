@@ -21,32 +21,41 @@ fragment trackers on TrackerCursor {
 }
 
 query trackerIDByName($name: String!) {
-    trackerByName(name: $name) {
-        id
+    me {
+        tracker(name: $name) {
+            id
+        }
     }
 }
 
-query trackerIDByOwner($owner: String!, $tracker: String!) {
-    trackerByOwner(owner: $owner, tracker: $tracker) {
-        id
+query trackerIDByUser($username: String!, $name: String!) {
+    user(username: $username) {
+        tracker(name: $name) {
+            id
+        }
     }
 }
 
 query tickets($name: String!) {
-    trackerByName(name: $name) {
-        tickets {
-            ...tickets
+    me {
+        tracker(name: $name) {
+            tickets {
+                ...tickets
+            }
         }
     }
 }
 
-query ticketsByOwner($owner: String!, $tracker: String!) {
-    trackerByOwner(owner: $owner, tracker: $tracker) {
-        tickets {
-            ...tickets
+query ticketsByUser($username: String!, $name: String!) {
+    user(username: $username) {
+        tracker(name: $name) {
+            tickets {
+                ...tickets
+            }
         }
     }
 }
+
 fragment tickets on TicketCursor {
     results {
         id
@@ -66,17 +75,21 @@ fragment tickets on TicketCursor {
 }
 
 query labels($name: String!) {
-    trackerByName(name: $name) {
-        labels {
-            ...labels
+    me {
+        tracker(name: $name) {
+            labels {
+                ...labels
+            }
         }
     }
 }
 
-query labelsByOwner($owner: String!, $tracker: String!) {
-    trackerByOwner(owner: $owner, tracker: $tracker) {
-        labels {
-            ...labels
+query labelsByUser($username: String!, $name: String!) {
+    user(username: $username) {
+        tracker(name: $name) {
+            labels {
+                ...labels
+            }
         }
     }
 }
@@ -91,26 +104,28 @@ fragment labels on LabelCursor {
 }
 
 query aclByTrackerName($name: String!) {
-    trackerByName(name: $name) {
-        defaultACL {
-            browse
-            submit
-            comment
-            edit
-            triage
-        }
-        acls {
-            results {
-                id
-                created
-                entity {
-                    canonicalName
-                }
+    me {
+        tracker(name: $name) {
+            defaultACL {
                 browse
                 submit
                 comment
                 edit
                 triage
+            }
+            acls {
+                results {
+                    id
+                    created
+                    entity {
+                        canonicalName
+                    }
+                    browse
+                    submit
+                    comment
+                    edit
+                    triage
+                }
             }
         }
     }
@@ -123,38 +138,46 @@ query userIDByName($username: String!) {
 }
 
 query assignees($name: String!, $id: Int!) {
-    trackerByName(name: $name) {
-        ticket(id: $id) {
-            assignees {
-                canonicalName
+    me {
+        tracker(name: $name) {
+            ticket(id: $id) {
+                assignees {
+                    canonicalName
+                }
             }
         }
     }
 }
 
-query assigneesByOwner($owner: String!, $tracker: String!, $id: Int!) {
-    trackerByOwner(owner: $owner, tracker: $tracker) {
-        ticket(id: $id) {
-            assignees {
-                canonicalName
+query assigneesByUser($username: String!, $name: String!, $id: Int!) {
+    user(username: $username) {
+        tracker(name: $name) {
+            ticket(id: $id) {
+                assignees {
+                    canonicalName
+                }
             }
         }
     }
 }
 
 query completeTicketId($name: String!, $subscription: Boolean!) {
-    trackerByName(name: $name) {
-        ...completeTicket
+    me {
+        tracker(name: $name) {
+            ...completeTicket
+        }
     }
 }
 
-query completeTicketIdByOwner(
-    $owner: String!
-    $tracker: String!
+query completeTicketIdByUser(
+    $username: String!
+    $name: String!
     $subscription: Boolean!
 ) {
-    trackerByOwner(owner: $owner, tracker: $tracker) {
-        ...completeTicket
+    user(username: $username) {
+        tracker(name: $name) {
+            ...completeTicket
+        }
     }
 }
 
@@ -175,43 +198,44 @@ fragment completeTicket on Tracker {
 query completeTicketAssign($name: String!, $id: Int!) {
     me {
         canonicalName
-    }
-
-    trackerByName(name: $name) {
-        ticket(id: $id) {
-            assignees {
-                canonicalName
-            }
-        }
-        tickets {
-            results {
+        tracker(name: $name) {
+            ticket(id: $id) {
                 assignees {
                     canonicalName
+                }
+            }
+            tickets {
+                results {
+                    assignees {
+                        canonicalName
+                    }
                 }
             }
         }
     }
 }
 
-query completeTicketAssignByOwner(
-    $owner: String!
-    $tracker: String!
+query completeTicketAssignByUser(
+    $username: String!
+    $name: String!
     $id: Int!
 ) {
     me {
         canonicalName
     }
 
-    trackerByOwner(owner: $owner, tracker: $tracker) {
-        ticket(id: $id) {
-            assignees {
-                canonicalName
-            }
-        }
-        tickets {
-            results {
+    user(username: $username) {
+        tracker(name: $name) {
+            ticket(id: $id) {
                 assignees {
                     canonicalName
+                }
+            }
+            tickets {
+                results {
+                    assignees {
+                        canonicalName
+                    }
                 }
             }
         }
@@ -269,14 +293,14 @@ mutation deleteLabel($id: Int!) {
 mutation createLabel(
     $trackerId: Int!
     $name: String!
-    $foreground: String!
-    $background: String!
+    $foregroundColor: String!
+    $backgroundColor: String!
 ) {
     createLabel(
         trackerId: $trackerId
         name: $name
-        foreground: $foreground
-        background: $background
+        foregroundColor: $foregroundColor
+        backgroundColor: $backgroundColor
     ) {
         name
         backgroundColor
