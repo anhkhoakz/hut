@@ -227,6 +227,14 @@ Options are:
 	*-v*, *--visibility* <string>
 		Visibility to use (public, unlisted, private). Defaults to public.
 
+*delete* <repo> [options...]
+	Delete a repository.
+
+	Options are:
+
+	*-y*, *--yes*
+		Confirm deletion without prompt.
+
 *list* [owner]
 	List repositories.
 

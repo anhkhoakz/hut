@@ -1,3 +1,19 @@
+query repositoryIDByName($name: String!) {
+    me {
+        repository(name: $name) {
+            id
+        }
+    }
+}
+
+query repositoryIDByUser($username: String!, $name: String!) {
+    user(username: $username) {
+        repository(name: $name) {
+            id
+        }
+    }
+}
+
 query repositories {
     repositories {
         ...repos
@@ -30,6 +46,12 @@ mutation createRepository(
         visibility: $visibility
         description: $description
     ) {
+        name
+    }
+}
+
+mutation deleteRepository($id: Int!) {
+    deleteRepository(id: $id) {
         name
     }
 }

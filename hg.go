@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -17,6 +18,7 @@ func newHgCommand() *cobra.Command {
 	}
 	cmd.AddCommand(newHgListCommand())
 	cmd.AddCommand(newHgCreateCommand())
+	cmd.AddCommand(newHgDeleteCommand())
 	return cmd
 }
 
@@ -95,4 +97,59 @@ func newHgCreateCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&desc, "description", "d", "", "repo description")
 	cmd.RegisterFlagCompletionFunc("description", cobra.NoFileCompletions)
 	return cmd
+}
+
+func newHgDeleteCommand() *cobra.Command {
+	var autoConfirm bool
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		name, owner, instance := parseResourceName(args[0])
+
+		c := createClientWithInstance("hg", cmd, instance)
+		id := getHgRepoID(c, ctx, name, owner)
+
+		if !autoConfirm && !getConfirmation(fmt.Sprintf("Do you really want to delete the repo %s", name)) {
+			fmt.Println("Aborted")
+			return
+		}
+		repo, err := hgsrht.DeleteRepository(c.Client, ctx, id)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf("Deleted repository %s\n", repo.Name)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "delete <repo>",
+		Short:             "Delete a repository",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	cmd.Flags().BoolVarP(&autoConfirm, "yes", "y", false, "auto confirm")
+	return cmd
+}
+
+func getHgRepoID(c *Client, ctx context.Context, name, owner string) int32 {
+	var (
+		user     *hgsrht.User
+		username string
+		err      error
+	)
+	if owner == "" {
+		user, err = hgsrht.RepositoryIDByName(c.Client, ctx, name)
+	} else {
+		username = strings.TrimLeft(owner, ownerPrefixes)
+		user, err = hgsrht.RepositoryIDByUser(c.Client, ctx, username, name)
+	}
+	if err != nil {
+		log.Fatalf("failed to get repository ID: %v", err)
+	} else if user == nil {
+		log.Fatalf("no such user %q", username)
+	} else if user.Repository == nil {
+		log.Fatalf("no such repository %q", name)
+	}
+	return user.Repository.Id
 }

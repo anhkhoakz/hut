@@ -296,6 +296,27 @@ type WebhookSubscriptionCursor struct {
 	Cursor  *Cursor               `json:"cursor,omitempty"`
 }
 
+func RepositoryIDByName(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
+	op := gqlclient.NewOperation("query repositoryIDByName ($name: String!) {\n\tme {\n\t\trepository(name: $name) {\n\t\t\tid\n\t\t}\n\t}\n}\n")
+	op.Var("name", name)
+	var respData struct {
+		Me *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Me, err
+}
+
+func RepositoryIDByUser(client *gqlclient.Client, ctx context.Context, username string, name string) (user *User, err error) {
+	op := gqlclient.NewOperation("query repositoryIDByUser ($username: String!, $name: String!) {\n\tuser(username: $username) {\n\t\trepository(name: $name) {\n\t\t\tid\n\t\t}\n\t}\n}\n")
+	op.Var("username", username)
+	op.Var("name", name)
+	var respData struct {
+		User *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.User, err
+}
+
 func Repositories(client *gqlclient.Client, ctx context.Context) (repositories *RepositoryCursor, err error) {
 	op := gqlclient.NewOperation("query repositories {\n\trepositories {\n\t\t... repos\n\t}\n}\nfragment repos on RepositoryCursor {\n\tresults {\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t}\n}\n")
 	var respData struct {
@@ -325,4 +346,14 @@ func CreateRepository(client *gqlclient.Client, ctx context.Context, name string
 	}
 	err = client.Execute(ctx, op, &respData)
 	return respData.CreateRepository, err
+}
+
+func DeleteRepository(client *gqlclient.Client, ctx context.Context, id int32) (deleteRepository *Repository, err error) {
+	op := gqlclient.NewOperation("mutation deleteRepository ($id: Int!) {\n\tdeleteRepository(id: $id) {\n\t\tname\n\t}\n}\n")
+	op.Var("id", id)
+	var respData struct {
+		DeleteRepository *Repository
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.DeleteRepository, err
 }
