@@ -387,6 +387,9 @@ Options are:
 	*-v*, *--visibility* <string>
 		Visibility to use (public, unlisted, private). Defaults to unlisted.
 
+	*-n*, *--name* <string>
+		Name of the created paste. Only valid when reading from stdin.
+
 *delete* <IDs...>
 	Delete pastes.
 

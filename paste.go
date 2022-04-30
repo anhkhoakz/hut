@@ -32,6 +32,7 @@ func newPasteCommand() *cobra.Command {
 
 func newPasteCreateCommand() *cobra.Command {
 	var visibility string
+	var name string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
@@ -41,6 +42,10 @@ func newPasteCreateCommand() *cobra.Command {
 		}
 
 		c := createClient("paste", cmd)
+
+		if name != "" && len(args) > 0 {
+			log.Fatalln("--name is only supported when reading from stdin")
+		}
 
 		var files []gqlclient.Upload
 		for _, filename := range args {
@@ -64,7 +69,7 @@ func newPasteCreateCommand() *cobra.Command {
 
 		if len(args) == 0 {
 			files = append(files, gqlclient.Upload{
-				Filename: "-",
+				Filename: name,
 				MIMEType: "text/plain",
 				Body:     os.Stdin,
 			})
@@ -85,6 +90,7 @@ func newPasteCreateCommand() *cobra.Command {
 	}
 	cmd.Flags().StringVarP(&visibility, "visibility", "v", "unlisted", "paste visibility")
 	cmd.RegisterFlagCompletionFunc("visibility", completeVisibility)
+	cmd.Flags().StringVarP(&name, "name", "n", "", "paste name (when reading from stdin)")
 	return cmd
 }
 
