@@ -348,8 +348,10 @@ Options are:
 *list*
 	List registered sites.
 
-*publish* <tarball> [options...]
+*publish* [tarball] [options...]
 	Publish a website.
+
+	If _tarball_ is not specified, standard input is used.
 
 	Options are:
 

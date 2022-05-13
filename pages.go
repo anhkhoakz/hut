@@ -30,7 +30,10 @@ func newPagesPublishCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
-		filename := args[0]
+		var filename string
+		if len(args) > 0 {
+			filename = args[0]
+		}
 
 		if domain == "" {
 			log.Fatal("enter a domain with --domain")
@@ -48,15 +51,20 @@ func newPagesPublishCommand() *cobra.Command {
 
 		c := createClient("pages", cmd)
 
-		f, err := os.Open(filename)
-		if err != nil {
-			log.Fatalf("failed to open input file: %v", err)
+		var upload gqlclient.Upload
+		if filename == "" {
+			upload = gqlclient.Upload{Body: os.Stdin, Filename: "-"}
+		} else {
+			f, err := os.Open(filename)
+			if err != nil {
+				log.Fatalf("failed to open input file: %v", err)
+			}
+			defer f.Close()
+
+			upload = gqlclient.Upload{Body: f, Filename: filepath.Base(filename)}
 		}
-		defer f.Close()
 
-		file := gqlclient.Upload{Body: f, Filename: filepath.Base(filename)}
-
-		site, err := pagessrht.Publish(c.Client, ctx, domain, file, pagesProtocol, subdirectory, siteConfig)
+		site, err := pagessrht.Publish(c.Client, ctx, domain, upload, pagesProtocol, subdirectory, siteConfig)
 		if err != nil {
 			log.Fatalf("failed to publish site: %v", err)
 		}
@@ -65,9 +73,9 @@ func newPagesPublishCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:   "publish <archive>",
+		Use:   "publish [archive]",
 		Short: "Publish a website",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.MaximumNArgs(1),
 		Run:   run,
 	}
 	cmd.Flags().StringVarP(&domain, "domain", "d", "", "domain name")
