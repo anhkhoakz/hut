@@ -256,6 +256,7 @@ func newTodoTicketCommand() *cobra.Command {
 	cmd.AddCommand(newTodoTicketUnsubscribeCommand())
 	cmd.AddCommand(newTodoTicketAssignCommand())
 	cmd.AddCommand(newTodoTicketUnassignCommand())
+	cmd.AddCommand(newTodoTicketDeleteCommand())
 	return cmd
 }
 
@@ -621,6 +622,45 @@ func newTodoTicketUnassignCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&userName, "user", "u", "", "username")
 	cmd.MarkFlagRequired("user")
 	cmd.RegisterFlagCompletionFunc("user", completeTicketUnassign)
+	return cmd
+}
+
+func newTodoTicketDeleteCommand() *cobra.Command {
+	var autoConfirm bool
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		ticketID, name, owner, instance, err := parseTicketResource(ctx, cmd, args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		c := createClientWithInstance("todo", cmd, instance)
+		trackerID := getTrackerID(c, ctx, name, owner)
+
+		if !autoConfirm && !getConfirmation(fmt.Sprintf("Do you really want to delete the ticket with ID %d", ticketID)) {
+			fmt.Println("Aborted")
+			return
+		}
+
+		ticket, err := todosrht.DeleteTicket(c.Client, ctx, trackerID, ticketID)
+		if err != nil {
+			log.Fatal(err)
+		} else if ticket == nil {
+			log.Fatalf("failed to delete ticket %d", ticketID)
+		}
+
+		fmt.Printf("Deleted ticket %q\n", ticket.Subject)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "delete <ID>",
+		Short:             "Delete a ticket",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: completeTicketID,
+		Run:               run,
+	}
+	cmd.Flags().BoolVarP(&autoConfirm, "yes", "y", false, "auto confirm")
 	return cmd
 }
 

@@ -982,3 +982,14 @@ func CreateTracker(client *gqlclient.Client, ctx context.Context, name string, d
 	err = client.Execute(ctx, op, &respData)
 	return respData.CreateTracker, err
 }
+
+func DeleteTicket(client *gqlclient.Client, ctx context.Context, trackerId int32, ticketId int32) (deleteTicket *Ticket, err error) {
+	op := gqlclient.NewOperation("mutation deleteTicket ($trackerId: Int!, $ticketId: Int!) {\n\tdeleteTicket(trackerId: $trackerId, ticketId: $ticketId) {\n\t\tsubject\n\t}\n}\n")
+	op.Var("trackerId", trackerId)
+	op.Var("ticketId", ticketId)
+	var respData struct {
+		DeleteTicket *Ticket
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.DeleteTicket, err
+}

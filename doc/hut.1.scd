@@ -486,6 +486,14 @@ Options are:
 	*--stdin*
 		Read comment from _stdin_.
 
+*ticket delete* <ID> [options...]
+	Delete a ticket.
+
+	Options are:
+
+	*-y*, *--yes*
+		Confirm deletion without prompt.
+
 *ticket list*
 	List tickets.
 

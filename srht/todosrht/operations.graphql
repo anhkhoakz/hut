@@ -387,3 +387,9 @@ mutation createTracker(
         name
     }
 }
+
+mutation deleteTicket($trackerId: Int!, $ticketId: Int!) {
+    deleteTicket(trackerId: $trackerId, ticketId: $ticketId) {
+        subject
+    }
+}
