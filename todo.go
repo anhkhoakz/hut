@@ -747,10 +747,10 @@ func newTodoLabelCreateCommand() *cobra.Command {
 		Run:               run,
 	}
 	cmd.Flags().StringVarP(&fg, "foreground", "f", "", "foreground color")
-	cmd.RegisterFlagCompletionFunc("foreground", cobra.NoFileCompletions)
+	cmd.RegisterFlagCompletionFunc("foreground", completeLabelColor)
 	cmd.Flags().StringVarP(&bg, "background", "b", "", "background color")
 	cmd.MarkFlagRequired("background")
-	cmd.RegisterFlagCompletionFunc("background", cobra.NoFileCompletions)
+	cmd.RegisterFlagCompletionFunc("background", completeLabelColor)
 	return cmd
 }
 
@@ -1018,6 +1018,17 @@ func completeTicketStatus(cmd *cobra.Command, args []string, toComplete string) 
 func completeTicketResolution(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	return []string{"unresolved", "fixed", "implemented", "wont_fix", "by_design",
 		"invalid", "duplicate", "not_our_bug"}, cobra.ShellCompDirectiveNoFileComp
+}
+
+func completeLabelColor(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	var colors []string
+	colorMap := map[string]string{"black": "#000000", "white": "#FFFFFF", "blue": "#3584E4", "green": "#33D17A",
+		"yellow": "#F6D32D", "orange": "#FF7800", "red": "#E01B24", "purple": "#9141AC", "brown": "#986A44"}
+
+	for k, v := range colorMap {
+		colors = append(colors, fmt.Sprintf("%s\t%s", v, k))
+	}
+	return colors, cobra.ShellCompDirectiveNoFileComp
 }
 
 func completeTicketUnassign(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
