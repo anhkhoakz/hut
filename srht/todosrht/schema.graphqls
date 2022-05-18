@@ -164,6 +164,7 @@ enum WebhookEvent {
   TRACKER_DELETED @access(scope: TRACKERS, kind: RO)
   TICKET_CREATED  @access(scope: TICKETS, kind: RO)
   TICKET_UPDATE   @access(scope: TICKETS, kind: RO)
+  TICKET_DELETED  @access(scope: TICKETS, kind: RO)
   LABEL_CREATED   @access(scope: TRACKERS, kind: RO)
   LABEL_UPDATE    @access(scope: TRACKERS, kind: RO)
   LABEL_DELETED   @access(scope: TRACKERS, kind: RO)
@@ -261,6 +262,15 @@ type TicketEvent implements WebhookPayload {
   date: Time!
 
   ticket: Ticket!
+}
+
+type TicketDeletedEvent implements WebhookPayload {
+  uuid: String!
+  event: WebhookEvent!
+  date: Time!
+
+  trackerId: Int!
+  ticketId: Int!
 }
 
 type EventCreated implements WebhookPayload {
@@ -735,12 +745,29 @@ input SubmitTicketInput {
   externalUrl: String
 }
 
-"For internal use only."
-input SubmitEmailInput {
+# For internal use only.
+input SubmitTicketEmailInput {
   subject: String!
   body: String
   senderId: Int!
   messageId: String!
+}
+
+# For internal use only.
+enum EmailCmd {
+	RESOLVE
+	REOPEN
+	LABEL
+	UNLABEL
+}
+
+# For internal use only.
+input SubmitCommentEmailInput {
+  text: String!
+  senderId: Int!
+  cmd: EmailCmd
+  resolution: TicketResolution
+  labelIds: [Int!]
 }
 
 """
@@ -887,9 +914,16 @@ type Mutation {
   submitTicket(trackerId: Int!,
     input: SubmitTicketInput!): Ticket! @access(scope: TICKETS, kind: RW)
 
-  "Creates a new ticket from an incoming email. (For internal use only)"
-  submitEmail(trackerId: Int!,
-    input: SubmitEmailInput!): Ticket! @internal
+  "Deletes a ticket."
+  deleteTicket(trackerId: Int!, ticketId: Int!): Ticket! @access(scope: TICKETS, kind: RW)
+
+  # Creates a new ticket from an incoming email. (For internal use only)
+  submitTicketEmail(trackerId: Int!,
+    input: SubmitTicketEmailInput!): Ticket! @internal
+
+  # Creates a new comment from an incoming email. (For internal use only)
+  submitCommentEmail(trackerId: Int!, ticketId: Int!,
+    input: SubmitCommentEmailInput!): Event! @internal
 
   "Updates a ticket's subject or body"
   updateTicket(trackerId: Int!, ticketId: Int!,

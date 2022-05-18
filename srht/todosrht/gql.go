@@ -134,6 +134,15 @@ type EmailAddress struct {
 	Name *string `json:"name,omitempty"`
 }
 
+type EmailCmd string
+
+const (
+	EmailCmdResolve EmailCmd = "RESOLVE"
+	EmailCmdReopen  EmailCmd = "REOPEN"
+	EmailCmdLabel   EmailCmd = "LABEL"
+	EmailCmdUnlabel EmailCmd = "UNLABEL"
+)
+
 type Entity struct {
 	CanonicalName string `json:"canonicalName"`
 }
@@ -255,6 +264,14 @@ type StatusChange struct {
 	NewResolution TicketResolution `json:"newResolution"`
 }
 
+type SubmitCommentEmailInput struct {
+	Text       string            `json:"text"`
+	SenderId   int32             `json:"senderId"`
+	Cmd        *EmailCmd         `json:"cmd,omitempty"`
+	Resolution *TicketResolution `json:"resolution,omitempty"`
+	LabelIds   []int32           `json:"labelIds,omitempty"`
+}
+
 // You may omit the status or resolution fields to leave them unchanged (or if
 // you do not have permission to change them). "resolution" is required if
 // status is RESOLVED.
@@ -266,8 +283,7 @@ type SubmitCommentInput struct {
 	Import *ImportInput `json:"import,omitempty"`
 }
 
-// For internal use only.
-type SubmitEmailInput struct {
+type SubmitTicketEmailInput struct {
 	Subject   string  `json:"subject"`
 	Body      *string `json:"body,omitempty"`
 	SenderId  int32   `json:"senderId"`
@@ -323,6 +339,14 @@ type Ticket struct {
 type TicketCursor struct {
 	Results []Ticket `json:"results"`
 	Cursor  *Cursor  `json:"cursor,omitempty"`
+}
+
+type TicketDeletedEvent struct {
+	Uuid      string       `json:"uuid"`
+	Event     WebhookEvent `json:"event"`
+	Date      time.Time    `json:"date"`
+	TrackerId int32        `json:"trackerId"`
+	TicketId  int32        `json:"ticketId"`
 }
 
 type TicketEvent struct {
@@ -596,6 +620,7 @@ const (
 	WebhookEventTrackerDeleted WebhookEvent = "TRACKER_DELETED"
 	WebhookEventTicketCreated  WebhookEvent = "TICKET_CREATED"
 	WebhookEventTicketUpdate   WebhookEvent = "TICKET_UPDATE"
+	WebhookEventTicketDeleted  WebhookEvent = "TICKET_DELETED"
 	WebhookEventLabelCreated   WebhookEvent = "LABEL_CREATED"
 	WebhookEventLabelUpdate    WebhookEvent = "LABEL_UPDATE"
 	WebhookEventLabelDeleted   WebhookEvent = "LABEL_DELETED"
