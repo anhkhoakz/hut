@@ -97,9 +97,11 @@ func newPasteCreateCommand() *cobra.Command {
 func newPasteDeleteCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		c := createClient("paste", cmd)
 
-		for _, id := range args {
+		for _, arg := range args {
+			id, _, instance := parseResourceName(arg)
+			c := createClientWithInstance("paste", cmd, instance)
+
 			paste, err := pastesrht.Delete(c.Client, ctx, id)
 			if err != nil {
 				log.Fatalf("failed to delete paste %s: %v", id, err)
