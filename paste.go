@@ -255,6 +255,10 @@ func completePasteID(cmd *cobra.Command, args []string, toComplete string) ([]st
 	}
 
 	for _, paste := range pastes.Results {
+		if cmd.Name() == "delete" && hasCmdArg(cmd, paste.Id) {
+			continue
+		}
+
 		str := paste.Id
 		var files string
 

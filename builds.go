@@ -651,6 +651,10 @@ func completeJobs(cmd *cobra.Command, onlyRunning bool) ([]string, cobra.ShellCo
 			continue
 		}
 
+		if cmd.Name() == "cancel" && hasCmdArg(cmd, strconv.Itoa(int(job.Id))) {
+			continue
+		}
+
 		str := fmt.Sprintf("%d\t", job.Id)
 		if tagString := formatJobTags(&job); tagString != "" {
 			str += tagString
