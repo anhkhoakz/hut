@@ -284,6 +284,9 @@ Options are:
 	*-u*, *--user*
 		List patchsets by user instead of by list.
 
+*patchset show* <ID>
+	Show a patchset.
+
 *patchset update* <ID>
 	Update a patchset.
 

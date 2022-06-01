@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/mail"
@@ -238,6 +239,7 @@ func newListsPatchsetCommand() *cobra.Command {
 	cmd.AddCommand(newListsPatchsetListCommand())
 	cmd.AddCommand(newListsPatchsetUpdateCommand())
 	cmd.AddCommand(newListsPatchsetApplyCommand())
+	cmd.AddCommand(newListsPatchsetShowCommand())
 	return cmd
 }
 
@@ -364,6 +366,36 @@ func newListsPatchsetUpdateCommand() *cobra.Command {
 	return cmd
 }
 
+func newListsPatchsetShowCommand() *cobra.Command {
+	cmd := cobra.Command{
+		Use:               "show <ID>",
+		Short:             "Show a patchset",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: completePatchsetID,
+	}
+	cmd.Run = func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		id, instance, err := parsePatchID(args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+		c := createClientWithInstance("lists", cmd, instance)
+
+		patchset, err := listssrht.PatchsetById(c.Client, ctx, id)
+		if err != nil {
+			log.Fatal(err)
+		} else if patchset == nil {
+			log.Fatalf("no such patchset %d", id)
+		}
+
+		for _, patch := range patchset.Patches.Results {
+			formatPatch(os.Stdout, &patch)
+		}
+	}
+	return &cmd
+}
+
 func newListsPatchsetApplyCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
@@ -381,14 +413,13 @@ func newListsPatchsetApplyCommand() *cobra.Command {
 			log.Fatalf("no such patchset %d", id)
 		}
 
-		var mbox string
+		var mbox bytes.Buffer
 		for _, patch := range patchset.Patches.Results {
-			mbox += fmt.Sprintf("From nobody %s\nFrom: %s\nSubject: %s\nDate: %s\n\n%s\n",
-				patch.Date.Format(dateLayout), patch.Header[0], patch.Subject, patch.Date.Format(dateLayout), patch.Body)
+			formatPatch(&mbox, &patch)
 		}
 
 		applyCmd := exec.Command("git", "am", "-3")
-		applyCmd.Stdin = strings.NewReader(mbox)
+		applyCmd.Stdin = &mbox
 		applyCmd.Stdout = os.Stdout
 		applyCmd.Stderr = os.Stderr
 
@@ -405,6 +436,14 @@ func newListsPatchsetApplyCommand() *cobra.Command {
 		Run:               run,
 	}
 	return cmd
+}
+
+func formatPatch(w io.Writer, email *listssrht.Email) {
+	fmt.Fprintf(w, "From nobody %s\n", email.Date.Format(dateLayout))
+	fmt.Fprintf(w, "From: %s\n", email.Header[0])
+	fmt.Fprintf(w, "Subject: %s\n", email.Subject)
+	fmt.Fprintf(w, "Date: %s\n\n", email.Date.Format(dateLayout))
+	io.WriteString(w, strings.ReplaceAll(email.Body, "\r\n", "\n"))
 }
 
 func newListsACLCommand() *cobra.Command {
