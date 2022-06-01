@@ -10,7 +10,6 @@ import (
 	"net/mail"
 	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 
 	"github.com/juju/ansiterm/tabwriter"
@@ -337,7 +336,7 @@ func newListsPatchsetUpdateCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		id, instance, err := parsePatchID(args[0])
+		id, instance, err := parsePatchID(ctx, cmd, args[0])
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -376,7 +375,7 @@ func newListsPatchsetShowCommand() *cobra.Command {
 	cmd.Run = func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
-		id, instance, err := parsePatchID(args[0])
+		id, instance, err := parsePatchID(ctx, cmd, args[0])
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -400,7 +399,7 @@ func newListsPatchsetApplyCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
-		id, instance, err := parsePatchID(args[0])
+		id, instance, err := parsePatchID(ctx, cmd, args[0])
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -602,16 +601,24 @@ func getGitSendEmailTo(ctx context.Context) (*mail.Address, error) {
 	return addr, nil
 }
 
-func parsePatchID(s string) (id int32, instance string, err error) {
-	s, _, instance = parseResourceName(s)
-	split := strings.Split(s, "/")
-	s = split[len(split)-1]
-	id64, err := strconv.ParseInt(s, 10, 32)
-	if err != nil {
-		return 0, "", fmt.Errorf("invalid patchset ID: %v", err)
+func parsePatchID(ctx context.Context, cmd *cobra.Command, s string) (id int32, instance string, err error) {
+	if strings.Contains(s, "/") {
+		s, _, instance = parseResourceName(s)
+		split := strings.Split(s, "/")
+		s = split[len(split)-1]
+		id, err = parseInt32(s)
+		if err != nil {
+			return 0, "", fmt.Errorf("invalid patchset ID: %v", err)
+		}
+	} else {
+		id, err = parseInt32(s)
+		if err != nil {
+			return 0, "", err
+		}
+		_, _, instance = getMailingListName(ctx, cmd)
 	}
 
-	return int32(id64), instance, nil
+	return id, instance, nil
 }
 
 func completePatchsetStatus(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
