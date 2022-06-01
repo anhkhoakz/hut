@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -45,7 +46,11 @@ func newListsDeleteCommand() *cobra.Command {
 		if len(args) > 0 {
 			name, owner, instance = parseResourceName(args[0])
 		} else {
-			name, owner, instance = getMailingListName(ctx, cmd)
+			var err error
+			name, owner, instance, err = getMailingListName(ctx, cmd)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 		c := createClientWithInstance("lists", cmd, instance)
 		id := getMailingListID(c, ctx, name, owner)
@@ -123,7 +128,11 @@ func newListsSubscribeCommand() *cobra.Command {
 		if len(args) > 0 {
 			name, owner, instance = parseResourceName(args[0])
 		} else {
-			name, owner, instance = getMailingListName(ctx, cmd)
+			var err error
+			name, owner, instance, err = getMailingListName(ctx, cmd)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 		c := createClientWithInstance("lists", cmd, instance)
 		id := getMailingListID(c, ctx, name, owner)
@@ -154,7 +163,11 @@ func newListsUnsubscribeCommand() *cobra.Command {
 		if len(args) > 0 {
 			name, owner, instance = parseResourceName(args[0])
 		} else {
-			name, owner, instance = getMailingListName(ctx, cmd)
+			var err error
+			name, owner, instance, err = getMailingListName(ctx, cmd)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 		c := createClientWithInstance("lists", cmd, instance)
 		id := getMailingListID(c, ctx, name, owner)
@@ -251,7 +264,11 @@ func newListsPatchsetListCommand() *cobra.Command {
 		if len(args) > 0 {
 			name, owner, instance = parseResourceName(args[0])
 		} else {
-			name, owner, instance = getMailingListName(ctx, cmd)
+			var err error
+			name, owner, instance, err = getMailingListName(ctx, cmd)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 		c := createClientWithInstance("lists", cmd, instance)
 
@@ -464,7 +481,11 @@ func newListsACLListCommand() *cobra.Command {
 			// TODO: handle owner
 			name, _, instance = parseResourceName(args[0])
 		} else {
-			name, _, instance = getMailingListName(ctx, cmd)
+			var err error
+			name, _, instance, err = getMailingListName(ctx, cmd)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 
 		c := createClientWithInstance("lists", cmd, instance)
@@ -558,31 +579,39 @@ func getMailingListID(c *Client, ctx context.Context, name, owner string) int32 
 	return list.Id
 }
 
-func getMailingListName(ctx context.Context, cmd *cobra.Command) (name, owner, instance string) {
-	if s, err := cmd.Flags().GetString("mailing-list"); err != nil {
-		log.Fatal(err)
+func getMailingListName(ctx context.Context, cmd *cobra.Command) (name, owner, instance string, err error) {
+	s, err := cmd.Flags().GetString("mailing-list")
+	if err != nil {
+		return "", "", "", err
 	} else if s != "" {
-		return parseResourceName(s)
+		name, owner, instance = parseResourceName(s)
+		return name, owner, instance, nil
 	}
-	return guessMailingListName(ctx)
+
+	name, owner, instance, err = guessMailingListName(ctx)
+	if err != nil {
+		return "", "", "", err
+	}
+
+	return name, owner, instance, nil
 }
 
-func guessMailingListName(ctx context.Context) (name, owner, instance string) {
+func guessMailingListName(ctx context.Context) (name, owner, instance string, err error) {
 	addr, err := getGitSendEmailTo(ctx)
 	if err != nil {
-		log.Fatal(err)
+		return "", "", "", err
 	} else if addr == nil {
-		log.Fatal("no mailing list specified and no mailing list configured for current Git repository")
+		return "", "", "", errors.New("no mailing list specified and no mailing list configured for current Git repository")
 	}
 
 	parts := strings.SplitN(addr.Address, "@", 2)
 	if len(parts) != 2 {
-		log.Fatalf("invalid email address %q", addr.Address)
+		return "", "", "", fmt.Errorf("invalid email address %q", addr.Address)
 	}
 
 	name, owner, _ = parseResourceName(parts[0])
 	instance = parts[1]
-	return name, owner, instance
+	return name, owner, instance, nil
 }
 
 func getGitSendEmailTo(ctx context.Context) (*mail.Address, error) {
@@ -615,7 +644,11 @@ func parsePatchID(ctx context.Context, cmd *cobra.Command, s string) (id int32, 
 		if err != nil {
 			return 0, "", err
 		}
-		_, _, instance = getMailingListName(ctx, cmd)
+
+		_, _, instance, err = getMailingListName(ctx, cmd)
+		if err != nil {
+			return 0, "", err
+		}
 	}
 
 	return id, instance, nil
@@ -630,13 +663,14 @@ func completePatchsetID(cmd *cobra.Command, args []string, toComplete string) ([
 	ctx := cmd.Context()
 	var patchList []string
 
-	name, owner, instance := getMailingListName(ctx, cmd)
+	name, owner, instance, err := getMailingListName(ctx, cmd)
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
 	c := createClientWithInstance("lists", cmd, instance)
 
-	var (
-		err  error
-		list *listssrht.MailingList
-	)
+	var list *listssrht.MailingList
 	if owner != "" {
 		list, err = listssrht.CompletePatchsetIdByOwner(c.Client, ctx, owner, name)
 	} else {
