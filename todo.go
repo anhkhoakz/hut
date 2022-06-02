@@ -671,6 +671,7 @@ func newTodoTicketWebhookCommand() *cobra.Command {
 		Short: "Manage ticket webhooks",
 	}
 	cmd.AddCommand(newTodoTicketWebhookCreateCommand())
+	cmd.AddCommand(newTodoTicketWebhookDeleteCommand())
 	return cmd
 }
 
@@ -723,6 +724,36 @@ func newTodoTicketWebhookCreateCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&url, "url", "u", "", "payload url")
 	cmd.RegisterFlagCompletionFunc("url", cobra.NoFileCompletions)
 	cmd.MarkFlagRequired("url")
+	return cmd
+}
+
+func newTodoTicketWebhookDeleteCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("todo", cmd)
+
+		id, err := parseInt32(args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		webhook, err := todosrht.DeleteTicketWebhook(c.Client, ctx, id)
+		if err != nil {
+			log.Fatal(err)
+		} else if webhook == nil {
+			log.Fatal("failed to delete webhook")
+		}
+
+		fmt.Printf("Deleted webhook %d\n", webhook.Id)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "delete <ID>",
+		Short:             "Delete a ticket webhook",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
 	return cmd
 }
 

@@ -1005,3 +1005,13 @@ func CreateTicketWebhook(client *gqlclient.Client, ctx context.Context, trackerI
 	err = client.Execute(ctx, op, &respData)
 	return respData.CreateTicketWebhook, err
 }
+
+func DeleteTicketWebhook(client *gqlclient.Client, ctx context.Context, id int32) (deleteTicketWebhook *WebhookSubscription, err error) {
+	op := gqlclient.NewOperation("mutation deleteTicketWebhook ($id: Int!) {\n\tdeleteTicketWebhook(id: $id) {\n\t\tid\n\t}\n}\n")
+	op.Var("id", id)
+	var respData struct {
+		DeleteTicketWebhook *WebhookSubscription
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.DeleteTicketWebhook, err
+}

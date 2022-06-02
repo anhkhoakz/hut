@@ -543,6 +543,9 @@ Options are:
 	*-u*, *--url* <URL>
 		The payload URL which receives the _POST_ request. Required.
 
+*ticket webhook delete* <ID>
+	Delete a ticket webhook.
+
 *unsubscribe* [tracker]
 	Unsubscribe from a tracker.
 

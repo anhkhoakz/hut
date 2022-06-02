@@ -407,3 +407,9 @@ mutation createTicketWebhook(
         id
     }
 }
+
+mutation deleteTicketWebhook($id: Int!) {
+    deleteTicketWebhook(id: $id) {
+        id
+    }
+}
