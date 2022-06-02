@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"io"
 	"log"
 	"net/url"
 	"os"
@@ -573,32 +572,7 @@ func newGitWebhookCreateCommand() *cobra.Command {
 
 		var config gitsrht.UserWebhookInput
 		config.Url = args[0]
-
-		// Disable $EDITOR support when not in interactive terminal
-		if !termfmt.IsTerminal() {
-			stdin = true
-		}
-
-		var query string
-		if stdin {
-			b, err := io.ReadAll(os.Stdin)
-			if err != nil {
-				log.Fatalf("failed to read webhook query: %v", err)
-			}
-			query = string(b)
-		} else {
-			var err error
-			query, err = getInputWithEditor("hut_query*.graphql", "")
-			if err != nil {
-				log.Fatalf("failed to read webhook query: %v", err)
-			}
-		}
-
-		if query == "" {
-			fmt.Println("Aborting due to empty query.")
-			os.Exit(1)
-		}
-		config.Query = query
+		config.Query = readWebhookQuery(stdin)
 
 		whEvents, err := gitsrht.ParseEvents(events)
 		if err != nil {

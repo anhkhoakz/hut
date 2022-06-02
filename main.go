@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -14,6 +15,7 @@ import (
 	"time"
 	"unicode"
 
+	"git.sr.ht/~emersion/hut/termfmt"
 	"github.com/spf13/cobra"
 )
 
@@ -210,4 +212,33 @@ func hasCmdArg(cmd *cobra.Command, arg string) bool {
 	}
 
 	return false
+}
+
+func readWebhookQuery(stdin bool) string {
+	var query string
+
+	// Disable $EDITOR support when not in interactive terminal
+	if !termfmt.IsTerminal() {
+		stdin = true
+	}
+
+	if stdin {
+		b, err := io.ReadAll(os.Stdin)
+		if err != nil {
+			log.Fatalf("failed to read webhook query: %v", err)
+		}
+		query = string(b)
+	} else {
+		var err error
+		query, err = getInputWithEditor("hut_query*.graphql", "")
+		if err != nil {
+			log.Fatalf("failed to read webhook query: %v", err)
+		}
+	}
+
+	if query == "" {
+		fmt.Println("Aborting due to empty query.")
+		os.Exit(1)
+	}
+	return query
 }
