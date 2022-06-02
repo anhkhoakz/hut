@@ -993,3 +993,15 @@ func DeleteTicket(client *gqlclient.Client, ctx context.Context, trackerId int32
 	err = client.Execute(ctx, op, &respData)
 	return respData.DeleteTicket, err
 }
+
+func CreateTicketWebhook(client *gqlclient.Client, ctx context.Context, trackerId int32, ticketId int32, config TicketWebhookInput) (createTicketWebhook *WebhookSubscription, err error) {
+	op := gqlclient.NewOperation("mutation createTicketWebhook ($trackerId: Int!, $ticketId: Int!, $config: TicketWebhookInput!) {\n\tcreateTicketWebhook(trackerId: $trackerId, ticketId: $ticketId, config: $config) {\n\t\tid\n\t}\n}\n")
+	op.Var("trackerId", trackerId)
+	op.Var("ticketId", ticketId)
+	op.Var("config", config)
+	var respData struct {
+		CreateTicketWebhook *WebhookSubscription
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.CreateTicketWebhook, err
+}

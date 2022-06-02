@@ -110,3 +110,21 @@ func PermissionIcon(permission bool) string {
 	}
 	return termfmt.Red.Sprint("✗")
 }
+
+func ParseTicketWebhookEvents(events []string) ([]WebhookEvent, error) {
+	var whEvents []WebhookEvent
+	for _, event := range events {
+		switch strings.ToLower(event) {
+		case "ticket_update":
+			whEvents = append(whEvents, WebhookEventTicketUpdate)
+		case "ticket_deleted":
+			whEvents = append(whEvents, WebhookEventTicketDeleted)
+		case "event_created":
+			whEvents = append(whEvents, WebhookEventEventCreated)
+		default:
+			return whEvents, fmt.Errorf("invalid event: %q", event)
+		}
+	}
+
+	return whEvents, nil
+}

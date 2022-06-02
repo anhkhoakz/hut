@@ -528,6 +528,21 @@ Options are:
 	*-s*, *--status*
 		New ticket status.
 
+*ticket webhook create* <ID> [options...]
+	Create a ticket webhook.
+
+	Options are:
+
+	*-e*, *--events* <strings...>
+		List of events that should trigger the webhook (EVENT_CREATED,
+		TICKET_UPDATE, TICKET_DELETED). Required.
+
+	*--stdin*
+		Read query from _stdin_.
+
+	*-u*, *--url* <URL>
+		The payload URL which receives the _POST_ request. Required.
+
 *unsubscribe* [tracker]
 	Unsubscribe from a tracker.
 

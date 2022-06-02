@@ -393,3 +393,17 @@ mutation deleteTicket($trackerId: Int!, $ticketId: Int!) {
         subject
     }
 }
+
+mutation createTicketWebhook(
+    $trackerId: Int!
+    $ticketId: Int!
+    $config: TicketWebhookInput!
+) {
+    createTicketWebhook(
+        trackerId: $trackerId
+        ticketId: $ticketId
+        config: $config
+    ) {
+        id
+    }
+}
