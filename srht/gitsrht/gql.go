@@ -610,8 +610,8 @@ func DeleteACL(client *gqlclient.Client, ctx context.Context, id int32) (deleteA
 	return respData.DeleteACL, err
 }
 
-func DeleteWebhook(client *gqlclient.Client, ctx context.Context, id int32) (deleteWebhook *WebhookSubscription, err error) {
-	op := gqlclient.NewOperation("mutation deleteWebhook ($id: Int!) {\n\tdeleteWebhook(id: $id) {\n\t\tid\n\t}\n}\n")
+func DeleteUserWebhook(client *gqlclient.Client, ctx context.Context, id int32) (deleteWebhook *WebhookSubscription, err error) {
+	op := gqlclient.NewOperation("mutation deleteUserWebhook ($id: Int!) {\n\tdeleteWebhook(id: $id) {\n\t\tid\n\t}\n}\n")
 	op.Var("id", id)
 	var respData struct {
 		DeleteWebhook *WebhookSubscription
@@ -620,8 +620,8 @@ func DeleteWebhook(client *gqlclient.Client, ctx context.Context, id int32) (del
 	return respData.DeleteWebhook, err
 }
 
-func CreateWebhook(client *gqlclient.Client, ctx context.Context, config UserWebhookInput) (createWebhook *WebhookSubscription, err error) {
-	op := gqlclient.NewOperation("mutation createWebhook ($config: UserWebhookInput!) {\n\tcreateWebhook(config: $config) {\n\t\tid\n\t}\n}\n")
+func CreateUserWebhook(client *gqlclient.Client, ctx context.Context, config UserWebhookInput) (createWebhook *WebhookSubscription, err error) {
+	op := gqlclient.NewOperation("mutation createUserWebhook ($config: UserWebhookInput!) {\n\tcreateWebhook(config: $config) {\n\t\tid\n\t}\n}\n")
 	op.Var("config", config)
 	var respData struct {
 		CreateWebhook *WebhookSubscription

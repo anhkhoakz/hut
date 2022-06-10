@@ -29,7 +29,7 @@ func newGitCommand() *cobra.Command {
 	cmd.AddCommand(newGitDeleteCommand())
 	cmd.AddCommand(newGitACLCommand())
 	cmd.AddCommand(newGitShowCommand())
-	cmd.AddCommand(newGitWebhookCommand())
+	cmd.AddCommand(newGitUserWebhookCommand())
 	cmd.PersistentFlags().StringP("repo", "r", "", "name of repository")
 	cmd.RegisterFlagCompletionFunc("repo", completeRepo)
 	return cmd
@@ -552,26 +552,27 @@ func newGitShowCommand() *cobra.Command {
 	return cmd
 }
 
-func newGitWebhookCommand() *cobra.Command {
+func newGitUserWebhookCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "webhook",
-		Short: "Manage webhooks",
+		Use:   "user-webhook",
+		Short: "Manage user webhooks",
 	}
-	cmd.AddCommand(newGitWebhookCreateCommand())
-	cmd.AddCommand(newGitWebhookListCommand())
-	cmd.AddCommand(newGitWebhookDeleteCommand())
+	cmd.AddCommand(newGitUserWebhookCreateCommand())
+	cmd.AddCommand(newGitUserWebhookListCommand())
+	cmd.AddCommand(newGitUserWebhookDeleteCommand())
 	return cmd
 }
 
-func newGitWebhookCreateCommand() *cobra.Command {
+func newGitUserWebhookCreateCommand() *cobra.Command {
 	var events []string
 	var stdin bool
+	var url string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("git", cmd)
 
 		var config gitsrht.UserWebhookInput
-		config.Url = args[0]
+		config.Url = url
 		config.Query = readWebhookQuery(stdin)
 
 		whEvents, err := gitsrht.ParseEvents(events)
@@ -580,31 +581,34 @@ func newGitWebhookCreateCommand() *cobra.Command {
 		}
 		config.Events = whEvents
 
-		webhook, err := gitsrht.CreateWebhook(c.Client, ctx, config)
+		webhook, err := gitsrht.CreateUserWebhook(c.Client, ctx, config)
 		if err != nil {
 			log.Fatal(err)
 		} else if webhook == nil {
 			log.Fatal("failed to create webhook")
 		}
 
-		fmt.Printf("Created webhook with ID %d\n", webhook.Id)
+		fmt.Printf("Created user webhook with ID %d\n", webhook.Id)
 	}
 
 	cmd := &cobra.Command{
-		Use:               "create <URL>",
-		Short:             "Create a webhook",
-		Args:              cobra.ExactArgs(1),
+		Use:               "create",
+		Short:             "Create a user webhook",
+		Args:              cobra.ExactArgs(0),
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
 	cmd.Flags().StringSliceVarP(&events, "events", "e", nil, "webhook events")
-	cmd.RegisterFlagCompletionFunc("events", completeEvents)
+	cmd.RegisterFlagCompletionFunc("events", completeGitUserWebhookEvents)
 	cmd.MarkFlagRequired("events")
 	cmd.Flags().BoolVar(&stdin, "stdin", false, "read webhook query from stdin")
+	cmd.Flags().StringVarP(&url, "url", "u", "", "payload url")
+	cmd.RegisterFlagCompletionFunc("url", cobra.NoFileCompletions)
+	cmd.MarkFlagRequired("url")
 	return cmd
 }
 
-func newGitWebhookListCommand() *cobra.Command {
+func newGitUserWebhookListCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("git", cmd)
@@ -624,14 +628,14 @@ func newGitWebhookListCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "List webhooks",
+		Short: "List user webhooks",
 		Args:  cobra.ExactArgs(0),
 		Run:   run,
 	}
 	return cmd
 }
 
-func newGitWebhookDeleteCommand() *cobra.Command {
+func newGitUserWebhookDeleteCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("git", cmd)
@@ -641,7 +645,7 @@ func newGitWebhookDeleteCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		webhook, err := gitsrht.DeleteWebhook(c.Client, ctx, id)
+		webhook, err := gitsrht.DeleteUserWebhook(c.Client, ctx, id)
 		if err != nil {
 			log.Fatal(err)
 		} else if webhook == nil {
@@ -653,7 +657,7 @@ func newGitWebhookDeleteCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:               "delete <ID>",
-		Short:             "Delete a webhook",
+		Short:             "Delete a user webhook",
 		Args:              cobra.ExactArgs(1),
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
@@ -823,7 +827,7 @@ func completeArtifacts(cmd *cobra.Command, args []string, toComplete string) ([]
 	return artifactList, cobra.ShellCompDirectiveNoFileComp
 }
 
-func completeEvents(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func completeGitUserWebhookEvents(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var eventList []string
 	events := [3]string{"repo_created", "repo_update", "repo_deleted"}
 	set := strings.ToLower(cmd.Flag("events").Value.String())

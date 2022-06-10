@@ -216,13 +216,13 @@ mutation deleteACL($id: Int!) {
     }
 }
 
-mutation deleteWebhook($id: Int!) {
+mutation deleteUserWebhook($id: Int!) {
     deleteWebhook(id: $id) {
         id
     }
 }
 
-mutation createWebhook($config: UserWebhookInput!) {
+mutation createUserWebhook($config: UserWebhookInput!) {
     createWebhook(config: $config) {
         id
     }

@@ -195,8 +195,8 @@ Options are:
 *show* [repo]
 	Display information about a repository.
 
-*webhook create* <URL> [options...]
-	Create a webhook. When this command is run from a terminal, the query will
+*user-webhook create* [options...]
+	Create a user webhook. When this command is run from a terminal, the query will
 	be read from _$EDITOR_, otherwise it defaults to stdin.
 
 	Options are:
@@ -208,11 +208,14 @@ Options are:
 	*--stdin*
 		Read query from _stdin_.
 
-*webhook delete* <ID>
-	Delete a webhook.
+	*-u*, *--url* <URL>
+		The payload URL which receives the _POST_ request. Required.
 
-*webhook list*
-	List webhooks.
+*user-webhook delete* <ID>
+	Delete a user webhook.
+
+*user-webhook list*
+	List user webhooks.
 
 ## hg
 
