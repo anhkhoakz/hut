@@ -7,6 +7,19 @@ import (
 	"git.sr.ht/~emersion/hut/termfmt"
 )
 
+func ParseVisibility(s string) (Visibility, error) {
+	switch strings.ToLower(s) {
+	case "unlisted":
+		return VisibilityUnlisted, nil
+	case "private":
+		return VisibilityPrivate, nil
+	case "public":
+		return VisibilityPublic, nil
+	default:
+		return "", fmt.Errorf("invalid visibility: %s", s)
+	}
+}
+
 func (status PatchsetStatus) TermString() string {
 	var style termfmt.Style
 

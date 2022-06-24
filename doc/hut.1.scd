@@ -265,6 +265,9 @@ Options are:
 	*--stdin*
 		Read description from _stdin_.
 
+	*-v*, *--visibility* <string>
+		Visibility to use (public, unlisted, private). Defaults to public.
+
 *delete* [list] [options...]
 	Delete a mailing list.
 

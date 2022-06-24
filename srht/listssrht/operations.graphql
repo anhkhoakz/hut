@@ -135,14 +135,11 @@ fragment completePatchset on MailingList {
 
 query aclByListName($name: String!) {
     mailingListByName(name: $name) {
-        nonsubscriber {
-            ...acl
-        }
-        subscriber {
-            ...acl
-        }
-        identified {
-            ...acl
+        defaultACL {
+            browse
+            reply
+            post
+            moderate
         }
         acl {
             results {
@@ -158,13 +155,6 @@ query aclByListName($name: String!) {
             }
         }
     }
-}
-
-fragment acl on GeneralACL {
-    browse
-    reply
-    post
-    moderate
 }
 
 mutation mailingListSubscribe($listID: Int!) {
@@ -209,8 +199,16 @@ mutation deleteACL($id: Int!) {
     }
 }
 
-mutation createMailingList($name: String!, $description: String) {
-    createMailingList(name: $name, description: $description) {
+mutation createMailingList(
+    $name: String!
+    $description: String
+    $visibility: Visibility!
+) {
+    createMailingList(
+        name: $name
+        description: $description
+        visibility: $visibility
+    ) {
         name
     }
 }

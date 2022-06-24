@@ -17,6 +17,18 @@ scalar URL
 "Used to provide a human-friendly description of an access scope"
 directive @scopehelp(details: String!) on ENUM_VALUE
 
+"""
+This is used to decorate fields which are only accessible with a personal
+access token, and are not available to clients using OAuth 2.0 access tokens.
+"""
+directive @private on FIELD_DEFINITION
+
+"""
+This is used to decorate fields which are for internal use, and are not
+available to normal API users.
+"""
+directive @internal on FIELD_DEFINITION
+
 enum AccessScope {
   ACLS          @scopehelp(details: "access control lists")
   EMAILS        @scopehelp(details: "emails")
@@ -80,6 +92,12 @@ type Mailbox implements Entity {
   address: String!
 }
 
+enum Visibility {
+  PUBLIC
+  UNLISTED
+  PRIVATE
+}
+
 type MailingList {
   id: Int!
   created: Time!
@@ -89,6 +107,7 @@ type MailingList {
 
   # Markdown
   description: String
+  visibility: Visibility!
 
   """
   List of globs for permitted or rejected mimetypes on this list
@@ -122,12 +141,121 @@ type MailingList {
 
   "Access control list entries for this mailing list"
   acl(cursor: Cursor): MailingListACLCursor! @access(scope: ACLS, kind: RO)
-  "Permissions which apply to any non-subscriber"
-  nonsubscriber: GeneralACL!
-  "Permissions which apply to any subscriber"
-  subscriber: GeneralACL!
-  "Permissions which apply to any authenticated account holder"
-  identified: GeneralACL!
+
+  defaultACL: GeneralACL!
+
+  """
+  Returns a list of mailing list webhook subscriptions. For clients
+  authenticated with a personal access token, this returns all webhooks
+  configured by all GraphQL clients for your account. For clients
+  authenticated with an OAuth 2.0 access token, this returns only webhooks
+  registered for your client.
+  """
+  webhooks(cursor: Cursor): WebhookSubscriptionCursor!
+
+  "Returns details of a mailing list webhook subscription by its ID."
+  webhook(id: Int!): WebhookSubscription
+}
+
+type OAuthClient {
+  uuid: String!
+}
+
+enum WebhookEvent {
+  LIST_CREATED      @access(scope: LISTS, kind: RO)
+  LIST_UPDATED      @access(scope: LISTS, kind: RO)
+  LIST_DELETED      @access(scope: LISTS, kind: RO)
+  EMAIL_RECEIVED    @access(scope: EMAILS, kind: RO)
+  PATCHSET_RECEIVED @access(scope: PATCHES, kind: RO)
+}
+
+interface WebhookSubscription {
+  id: Int!
+  events: [WebhookEvent!]!
+  query: String!
+  url: String!
+
+  """
+  If this webhook was registered by an authorized OAuth 2.0 client, this
+  field is non-null.
+  """
+  client: OAuthClient @private
+
+  "All deliveries which have been sent to this webhook."
+  deliveries(cursor: Cursor): WebhookDeliveryCursor!
+
+  "Returns a sample payload for this subscription, for testing purposes"
+  sample(event: WebhookEvent!): String!
+}
+
+type UserWebhookSubscription implements WebhookSubscription {
+  id: Int!
+  events: [WebhookEvent!]!
+  query: String!
+  url: String!
+  client: OAuthClient @private
+  deliveries(cursor: Cursor): WebhookDeliveryCursor!
+  sample(event: WebhookEvent!): String!
+}
+
+type MailingListWebhookSubscription implements WebhookSubscription {
+  id: Int!
+  events: [WebhookEvent!]!
+  query: String!
+  url: String!
+  client: OAuthClient @private
+  deliveries(cursor: Cursor): WebhookDeliveryCursor!
+  sample(event: WebhookEvent!): String!
+
+  list: MailingList!
+}
+
+type WebhookDelivery {
+  uuid: String!
+  date: Time!
+  event: WebhookEvent!
+  subscription: WebhookSubscription!
+  requestBody: String!
+
+  """
+  These details are provided only after a response is received from the
+  remote server. If a response is sent whose Content-Type is not text/*, or
+  cannot be decoded as UTF-8, the response body will be null. It will be
+  truncated after 64 KiB.
+  """
+  responseBody: String
+  responseHeaders: String
+  responseStatus: Int
+}
+
+interface WebhookPayload {
+  uuid: String!
+  event: WebhookEvent!
+  date: Time!
+}
+
+type MailingListEvent implements WebhookPayload {
+  uuid: String!
+  event: WebhookEvent!
+  date: Time!
+
+  list: MailingList!
+}
+
+type EmailEvent implements WebhookPayload {
+  uuid: String!
+  event: WebhookEvent!
+  date: Time!
+
+  email: Email!
+}
+
+type PatchsetEvent implements WebhookPayload {
+  uuid: String!
+  event: WebhookEvent!
+  date: Time!
+
+  patchset: Patchset!
 }
 
 interface ACL {
@@ -188,6 +316,59 @@ type Thread {
 
   "URL to an application/mbox archive of this thread"
   mbox: URL!
+
+  """
+  Thread parsed as a tree.
+
+  The returned list is never empty. The first item is guaranteed to be the root
+  message. The blocks are sorted in topological order.
+  """
+  blocks: [ThreadBlock!]!
+}
+
+"""
+A block of text in an email thread.
+
+Blocks are parts of a message's body that aren't quotes of the parent message.
+A block can be a reply to a parent block, in which case the parentStart and
+parentEnd fields indicate which part of the parent message is replied to. A
+block can have replies, each of which will be represented by a block in the
+children field.
+"""
+type ThreadBlock {
+  "Unique identifier for this block."
+  key: String!
+  "The block's plain-text content."
+  body: String!
+  "Index of the parent block (if any) in Thread.blocks."
+  parent: Int
+  """
+  Replies to this block.
+
+  The list items are indexes into Thread.blocks.
+  """
+  children: [Int!]!
+
+  "The email this block comes from."
+  source: Email!
+  "The range of this block in the source email body."
+  sourceRange: ByteRange!
+
+  """
+  If this block is a reply to a particular chunk of the parent block, this
+  field indicates the range of that chunk in the parent's email body.
+  """
+  parentRange: ByteRange
+}
+
+"""
+A byte range.
+"""
+type ByteRange {
+  "Inclusive start byte offset."
+  start: Int!
+  "Exclusive end byte offset."
+  end: Int!
 }
 
 type Email {
@@ -386,6 +567,30 @@ type ActivitySubscriptionCursor {
   cursor: Cursor
 }
 
+"""
+A cursor for enumerating a list of webhook deliveries
+
+If there are additional results available, the cursor object may be passed
+back into the same endpoint to retrieve another page. If the cursor is null,
+there are no remaining results to return.
+"""
+type WebhookDeliveryCursor {
+  results: [WebhookDelivery!]!
+  cursor: Cursor
+}
+
+"""
+A cursor for enumerating a list of webhook subscriptions
+
+If there are additional results available, the cursor object may be passed
+back into the same endpoint to retrieve another page. If the cursor is null,
+there are no remaining results to return.
+"""
+type WebhookSubscriptionCursor {
+  results: [WebhookSubscription!]!
+  cursor: Cursor
+}
+
 type Query {
   "Returns API version information"
   version: Version!
@@ -417,12 +622,32 @@ type Query {
 
   "List of subscriptions of the authenticated user"
   subscriptions(cursor: Cursor): ActivitySubscriptionCursor @access(scope: SUBSCRIPTIONS, kind: RO)
+
+  """
+  Returns a list of user webhook subscriptions. For clients
+  authenticated with a personal access token, this returns all webhooks
+  configured by all GraphQL clients for your account. For clients
+  authenticated with an OAuth 2.0 access token, this returns only webhooks
+  registered for your client.
+  """
+  userWebhooks(cursor: Cursor): WebhookSubscriptionCursor!
+
+  "Returns details of a user webhook subscription by its ID."
+  userWebhook(id: Int!): WebhookSubscription
+
+  """
+  Returns information about the webhook currently being processed. This is
+  not valid during normal queries over HTTP, and will return an error if used
+  outside of a webhook context.
+  """
+  webhook: WebhookPayload!
 }
 
 # You may omit any fields to leave them unchanged.
 # TODO: Allow users to change the name of a mailing list
 input MailingListInput {
   description: String
+  visibility: Visibility
 
   """
   List of globs for permitted or rejected mimetypes on this list
@@ -440,11 +665,24 @@ input ACLInput {
   moderate: Boolean!
 }
 
+input UserWebhookInput {
+  url: String!
+  events: [WebhookEvent!]!
+  query: String!
+}
+
+input MailingListWebhookInput {
+  url: String!
+  events: [WebhookEvent!]!
+  query: String!
+}
+
 type Mutation {
   "Creates a new mailing list"
   createMailingList(
     name: String!,
-    description: String): MailingList! @access(scope: LISTS, kind: RW)
+    description: String,
+    visibility: Visibility!): MailingList! @access(scope: LISTS, kind: RW)
 
   "Updates a mailing list."
   updateMailingList(
@@ -494,4 +732,36 @@ type Mutation {
 
   "Deletes a mailing list subscription"
   mailingListUnsubscribe(listID: Int!): MailingListSubscription @access(scope: SUBSCRIPTIONS, kind: RW)
+
+  """
+  Creates a new user webhook subscription. When an event from the
+  provided list of events occurs, the 'query' parameter (a GraphQL query)
+  will be evaluated and the results will be sent to the provided URL as the
+  body of an HTTP POST request. The list of events must include at least one
+  event, and no duplicates.
+
+  This query is evaluated in the webhook context, such that query { webhook }
+  may be used to access details of the event which trigged the webhook. The
+  query may not make any mutations.
+  """
+  createUserWebhook(config: UserWebhookInput!): WebhookSubscription!
+
+  """
+  Deletes a user webhook. Any events already queued may still be
+  delivered after this request completes. Clients authenticated with a
+  personal access token may delete any webhook registered for their account,
+  but authorized OAuth 2.0 clients may only delete their own webhooks.
+  Manually deleting a webhook configured by a third-party client may cause
+  unexpected behavior with the third-party integration.
+  """
+  deleteUserWebhook(id: Int!): WebhookSubscription!
+
+  "Creates a new mailing list webhook."
+  createMailingListWebhook(listId: Int!, config: MailingListWebhookInput!): WebhookSubscription!
+
+  "Deletes a mailing list webhook."
+  deleteMailingListWebhook(id: Int!): WebhookSubscription!
+
+  triggerUserEmailWebhooks(emailId: Int!): Email! @internal
+  triggerListEmailWebhooks(listId: Int!, emailId: Int!): Email! @internal
 }

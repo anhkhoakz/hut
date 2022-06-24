@@ -198,10 +198,16 @@ Please write the Markdown description of the new mailing list above.
 -->`
 
 func newListsCreateCommand() *cobra.Command {
+	var visibility string
 	var stdin bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("lists", cmd)
+
+		listVisibility, err := listssrht.ParseVisibility(visibility)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		var description *string
 
@@ -223,7 +229,7 @@ func newListsCreateCommand() *cobra.Command {
 			description = &text
 		}
 
-		tracker, err := listssrht.CreateMailingList(c.Client, ctx, args[0], description)
+		tracker, err := listssrht.CreateMailingList(c.Client, ctx, args[0], description, listVisibility)
 		if err != nil {
 			log.Fatal(err)
 		} else if tracker == nil {
@@ -240,6 +246,8 @@ func newListsCreateCommand() *cobra.Command {
 		Run:               run,
 	}
 	cmd.Flags().BoolVar(&stdin, "stdin", false, "read mailing list from stdin")
+	cmd.Flags().StringVarP(&visibility, "visibility", "v", "public", "mailing list visibility")
+	cmd.RegisterFlagCompletionFunc("visibility", completeVisibility)
 	return cmd
 }
 
@@ -497,16 +505,15 @@ func newListsACLListCommand() *cobra.Command {
 			log.Fatalf("no such list %q", name)
 		}
 
-		tw := tabwriter.NewWriter(os.Stdout, 0, 2, 2, ' ', 0)
-		fmt.Println(termfmt.Bold.Sprint("Global permissions"))
-		fmt.Fprintf(tw, "Non-subscriber\t%s\n", list.Nonsubscriber.TermString())
-		fmt.Fprintf(tw, "Subscriber\t%s\n", list.Subscriber.TermString())
-		fmt.Fprintf(tw, "Account holder\t%s\n", list.Identified.TermString())
-		tw.Flush()
+		fmt.Println(termfmt.Bold.Sprint("Default permissions"))
+		fmt.Println(list.DefaultACL.TermString())
 
 		if len(list.Acl.Results) > 0 {
 			fmt.Println(termfmt.Bold.Sprint("\nUser permissions"))
 		}
+
+		tw := tabwriter.NewWriter(os.Stdout, 0, 2, 2, ' ', 0)
+		defer tw.Flush()
 		for _, acl := range list.Acl.Results {
 			s := fmt.Sprintf("%s browse  %s reply  %s post  %s moderate",
 				listssrht.PermissionIcon(acl.Browse), listssrht.PermissionIcon(acl.Reply),
@@ -515,7 +522,6 @@ func newListsACLListCommand() *cobra.Command {
 			fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n", termfmt.DarkYellow.Sprintf("#%d", acl.Id),
 				acl.Entity.CanonicalName, s, created)
 		}
-		tw.Flush()
 	}
 
 	cmd := &cobra.Command{

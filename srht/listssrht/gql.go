@@ -59,6 +59,14 @@ type ActivitySubscriptionCursor struct {
 	Cursor  *Cursor                `json:"cursor,omitempty"`
 }
 
+// A byte range.
+type ByteRange struct {
+	// Inclusive start byte offset.
+	Start int32 `json:"start"`
+	// Exclusive end byte offset.
+	End int32 `json:"end"`
+}
+
 // Opaque string
 type Cursor string
 
@@ -104,6 +112,13 @@ type EmailCursor struct {
 	Cursor  *Cursor `json:"cursor,omitempty"`
 }
 
+type EmailEvent struct {
+	Uuid  string       `json:"uuid"`
+	Event WebhookEvent `json:"event"`
+	Date  time.Time    `json:"date"`
+	Email *Email       `json:"email"`
+}
+
 type Entity struct {
 	CanonicalName string `json:"canonicalName"`
 }
@@ -125,12 +140,13 @@ type Mailbox struct {
 }
 
 type MailingList struct {
-	Id          int32     `json:"id"`
-	Created     time.Time `json:"created"`
-	Updated     time.Time `json:"updated"`
-	Name        string    `json:"name"`
-	Owner       *Entity   `json:"owner"`
-	Description *string   `json:"description,omitempty"`
+	Id          int32      `json:"id"`
+	Created     time.Time  `json:"created"`
+	Updated     time.Time  `json:"updated"`
+	Name        string     `json:"name"`
+	Owner       *Entity    `json:"owner"`
+	Description *string    `json:"description,omitempty"`
+	Visibility  Visibility `json:"visibility"`
 	// List of globs for permitted or rejected mimetypes on this list
 	// e.g. text/*
 	PermitMime []string `json:"permitMime"`
@@ -151,13 +167,16 @@ type MailingList struct {
 	Archive    URL `json:"archive"`
 	Last30days URL `json:"last30days"`
 	// Access control list entries for this mailing list
-	Acl *MailingListACLCursor `json:"acl"`
-	// Permissions which apply to any non-subscriber
-	Nonsubscriber *GeneralACL `json:"nonsubscriber"`
-	// Permissions which apply to any subscriber
-	Subscriber *GeneralACL `json:"subscriber"`
-	// Permissions which apply to any authenticated account holder
-	Identified *GeneralACL `json:"identified"`
+	Acl        *MailingListACLCursor `json:"acl"`
+	DefaultACL *GeneralACL           `json:"defaultACL"`
+	// Returns a list of mailing list webhook subscriptions. For clients
+	// authenticated with a personal access token, this returns all webhooks
+	// configured by all GraphQL clients for your account. For clients
+	// authenticated with an OAuth 2.0 access token, this returns only webhooks
+	// registered for your client.
+	Webhooks *WebhookSubscriptionCursor `json:"webhooks"`
+	// Returns details of a mailing list webhook subscription by its ID.
+	Webhook *WebhookSubscription `json:"webhook,omitempty"`
 }
 
 // These ACLs are configured for specific entities, and may be used to expand or
@@ -193,8 +212,16 @@ type MailingListCursor struct {
 	Cursor  *Cursor       `json:"cursor,omitempty"`
 }
 
+type MailingListEvent struct {
+	Uuid  string       `json:"uuid"`
+	Event WebhookEvent `json:"event"`
+	Date  time.Time    `json:"date"`
+	List  *MailingList `json:"list"`
+}
+
 type MailingListInput struct {
-	Description *string `json:"description,omitempty"`
+	Description *string     `json:"description,omitempty"`
+	Visibility  *Visibility `json:"visibility,omitempty"`
 	// List of globs for permitted or rejected mimetypes on this list
 	// e.g. text/*
 	PermitMime []string `json:"permitMime,omitempty"`
@@ -205,6 +232,27 @@ type MailingListSubscription struct {
 	Id      int32        `json:"id"`
 	Created time.Time    `json:"created"`
 	List    *MailingList `json:"list"`
+}
+
+type MailingListWebhookInput struct {
+	Url    string         `json:"url"`
+	Events []WebhookEvent `json:"events"`
+	Query  string         `json:"query"`
+}
+
+type MailingListWebhookSubscription struct {
+	Id         int32                  `json:"id"`
+	Events     []WebhookEvent         `json:"events"`
+	Query      string                 `json:"query"`
+	Url        string                 `json:"url"`
+	Client     *OAuthClient           `json:"client,omitempty"`
+	Deliveries *WebhookDeliveryCursor `json:"deliveries"`
+	Sample     string                 `json:"sample"`
+	List       *MailingList           `json:"list"`
+}
+
+type OAuthClient struct {
+	Uuid string `json:"uuid"`
 }
 
 // Information parsed from the subject line of a patch, such that the following:
@@ -255,6 +303,13 @@ type PatchsetCursor struct {
 	Cursor  *Cursor    `json:"cursor,omitempty"`
 }
 
+type PatchsetEvent struct {
+	Uuid     string       `json:"uuid"`
+	Event    WebhookEvent `json:"event"`
+	Date     time.Time    `json:"date"`
+	Patchset *Patchset    `json:"patchset"`
+}
+
 type PatchsetStatus string
 
 const (
@@ -293,6 +348,38 @@ type Thread struct {
 	Mailto string `json:"mailto"`
 	// URL to an application/mbox archive of this thread
 	Mbox URL `json:"mbox"`
+	// Thread parsed as a tree.
+	//
+	// The returned list is never empty. The first item is guaranteed to be the root
+	// message. The blocks are sorted in topological order.
+	Blocks []ThreadBlock `json:"blocks"`
+}
+
+// A block of text in an email thread.
+//
+// Blocks are parts of a message's body that aren't quotes of the parent message.
+// A block can be a reply to a parent block, in which case the parentStart and
+// parentEnd fields indicate which part of the parent message is replied to. A
+// block can have replies, each of which will be represented by a block in the
+// children field.
+type ThreadBlock struct {
+	// Unique identifier for this block.
+	Key string `json:"key"`
+	// The block's plain-text content.
+	Body string `json:"body"`
+	// Index of the parent block (if any) in Thread.blocks.
+	Parent *int32 `json:"parent,omitempty"`
+	// Replies to this block.
+	//
+	// The list items are indexes into Thread.blocks.
+	Children []int32 `json:"children"`
+	// The email this block comes from.
+	Source *Email `json:"source"`
+	// The range of this block in the source email body.
+	SourceRange *ByteRange `json:"sourceRange"`
+	// If this block is a reply to a particular chunk of the parent block, this
+	// field indicates the range of that chunk in the parent's email body.
+	ParentRange *ByteRange `json:"parentRange,omitempty"`
 }
 
 // A cursor for enumerating threads
@@ -339,6 +426,22 @@ type User struct {
 	Patches       *PatchsetCursor    `json:"patches,omitempty"`
 }
 
+type UserWebhookInput struct {
+	Url    string         `json:"url"`
+	Events []WebhookEvent `json:"events"`
+	Query  string         `json:"query"`
+}
+
+type UserWebhookSubscription struct {
+	Id         int32                  `json:"id"`
+	Events     []WebhookEvent         `json:"events"`
+	Query      string                 `json:"query"`
+	Url        string                 `json:"url"`
+	Client     *OAuthClient           `json:"client,omitempty"`
+	Deliveries *WebhookDeliveryCursor `json:"deliveries"`
+	Sample     string                 `json:"sample"`
+}
+
 type Version struct {
 	Major int32 `json:"major"`
 	Minor int32 `json:"minor"`
@@ -347,6 +450,79 @@ type Version struct {
 	// it will stop working; or null if this API version is not scheduled for
 	// deprecation.
 	DeprecationDate time.Time `json:"deprecationDate,omitempty"`
+}
+
+type Visibility string
+
+const (
+	VisibilityPublic   Visibility = "PUBLIC"
+	VisibilityUnlisted Visibility = "UNLISTED"
+	VisibilityPrivate  Visibility = "PRIVATE"
+)
+
+type WebhookDelivery struct {
+	Uuid         string               `json:"uuid"`
+	Date         time.Time            `json:"date"`
+	Event        WebhookEvent         `json:"event"`
+	Subscription *WebhookSubscription `json:"subscription"`
+	RequestBody  string               `json:"requestBody"`
+	// These details are provided only after a response is received from the
+	// remote server. If a response is sent whose Content-Type is not text/*, or
+	// cannot be decoded as UTF-8, the response body will be null. It will be
+	// truncated after 64 KiB.
+	ResponseBody    *string `json:"responseBody,omitempty"`
+	ResponseHeaders *string `json:"responseHeaders,omitempty"`
+	ResponseStatus  *int32  `json:"responseStatus,omitempty"`
+}
+
+// A cursor for enumerating a list of webhook deliveries
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
+type WebhookDeliveryCursor struct {
+	Results []WebhookDelivery `json:"results"`
+	Cursor  *Cursor           `json:"cursor,omitempty"`
+}
+
+type WebhookEvent string
+
+const (
+	WebhookEventListCreated      WebhookEvent = "LIST_CREATED"
+	WebhookEventListUpdated      WebhookEvent = "LIST_UPDATED"
+	WebhookEventListDeleted      WebhookEvent = "LIST_DELETED"
+	WebhookEventEmailReceived    WebhookEvent = "EMAIL_RECEIVED"
+	WebhookEventPatchsetReceived WebhookEvent = "PATCHSET_RECEIVED"
+)
+
+type WebhookPayload struct {
+	Uuid  string       `json:"uuid"`
+	Event WebhookEvent `json:"event"`
+	Date  time.Time    `json:"date"`
+}
+
+type WebhookSubscription struct {
+	Id     int32          `json:"id"`
+	Events []WebhookEvent `json:"events"`
+	Query  string         `json:"query"`
+	Url    string         `json:"url"`
+	// If this webhook was registered by an authorized OAuth 2.0 client, this
+	// field is non-null.
+	Client *OAuthClient `json:"client,omitempty"`
+	// All deliveries which have been sent to this webhook.
+	Deliveries *WebhookDeliveryCursor `json:"deliveries"`
+	// Returns a sample payload for this subscription, for testing purposes
+	Sample string `json:"sample"`
+}
+
+// A cursor for enumerating a list of webhook subscriptions
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
+type WebhookSubscriptionCursor struct {
+	Results []WebhookSubscription `json:"results"`
+	Cursor  *Cursor               `json:"cursor,omitempty"`
 }
 
 func DeleteMailingList(client *gqlclient.Client, ctx context.Context, id int32) (deleteMailingList *MailingList, err error) {
@@ -471,7 +647,7 @@ func CompletePatchsetIdByOwner(client *gqlclient.Client, ctx context.Context, ow
 }
 
 func AclByListName(client *gqlclient.Client, ctx context.Context, name string) (mailingListByName *MailingList, err error) {
-	op := gqlclient.NewOperation("query aclByListName ($name: String!) {\n\tmailingListByName(name: $name) {\n\t\tnonsubscriber {\n\t\t\t... acl\n\t\t}\n\t\tsubscriber {\n\t\t\t... acl\n\t\t}\n\t\tidentified {\n\t\t\t... acl\n\t\t}\n\t\tacl {\n\t\t\tresults {\n\t\t\t\tid\n\t\t\t\tcreated\n\t\t\t\tentity {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t\tbrowse\n\t\t\t\treply\n\t\t\t\tpost\n\t\t\t\tmoderate\n\t\t\t}\n\t\t}\n\t}\n}\nfragment acl on GeneralACL {\n\tbrowse\n\treply\n\tpost\n\tmoderate\n}\n")
+	op := gqlclient.NewOperation("query aclByListName ($name: String!) {\n\tmailingListByName(name: $name) {\n\t\tdefaultACL {\n\t\t\tbrowse\n\t\t\treply\n\t\t\tpost\n\t\t\tmoderate\n\t\t}\n\t\tacl {\n\t\t\tresults {\n\t\t\t\tid\n\t\t\t\tcreated\n\t\t\t\tentity {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t\tbrowse\n\t\t\t\treply\n\t\t\t\tpost\n\t\t\t\tmoderate\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	op.Var("name", name)
 	var respData struct {
 		MailingListByName *MailingList
@@ -521,10 +697,11 @@ func DeleteACL(client *gqlclient.Client, ctx context.Context, id int32) (deleteA
 	return respData.DeleteACL, err
 }
 
-func CreateMailingList(client *gqlclient.Client, ctx context.Context, name string, description *string) (createMailingList *MailingList, err error) {
-	op := gqlclient.NewOperation("mutation createMailingList ($name: String!, $description: String) {\n\tcreateMailingList(name: $name, description: $description) {\n\t\tname\n\t}\n}\n")
+func CreateMailingList(client *gqlclient.Client, ctx context.Context, name string, description *string, visibility Visibility) (createMailingList *MailingList, err error) {
+	op := gqlclient.NewOperation("mutation createMailingList ($name: String!, $description: String, $visibility: Visibility!) {\n\tcreateMailingList(name: $name, description: $description, visibility: $visibility) {\n\t\tname\n\t}\n}\n")
 	op.Var("name", name)
 	op.Var("description", description)
+	op.Var("visibility", visibility)
 	var respData struct {
 		CreateMailingList *MailingList
 	}
