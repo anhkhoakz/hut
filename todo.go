@@ -1143,15 +1143,24 @@ func completeTicketID(cmd *cobra.Command, args []string, toComplete string) ([]s
 	return tickets, cobra.ShellCompDirectiveNoFileComp
 }
 
-func completeTicketStatus(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	return []string{"reported", "confirmed", "in_progress", "pending", "resolved"},
-		cobra.ShellCompDirectiveNoFileComp
-}
+var completeTicketStatus = cobra.FixedCompletions([]string{
+	"reported",
+	"confirmed",
+	"in_progress",
+	"pending",
+	"resolved",
+}, cobra.ShellCompDirectiveNoFileComp)
 
-func completeTicketResolution(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	return []string{"unresolved", "fixed", "implemented", "wont_fix", "by_design",
-		"invalid", "duplicate", "not_our_bug"}, cobra.ShellCompDirectiveNoFileComp
-}
+var completeTicketResolution = cobra.FixedCompletions([]string{
+	"unresolved",
+	"fixed",
+	"implemented",
+	"wont_fix",
+	"by_design",
+	"invalid",
+	"duplicate",
+	"not_our_bug",
+}, cobra.ShellCompDirectiveNoFileComp)
 
 func completeLabelColor(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var colors []string

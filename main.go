@@ -56,9 +56,7 @@ func main() {
 	}
 }
 
-func completeVisibility(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	return []string{"public", "unlisted", "private"}, cobra.ShellCompDirectiveNoFileComp
-}
+var completeVisibility = cobra.FixedCompletions([]string{"public", "unlisted", "private"}, cobra.ShellCompDirectiveNoFileComp)
 
 func getConfirmation(msg string) bool {
 	reader := bufio.NewReader(os.Stdin)

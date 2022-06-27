@@ -660,10 +660,15 @@ func parsePatchID(ctx context.Context, cmd *cobra.Command, s string) (id int32, 
 	return id, instance, nil
 }
 
-func completePatchsetStatus(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	return []string{"unknown", "proposed", "needs_revision", "superseded",
-		"approved", "rejected", "applied"}, cobra.ShellCompDirectiveNoFileComp
-}
+var completePatchsetStatus = cobra.FixedCompletions([]string{
+	"unknown",
+	"proposed",
+	"needs_revision",
+	"superseded",
+	"approved",
+	"rejected",
+	"applied",
+}, cobra.ShellCompDirectiveNoFileComp)
 
 func completePatchsetID(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	ctx := cmd.Context()

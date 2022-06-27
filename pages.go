@@ -143,9 +143,7 @@ func newPagesListCommand() *cobra.Command {
 	return cmd
 }
 
-func completeProtocol(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	return []string{"https", "gemini"}, cobra.ShellCompDirectiveNoFileComp
-}
+var completeProtocol = cobra.FixedCompletions([]string{"https", "gemini"}, cobra.ShellCompDirectiveNoFileComp)
 
 func completeDomain(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	ctx := cmd.Context()

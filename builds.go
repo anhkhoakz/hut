@@ -94,12 +94,10 @@ func newBuildsSubmitCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:   "submit [manifest...]",
-		Short: "Submit a build manifest",
-		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return []string{"yml", "yaml"}, cobra.ShellCompDirectiveFilterFileExt
-		},
-		Run: run,
+		Use:               "submit [manifest...]",
+		Short:             "Submit a build manifest",
+		ValidArgsFunction: cobra.FixedCompletions([]string{"yml", "yaml"}, cobra.ShellCompDirectiveFilterFileExt),
+		Run:               run,
 	}
 	cmd.Flags().BoolVarP(&follow, "follow", "f", false, "follow build logs")
 	cmd.Flags().StringVarP(&note, "note", "n", "", "short job description")

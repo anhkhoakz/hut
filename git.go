@@ -798,9 +798,7 @@ func completeRev(cmd *cobra.Command, args []string, toComplete string) ([]string
 	return revs, cobra.ShellCompDirectiveNoFileComp
 }
 
-func completeAccessMode(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	return []string{"RO", "RW"}, cobra.ShellCompDirectiveNoFileComp
-}
+var completeAccessMode = cobra.FixedCompletions([]string{"RO", "RW"}, cobra.ShellCompDirectiveNoFileComp)
 
 func completeArtifacts(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	ctx := cmd.Context()
