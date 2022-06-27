@@ -35,10 +35,6 @@ func newPagesPublishCommand() *cobra.Command {
 			filename = args[0]
 		}
 
-		if domain == "" {
-			log.Fatal("enter a domain with --domain")
-		}
-
 		pagesProtocol, err := pagessrht.ParseProtocol(protocol)
 		if err != nil {
 			log.Fatal(err)
@@ -79,6 +75,7 @@ func newPagesPublishCommand() *cobra.Command {
 		Run:   run,
 	}
 	cmd.Flags().StringVarP(&domain, "domain", "d", "", "domain name")
+	cmd.MarkFlagRequired("domain")
 	cmd.RegisterFlagCompletionFunc("domain", completeDomain)
 	cmd.Flags().StringVarP(&protocol, "protocol", "p", "HTTPS",
 		"protocol (HTTPS or GEMINI)")
