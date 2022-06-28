@@ -752,7 +752,7 @@ func newTodoTicketWebhookDeleteCommand() *cobra.Command {
 		Use:               "delete <ID>",
 		Short:             "Delete a ticket webhook",
 		Args:              cobra.ExactArgs(1),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction: completeTodoUserWebhookID,
 		Run:               run,
 	}
 	return cmd
@@ -1415,4 +1415,22 @@ func completeTodoUserWebhookEvents(cmd *cobra.Command, args []string, toComplete
 		}
 	}
 	return eventList, cobra.ShellCompDirectiveNoFileComp
+}
+
+func completeTodoUserWebhookID(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	ctx := cmd.Context()
+	c := createClient("todo", cmd)
+	var webhookList []string
+
+	webhooks, err := todosrht.CompleteUserWebhookId(c.Client, ctx)
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	for _, webhook := range webhooks.Results {
+		s := fmt.Sprintf("%d\t%s", webhook.Id, webhook.Url)
+		webhookList = append(webhookList, s)
+	}
+
+	return webhookList, cobra.ShellCompDirectiveNoFileComp
 }

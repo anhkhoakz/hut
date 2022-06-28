@@ -261,6 +261,15 @@ query userWebhooks {
     }
 }
 
+query completeUserWebhookId {
+    userWebhooks {
+        results {
+            id
+            url
+        }
+    }
+}
+
 mutation deleteTracker($id: Int!) {
     deleteTracker(id: $id) {
         name
