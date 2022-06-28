@@ -345,6 +345,15 @@ func UserWebhooks(client *gqlclient.Client, ctx context.Context) (userWebhooks *
 	return respData.UserWebhooks, err
 }
 
+func CompleteUserWebhookId(client *gqlclient.Client, ctx context.Context) (userWebhooks *WebhookSubscriptionCursor, err error) {
+	op := gqlclient.NewOperation("query completeUserWebhookId {\n\tuserWebhooks {\n\t\tresults {\n\t\t\tid\n\t\t\turl\n\t\t}\n\t}\n}\n")
+	var respData struct {
+		UserWebhooks *WebhookSubscriptionCursor
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.UserWebhooks, err
+}
+
 func CreateRepository(client *gqlclient.Client, ctx context.Context, name string, visibility Visibility, description string) (createRepository *Repository, err error) {
 	op := gqlclient.NewOperation("mutation createRepository ($name: String!, $visibility: Visibility!, $description: String!) {\n\tcreateRepository(name: $name, visibility: $visibility, description: $description) {\n\t\tname\n\t}\n}\n")
 	op.Var("name", name)

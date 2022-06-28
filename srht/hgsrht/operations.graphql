@@ -47,6 +47,15 @@ query userWebhooks {
     }
 }
 
+query completeUserWebhookId {
+    userWebhooks {
+        results {
+            id
+            url
+        }
+    }
+}
+
 mutation createRepository(
     $name: String!
     $visibility: Visibility!
