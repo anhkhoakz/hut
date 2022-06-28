@@ -36,6 +36,17 @@ fragment repos on RepositoryCursor {
     }
 }
 
+query userWebhooks {
+    userWebhooks {
+        results {
+            id
+            events
+            query
+            url
+        }
+    }
+}
+
 mutation createRepository(
     $name: String!
     $visibility: Visibility!
