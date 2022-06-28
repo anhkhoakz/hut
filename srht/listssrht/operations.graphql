@@ -158,6 +158,17 @@ query aclByListName($name: String!) {
     }
 }
 
+query userWebhooks {
+    userWebhooks {
+        results {
+            id
+            events
+            query
+            url
+        }
+    }
+}
+
 mutation mailingListSubscribe($listID: Int!) {
     mailingListSubscribe(listID: $listID) {
         list {
