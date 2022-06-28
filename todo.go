@@ -989,6 +989,7 @@ func newTodoUserWebhookCommand() *cobra.Command {
 	}
 	cmd.AddCommand(newTodoUserWebhookCreateCommand())
 	cmd.AddCommand(newTodoUserWebhookListCommand())
+	cmd.AddCommand(newTodoUserWebhookDeleteCommand())
 	return cmd
 }
 
@@ -1059,6 +1060,36 @@ func newTodoUserWebhookListCommand() *cobra.Command {
 		Short: "List user webhooks",
 		Args:  cobra.ExactArgs(0),
 		Run:   run,
+	}
+	return cmd
+}
+
+func newTodoUserWebhookDeleteCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("todo", cmd)
+
+		id, err := parseInt32(args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		webhook, err := todosrht.DeleteUserWebhook(c.Client, ctx, id)
+		if err != nil {
+			log.Fatal(err)
+		} else if webhook == nil {
+			log.Fatal("failed to delete webhook")
+		}
+
+		fmt.Printf("Deleted webhook %d\n", webhook.Id)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "delete <ID>",
+		Short:             "Delete a user webhook",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
 	}
 	return cmd
 }
