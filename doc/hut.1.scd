@@ -307,6 +307,23 @@ Options are:
 *unsubscribe* [list]
 	Unsubscribe from a mailing list.
 
+*user-webhook create* [options...]
+	Create a user webhook. When this command is run from a terminal, the query will
+	be read from _$EDITOR_, otherwise it defaults to stdin.
+
+	Options are:
+
+	*-e*, *--events* <strings...>
+		List of events that should trigger the webhook (LIST_CREATED,
+		LIST_UPDATED, LIST_DELETED, EMAIL_RECEIVED, PATCHSET_RECEIVED).
+		Required.
+
+	*--stdin*
+		Read query from _stdin_.
+
+	*-u*, *--url* <URL>
+		The payload URL which receives the _POST_ request. Required.
+
 ## meta
 
 *audit-log*

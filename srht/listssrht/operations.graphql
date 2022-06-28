@@ -213,3 +213,9 @@ mutation createMailingList(
         name
     }
 }
+
+mutation createUserWebhook($config: UserWebhookInput!) {
+    createUserWebhook(config: $config) {
+        id
+    }
+}
