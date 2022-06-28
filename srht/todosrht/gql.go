@@ -838,6 +838,15 @@ func TrackerNames(client *gqlclient.Client, ctx context.Context) (trackers *Trac
 	return respData.Trackers, err
 }
 
+func UserWebhooks(client *gqlclient.Client, ctx context.Context) (userWebhooks *WebhookSubscriptionCursor, err error) {
+	op := gqlclient.NewOperation("query userWebhooks {\n\tuserWebhooks {\n\t\tresults {\n\t\t\tid\n\t\t\tevents\n\t\t\tquery\n\t\t\turl\n\t\t}\n\t}\n}\n")
+	var respData struct {
+		UserWebhooks *WebhookSubscriptionCursor
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.UserWebhooks, err
+}
+
 func DeleteTracker(client *gqlclient.Client, ctx context.Context, id int32) (deleteTracker *Tracker, err error) {
 	op := gqlclient.NewOperation("mutation deleteTracker ($id: Int!) {\n\tdeleteTracker(id: $id) {\n\t\tname\n\t}\n}\n")
 	op.Var("id", id)
