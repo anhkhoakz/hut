@@ -659,7 +659,7 @@ func newGitUserWebhookDeleteCommand() *cobra.Command {
 		Use:               "delete <ID>",
 		Short:             "Delete a user webhook",
 		Args:              cobra.ExactArgs(1),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction: completeGitUserWebhookID,
 		Run:               run,
 	}
 	return cmd
@@ -835,4 +835,22 @@ func completeGitUserWebhookEvents(cmd *cobra.Command, args []string, toComplete 
 		}
 	}
 	return eventList, cobra.ShellCompDirectiveNoFileComp
+}
+
+func completeGitUserWebhookID(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	ctx := cmd.Context()
+	c := createClient("git", cmd)
+	var webhookList []string
+
+	webhooks, err := gitsrht.CompleteUserWebhookId(c.Client, ctx)
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	for _, webhook := range webhooks.Results {
+		s := fmt.Sprintf("%d\t%s", webhook.Id, webhook.Url)
+		webhookList = append(webhookList, s)
+	}
+
+	return webhookList, cobra.ShellCompDirectiveNoFileComp
 }
