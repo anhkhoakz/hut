@@ -153,3 +153,9 @@ mutation createUserWebhook($config: ProfileWebhookInput!) {
         id
     }
 }
+
+mutation deleteUserWebhook($id: Int!) {
+    deleteWebhook(id: $id) {
+        id
+    }
+}

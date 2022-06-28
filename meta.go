@@ -448,6 +448,7 @@ func newMetaUserWebhookCommand() *cobra.Command {
 	}
 	cmd.AddCommand(newMetaUserWebhookCreateCommand())
 	cmd.AddCommand(newMetaUserWebhookListCommand())
+	cmd.AddCommand(newMetaUserWebhookDeleteCommand())
 	return cmd
 }
 
@@ -518,6 +519,36 @@ func newMetaUserWebhookListCommand() *cobra.Command {
 		Short: "List user webhooks",
 		Args:  cobra.ExactArgs(0),
 		Run:   run,
+	}
+	return cmd
+}
+
+func newMetaUserWebhookDeleteCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("meta", cmd)
+
+		id, err := parseInt32(args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		webhook, err := metasrht.DeleteUserWebhook(c.Client, ctx, id)
+		if err != nil {
+			log.Fatal(err)
+		} else if webhook == nil {
+			log.Fatal("failed to delete webhook")
+		}
+
+		fmt.Printf("Deleted webhook %d\n", webhook.Id)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "delete <ID>",
+		Short:             "Delete a user webhook",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
 	}
 	return cmd
 }
