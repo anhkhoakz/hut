@@ -357,3 +357,13 @@ func DeleteRepository(client *gqlclient.Client, ctx context.Context, id int32) (
 	err = client.Execute(ctx, op, &respData)
 	return respData.DeleteRepository, err
 }
+
+func CreateUserWebhook(client *gqlclient.Client, ctx context.Context, config UserWebhookInput) (createWebhook *WebhookSubscription, err error) {
+	op := gqlclient.NewOperation("mutation createUserWebhook ($config: UserWebhookInput!) {\n\tcreateWebhook(config: $config) {\n\t\tid\n\t}\n}\n")
+	op.Var("config", config)
+	var respData struct {
+		CreateWebhook *WebhookSubscription
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.CreateWebhook, err
+}

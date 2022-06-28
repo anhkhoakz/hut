@@ -19,6 +19,7 @@ func newHgCommand() *cobra.Command {
 	cmd.AddCommand(newHgListCommand())
 	cmd.AddCommand(newHgCreateCommand())
 	cmd.AddCommand(newHgDeleteCommand())
+	cmd.AddCommand(newHgUserWebhookCommand())
 	return cmd
 }
 
@@ -132,6 +133,60 @@ func newHgDeleteCommand() *cobra.Command {
 	return cmd
 }
 
+func newHgUserWebhookCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "user-webhook",
+		Short: "Manage user webhooks",
+	}
+	cmd.AddCommand(newHgUserWebhookCreateCommand())
+	return cmd
+}
+
+func newHgUserWebhookCreateCommand() *cobra.Command {
+	var events []string
+	var stdin bool
+	var url string
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("hg", cmd)
+
+		var config hgsrht.UserWebhookInput
+		config.Url = url
+		config.Query = readWebhookQuery(stdin)
+
+		whEvents, err := hgsrht.ParseUserEvents(events)
+		if err != nil {
+			log.Fatal(err)
+		}
+		config.Events = whEvents
+
+		webhook, err := hgsrht.CreateUserWebhook(c.Client, ctx, config)
+		if err != nil {
+			log.Fatal(err)
+		} else if webhook == nil {
+			log.Fatal("failed to create webhook")
+		}
+
+		fmt.Printf("Created user webhook with ID %d\n", webhook.Id)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "create",
+		Short:             "Create a user webhook",
+		Args:              cobra.ExactArgs(0),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	cmd.Flags().StringSliceVarP(&events, "events", "e", nil, "webhook events")
+	cmd.RegisterFlagCompletionFunc("events", completeHgUserWebhookEvents)
+	cmd.MarkFlagRequired("events")
+	cmd.Flags().BoolVar(&stdin, "stdin", false, "read webhook query from stdin")
+	cmd.Flags().StringVarP(&url, "url", "u", "", "payload url")
+	cmd.RegisterFlagCompletionFunc("url", cobra.NoFileCompletions)
+	cmd.MarkFlagRequired("url")
+	return cmd
+}
+
 func getHgRepoID(c *Client, ctx context.Context, name, owner string) int32 {
 	var (
 		user     *hgsrht.User
@@ -152,4 +207,16 @@ func getHgRepoID(c *Client, ctx context.Context, name, owner string) int32 {
 		log.Fatalf("no such repository %q", name)
 	}
 	return user.Repository.Id
+}
+
+func completeHgUserWebhookEvents(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	var eventList []string
+	events := [3]string{"repo_created", "repo_update", "repo_deleted"}
+	set := strings.ToLower(cmd.Flag("events").Value.String())
+	for _, event := range events {
+		if !strings.Contains(set, event) {
+			eventList = append(eventList, event)
+		}
+	}
+	return eventList, cobra.ShellCompDirectiveNoFileComp
 }

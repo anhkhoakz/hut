@@ -241,6 +241,22 @@ Options are:
 *list* [owner]
 	List repositories.
 
+*user-webhook create* [options...]
+	Create a user webhook. When this command is run from a terminal, the query will
+	be read from _$EDITOR_, otherwise it defaults to stdin.
+
+	Options are:
+
+	*-e*, *--events* <strings...>
+		List of events that should trigger the webhook (REPO_CREATED,
+		REPO_UPDATE, REPO_DELETED). Required.
+
+	*--stdin*
+		Read query from _stdin_.
+
+	*-u*, *--url* <URL>
+		The payload URL which receives the _POST_ request. Required.
+
 ## lists
 
 Options are:
