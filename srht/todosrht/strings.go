@@ -128,3 +128,23 @@ func ParseTicketWebhookEvents(events []string) ([]WebhookEvent, error) {
 
 	return whEvents, nil
 }
+
+func ParseUserEvents(events []string) ([]WebhookEvent, error) {
+	var whEvents []WebhookEvent
+	for _, event := range events {
+		switch strings.ToLower(event) {
+		case "tracker_created":
+			whEvents = append(whEvents, WebhookEventTrackerCreated)
+		case "tracker_update":
+			whEvents = append(whEvents, WebhookEventTrackerUpdate)
+		case "tracker_deleted":
+			whEvents = append(whEvents, WebhookEventTrackerDeleted)
+		case "ticket_created":
+			whEvents = append(whEvents, WebhookEventTicketCreated)
+		default:
+			return whEvents, fmt.Errorf("invalid event: %q", event)
+		}
+	}
+
+	return whEvents, nil
+}

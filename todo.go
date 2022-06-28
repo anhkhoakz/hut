@@ -29,6 +29,7 @@ func newTodoCommand() *cobra.Command {
 	cmd.AddCommand(newTodoTicketCommand())
 	cmd.AddCommand(newTodoLabelCommand())
 	cmd.AddCommand(newTodoACLCommand())
+	cmd.AddCommand(newTodoUserWebhookCommand())
 	cmd.PersistentFlags().StringP("tracker", "t", "", "name of tracker")
 	cmd.RegisterFlagCompletionFunc("tracker", completeTracker)
 	return cmd
@@ -981,6 +982,60 @@ func newTodoACLDeleteCommand() *cobra.Command {
 	return cmd
 }
 
+func newTodoUserWebhookCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "user-webhook",
+		Short: "Manage user webhooks",
+	}
+	cmd.AddCommand(newTodoUserWebhookCreateCommand())
+	return cmd
+}
+
+func newTodoUserWebhookCreateCommand() *cobra.Command {
+	var events []string
+	var stdin bool
+	var url string
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("todo", cmd)
+
+		var config todosrht.UserWebhookInput
+		config.Url = url
+		config.Query = readWebhookQuery(stdin)
+
+		whEvents, err := todosrht.ParseUserEvents(events)
+		if err != nil {
+			log.Fatal(err)
+		}
+		config.Events = whEvents
+
+		webhook, err := todosrht.CreateUserWebhook(c.Client, ctx, config)
+		if err != nil {
+			log.Fatal(err)
+		} else if webhook == nil {
+			log.Fatal("failed to create webhook")
+		}
+
+		fmt.Printf("Created user webhook with ID %d\n", webhook.Id)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "create",
+		Short:             "Create a user webhook",
+		Args:              cobra.ExactArgs(0),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	cmd.Flags().StringSliceVarP(&events, "events", "e", nil, "webhook events")
+	cmd.RegisterFlagCompletionFunc("events", completeTodoUserWebhookEvents)
+	cmd.MarkFlagRequired("events")
+	cmd.Flags().BoolVar(&stdin, "stdin", false, "read webhook query from stdin")
+	cmd.Flags().StringVarP(&url, "url", "u", "", "payload url")
+	cmd.RegisterFlagCompletionFunc("url", cobra.NoFileCompletions)
+	cmd.MarkFlagRequired("url")
+	return cmd
+}
+
 func getTrackerID(c *Client, ctx context.Context, name, owner string) int32 {
 	var (
 		user     *todosrht.User
@@ -1283,6 +1338,18 @@ func completeTracker(cmd *cobra.Command, args []string, toComplete string) ([]st
 func completeTicketWebhookEvents(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var eventList []string
 	events := [3]string{"event_created", "ticket_update", "ticket_deleted"}
+	set := strings.ToLower(cmd.Flag("events").Value.String())
+	for _, event := range events {
+		if !strings.Contains(set, event) {
+			eventList = append(eventList, event)
+		}
+	}
+	return eventList, cobra.ShellCompDirectiveNoFileComp
+}
+
+func completeTodoUserWebhookEvents(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	var eventList []string
+	events := [4]string{"tracker_created", "tracker_update", "tracker_deleted", "ticket_created"}
 	set := strings.ToLower(cmd.Flag("events").Value.String())
 	for _, event := range events {
 		if !strings.Contains(set, event) {
