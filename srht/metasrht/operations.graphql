@@ -136,3 +136,9 @@ mutation deletePGPKey($id: Int!) {
         fingerprint
     }
 }
+
+mutation createUserWebhook($config: ProfileWebhookInput!) {
+    createWebhook(config: $config) {
+        id
+    }
+}

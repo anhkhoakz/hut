@@ -26,6 +26,7 @@ func newMetaCommand() *cobra.Command {
 	cmd.AddCommand(newMetaAuditLogCommand())
 	cmd.AddCommand(newMetaSSHKeyCommand())
 	cmd.AddCommand(newMetaPGPKeyCommand())
+	cmd.AddCommand(newMetaUserWebhookCommand())
 	return cmd
 }
 
@@ -440,6 +441,60 @@ func newMetaPGPKeyListCommand() *cobra.Command {
 
 }
 
+func newMetaUserWebhookCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "user-webhook",
+		Short: "Manage user webhooks",
+	}
+	cmd.AddCommand(newMetaUserWebhookCreateCommand())
+	return cmd
+}
+
+func newMetaUserWebhookCreateCommand() *cobra.Command {
+	var events []string
+	var stdin bool
+	var url string
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("meta", cmd)
+
+		var config metasrht.ProfileWebhookInput
+		config.Url = url
+		config.Query = readWebhookQuery(stdin)
+
+		whEvents, err := metasrht.ParseUserEvents(events)
+		if err != nil {
+			log.Fatal(err)
+		}
+		config.Events = whEvents
+
+		webhook, err := metasrht.CreateUserWebhook(c.Client, ctx, config)
+		if err != nil {
+			log.Fatal(err)
+		} else if webhook == nil {
+			log.Fatal("failed to create webhook")
+		}
+
+		fmt.Printf("Created user webhook with ID %d\n", webhook.Id)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "create",
+		Short:             "Create a user webhook",
+		Args:              cobra.ExactArgs(0),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	cmd.Flags().StringSliceVarP(&events, "events", "e", nil, "webhook events")
+	cmd.RegisterFlagCompletionFunc("events", completeMetaUserWebhookEvents)
+	cmd.MarkFlagRequired("events")
+	cmd.Flags().BoolVar(&stdin, "stdin", false, "read webhook query from stdin")
+	cmd.Flags().StringVarP(&url, "url", "u", "", "payload url")
+	cmd.RegisterFlagCompletionFunc("url", cobra.NoFileCompletions)
+	cmd.MarkFlagRequired("url")
+	return cmd
+}
+
 func completeSSHKeys(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	ctx := cmd.Context()
 	c := createClient("meta", cmd)
@@ -477,4 +532,16 @@ func completePGPKeys(cmd *cobra.Command, args []string, toComplete string) ([]st
 	}
 
 	return keyList, cobra.ShellCompDirectiveNoFileComp
+}
+
+func completeMetaUserWebhookEvents(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	var eventList []string
+	events := [5]string{"profile_update", "pgp_key_added", "pgp_key_removed", "ssh_key_added", "ssh_key_removed"}
+	set := strings.ToLower(cmd.Flag("events").Value.String())
+	for _, event := range events {
+		if !strings.Contains(set, event) {
+			eventList = append(eventList, event)
+		}
+	}
+	return eventList, cobra.ShellCompDirectiveNoFileComp
 }

@@ -446,3 +446,13 @@ func DeletePGPKey(client *gqlclient.Client, ctx context.Context, id int32) (dele
 	err = client.Execute(ctx, op, &respData)
 	return respData.DeletePGPKey, err
 }
+
+func CreateUserWebhook(client *gqlclient.Client, ctx context.Context, config ProfileWebhookInput) (createWebhook *WebhookSubscription, err error) {
+	op := gqlclient.NewOperation("mutation createUserWebhook ($config: ProfileWebhookInput!) {\n\tcreateWebhook(config: $config) {\n\t\tid\n\t}\n}\n")
+	op.Var("config", config)
+	var respData struct {
+		CreateWebhook *WebhookSubscription
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.CreateWebhook, err
+}
