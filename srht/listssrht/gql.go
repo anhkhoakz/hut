@@ -665,6 +665,15 @@ func UserWebhooks(client *gqlclient.Client, ctx context.Context) (userWebhooks *
 	return respData.UserWebhooks, err
 }
 
+func CompleteUserWebhookId(client *gqlclient.Client, ctx context.Context) (userWebhooks *WebhookSubscriptionCursor, err error) {
+	op := gqlclient.NewOperation("query completeUserWebhookId {\n\tuserWebhooks {\n\t\tresults {\n\t\t\tid\n\t\t\turl\n\t\t}\n\t}\n}\n")
+	var respData struct {
+		UserWebhooks *WebhookSubscriptionCursor
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.UserWebhooks, err
+}
+
 func MailingListSubscribe(client *gqlclient.Client, ctx context.Context, listID int32) (mailingListSubscribe *MailingListSubscription, err error) {
 	op := gqlclient.NewOperation("mutation mailingListSubscribe ($listID: Int!) {\n\tmailingListSubscribe(listID: $listID) {\n\t\tlist {\n\t\t\tname\n\t\t\towner {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	op.Var("listID", listID)
