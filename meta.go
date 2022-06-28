@@ -547,7 +547,7 @@ func newMetaUserWebhookDeleteCommand() *cobra.Command {
 		Use:               "delete <ID>",
 		Short:             "Delete a user webhook",
 		Args:              cobra.ExactArgs(1),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction: completeMetaUserWebhookID,
 		Run:               run,
 	}
 	return cmd
@@ -602,4 +602,22 @@ func completeMetaUserWebhookEvents(cmd *cobra.Command, args []string, toComplete
 		}
 	}
 	return eventList, cobra.ShellCompDirectiveNoFileComp
+}
+
+func completeMetaUserWebhookID(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	ctx := cmd.Context()
+	c := createClient("meta", cmd)
+	var webhookList []string
+
+	webhooks, err := metasrht.CompleteUserWebhookId(c.Client, ctx)
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	for _, webhook := range webhooks.Results {
+		s := fmt.Sprintf("%d\t%s", webhook.Id, webhook.Url)
+		webhookList = append(webhookList, s)
+	}
+
+	return webhookList, cobra.ShellCompDirectiveNoFileComp
 }

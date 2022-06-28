@@ -123,6 +123,15 @@ query userWebhooks {
     }
 }
 
+query completeUserWebhookId {
+    profileWebhooks {
+        results {
+            id
+            url
+        }
+    }
+}
+
 mutation createSSHKey($key: String!) {
     createSSHKey(key: $key) {
         fingerprint
