@@ -112,6 +112,17 @@ query auditLog {
     }
 }
 
+query userWebhooks {
+    profileWebhooks {
+        results {
+            id
+            events
+            query
+            url
+        }
+    }
+}
+
 mutation createSSHKey($key: String!) {
     createSSHKey(key: $key) {
         fingerprint

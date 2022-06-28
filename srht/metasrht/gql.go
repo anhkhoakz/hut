@@ -407,6 +407,15 @@ func AuditLog(client *gqlclient.Client, ctx context.Context) (auditLog *AuditLog
 	return respData.AuditLog, err
 }
 
+func UserWebhooks(client *gqlclient.Client, ctx context.Context) (profileWebhooks *WebhookSubscriptionCursor, err error) {
+	op := gqlclient.NewOperation("query userWebhooks {\n\tprofileWebhooks {\n\t\tresults {\n\t\t\tid\n\t\t\tevents\n\t\t\tquery\n\t\t\turl\n\t\t}\n\t}\n}\n")
+	var respData struct {
+		ProfileWebhooks *WebhookSubscriptionCursor
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.ProfileWebhooks, err
+}
+
 func CreateSSHKey(client *gqlclient.Client, ctx context.Context, key string) (createSSHKey *SSHKey, err error) {
 	op := gqlclient.NewOperation("mutation createSSHKey ($key: String!) {\n\tcreateSSHKey(key: $key) {\n\t\tfingerprint\n\t\tcomment\n\t}\n}\n")
 	op.Var("key", key)
