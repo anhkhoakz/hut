@@ -250,6 +250,37 @@ query trackerNames {
     }
 }
 
+query ticketWebhooks($name: String!, $id: Int!) {
+    me {
+        tracker(name: $name) {
+            ticket(id: $id) {
+                ...ticketWebhooks
+            }
+        }
+    }
+}
+
+query ticketWebhooksByUser($username: String!, $name: String!, $id: Int!) {
+    user(username: $username) {
+        tracker(name: $name) {
+            ticket(id: $id) {
+                ...ticketWebhooks
+            }
+        }
+    }
+}
+
+fragment ticketWebhooks on Ticket {
+    webhooks {
+        results {
+            id
+            events
+            query
+            url
+        }
+    }
+}
+
 query userWebhooks {
     userWebhooks {
         results {

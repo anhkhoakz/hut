@@ -620,6 +620,9 @@ Options are:
 *ticket webhook delete* <ID>
 	Delete a ticket webhook.
 
+*ticket webhook list* <ID>
+	List ticket webhooks.
+
 *unsubscribe* [tracker]
 	Unsubscribe from a tracker.
 
