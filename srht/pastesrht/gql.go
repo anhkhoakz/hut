@@ -244,6 +244,15 @@ func Pastes(client *gqlclient.Client, ctx context.Context) (pastes *PasteCursor,
 	return respData.Pastes, err
 }
 
+func PasteContents(client *gqlclient.Client, ctx context.Context) (pastes *PasteCursor, err error) {
+	op := gqlclient.NewOperation("query pasteContents {\n\tpastes {\n\t\tresults {\n\t\t\tid\n\t\t\tcreated\n\t\t\tvisibility\n\t\t\tfiles {\n\t\t\t\tfilename\n\t\t\t\tcontents\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	var respData struct {
+		Pastes *PasteCursor
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Pastes, err
+}
+
 func PasteCompletionList(client *gqlclient.Client, ctx context.Context) (pastes *PasteCursor, err error) {
 	op := gqlclient.NewOperation("query pasteCompletionList {\n\tpastes {\n\t\tresults {\n\t\t\tid\n\t\t\tfiles {\n\t\t\t\tfilename\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	var respData struct {

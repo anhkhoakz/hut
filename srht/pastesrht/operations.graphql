@@ -44,6 +44,20 @@ query pastes {
     }
 }
 
+query pasteContents {
+    pastes {
+        results {
+            id
+            created
+            visibility
+            files {
+                filename
+                contents
+            }
+        }
+    }
+}
+
 query pasteCompletionList {
     pastes {
         results {
