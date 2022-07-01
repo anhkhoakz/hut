@@ -22,9 +22,15 @@ func newExportCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		var exporters []export.Exporter
 
+		// TODO: Allow exporting a subset of all services (maybe meta should
+		// provide a list of services configured for that instance?)
 		mc := createClient("meta", cmd)
-		meta := export.NewMetaExporter(mc.Client)
+		meta := export.NewMetaExporter(mc.Client, mc.BaseURL)
 		exporters = append(exporters, meta)
+
+		gc := createClient("git", cmd)
+		git := export.NewGitExporter(gc.Client, gc.BaseURL)
+		exporters = append(exporters, git)
 
 		ctx := cmd.Context()
 		log.Println("Exporting account data...")
@@ -33,7 +39,7 @@ func newExportCommand() *cobra.Command {
 			base := path.Join(args[0], ex.Name())
 
 			info := ExportInfo{
-				Instance: mc.BaseURL,
+				Instance: ex.BaseURL(),
 				Service:  ex.Name(),
 				Date:     time.Now().UTC(),
 			}

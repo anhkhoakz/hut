@@ -14,17 +14,20 @@ import (
 )
 
 type MetaExporter struct {
-	client *gqlclient.Client
+	client  *gqlclient.Client
+	baseURL string
 }
 
-func NewMetaExporter(client *gqlclient.Client) *MetaExporter {
-	return &MetaExporter{
-		client: client,
-	}
+func NewMetaExporter(client *gqlclient.Client, baseURL string) *MetaExporter {
+	return &MetaExporter{client, baseURL}
 }
 
 func (ex *MetaExporter) Name() string {
 	return "meta.sr.ht"
+}
+
+func (ex *MetaExporter) BaseURL() string {
+	return ex.baseURL
 }
 
 func (ex *MetaExporter) Export(ctx context.Context, dir string) error {
