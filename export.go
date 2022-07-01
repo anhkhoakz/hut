@@ -36,6 +36,10 @@ func newExportCommand() *cobra.Command {
 		hg := export.NewHgExporter(hc.Client, hc.BaseURL)
 		exporters = append(exporters, hg)
 
+		bc := createClient("builds", cmd)
+		builds := export.NewBuildsExporter(bc.Client, bc.BaseURL)
+		exporters = append(exporters, builds)
+
 		lc := createClient("lists", cmd)
 		lists := export.NewListsExporter(lc.Client, lc.BaseURL, lc.HTTP)
 		exporters = append(exporters, lists)

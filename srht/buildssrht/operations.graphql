@@ -57,6 +57,27 @@ query jobs {
     }
 }
 
+query exportJobs {
+    jobs {
+        results {
+            id
+            status
+            note
+            tags
+            log {
+                fullURL
+            }
+            tasks {
+                name
+                status
+                log {
+                    fullURL
+                }
+            }
+        }
+    }
+}
+
 query show($id: Int!) {
     job(id: $id) {
         id
