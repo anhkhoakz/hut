@@ -37,20 +37,29 @@ func newExportCommand() *cobra.Command {
 
 		for _, ex := range exporters {
 			base := path.Join(args[0], ex.Name())
+			if err := os.MkdirAll(base, 0o755); err != nil {
+				log.Fatalf("Failed to create export directory: %s", err.Error())
+			}
+
+			stamp := path.Join(base, "export-stamp.json")
+			if _, err := os.Stat(stamp); err == nil {
+				log.Printf("Skipping %s (already exported)", ex.Name())
+				continue
+			}
+
+			if err := ex.Export(ctx, base); err != nil {
+				log.Printf("Error exporting %s: %s", ex.Name(), err.Error())
+				continue
+			}
 
 			info := ExportInfo{
 				Instance: ex.BaseURL(),
 				Service:  ex.Name(),
 				Date:     time.Now().UTC(),
 			}
-			if err := writeExportStamp(base, &info); err != nil {
+			if err := writeExportStamp(stamp, &info); err != nil {
 				log.Printf("Error writing stamp for %s: %s",
 					ex.Name(), err.Error())
-				continue
-			}
-
-			if err := ex.Export(ctx, base); err != nil {
-				log.Printf("Error exporting %s: %s", ex.Name(), err.Error())
 			}
 		}
 		log.Println("Export complete.")
@@ -64,12 +73,8 @@ func newExportCommand() *cobra.Command {
 	return cmd
 }
 
-func writeExportStamp(base string, info *ExportInfo) error {
-	if err := os.MkdirAll(base, 0o755); err != nil {
-		log.Fatalf("Failed to create export directory: %s", err.Error())
-	}
-
-	file, err := os.Create(path.Join(base, "export-stamp.json"))
+func writeExportStamp(path string, info *ExportInfo) error {
+	file, err := os.Create(path)
 	if err != nil {
 		log.Fatalf("Failed to create export info: %s", err.Error())
 	}
