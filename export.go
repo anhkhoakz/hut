@@ -32,6 +32,10 @@ func newExportCommand() *cobra.Command {
 		git := export.NewGitExporter(gc.Client, gc.BaseURL)
 		exporters = append(exporters, git)
 
+		hc := createClient("hg", cmd)
+		hg := export.NewHgExporter(hc.Client, hc.BaseURL)
+		exporters = append(exporters, hg)
+
 		ctx := cmd.Context()
 		log.Println("Exporting account data...")
 

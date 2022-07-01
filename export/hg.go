@@ -11,38 +11,38 @@ import (
 
 	"git.sr.ht/~emersion/gqlclient"
 
-	"git.sr.ht/~emersion/hut/srht/gitsrht"
+	"git.sr.ht/~emersion/hut/srht/hgsrht"
 )
 
-type GitExporter struct {
+type HgExporter struct {
 	client  *gqlclient.Client
 	baseURL string
 }
 
-func NewGitExporter(client *gqlclient.Client, baseURL string) *GitExporter {
-	return &GitExporter{client, baseURL}
+func NewHgExporter(client *gqlclient.Client, baseURL string) *HgExporter {
+	return &HgExporter{client, baseURL}
 }
 
-func (ex *GitExporter) Name() string {
-	return "git.sr.ht"
+func (ex *HgExporter) Name() string {
+	return "hg.sr.ht"
 }
 
-func (ex *GitExporter) BaseURL() string {
+func (ex *HgExporter) BaseURL() string {
 	return ex.baseURL
 }
 
-// A subset of gitsrht.Repository which only contains the fields we want to
+// A subset of hgsrht.Repository which only contains the fields we want to
 // export (i.e. the ones filled in by the GraphQL query)
-type GitRepoInfo struct {
-	Name        string             `json:"name"`
-	Description *string            `json:"description"`
-	Visibility  gitsrht.Visibility `json:"visibility"`
+type HgRepoInfo struct {
+	Name        string            `json:"name"`
+	Description *string           `json:"description"`
+	Visibility  hgsrht.Visibility `json:"visibility"`
 }
 
-func (ex *GitExporter) Export(ctx context.Context, dir string) error {
-	log.Println("git.sr.ht")
+func (ex *HgExporter) Export(ctx context.Context, dir string) error {
+	log.Println("hg.sr.ht")
 
-	repos, err := gitsrht.Repositories(ex.client, ctx)
+	repos, err := hgsrht.Repositories(ex.client, ctx)
 	if err != nil {
 		return err
 	}
@@ -60,18 +60,19 @@ func (ex *GitExporter) Export(ctx context.Context, dir string) error {
 		}
 
 		log.Printf("\tCloning %s", repo.Name)
-		cmd := exec.Command("git", "clone", "--mirror", cloneURL, repoPath)
-		if err := cmd.Run(); err != nil {
+		cmd := exec.Command("hg", "clone", "-U", cloneURL, repoPath)
+		err := cmd.Run()
+		if err != nil {
 			return err
 		}
 
-		repoInfo := GitRepoInfo{
+		repoInfo := HgRepoInfo{
 			Name:        repo.Name,
 			Description: repo.Description,
 			Visibility:  repo.Visibility,
 		}
 
-		file, err := os.Create(path.Join(repoPath, "srht.json"))
+		file, err := os.Create(path.Join(repoPath, ".hg", "srht.json"))
 		if err != nil {
 			return err
 		}

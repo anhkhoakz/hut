@@ -33,6 +33,9 @@ fragment repos on RepositoryCursor {
         name
         description
         visibility
+        owner {
+          canonicalName
+        }
     }
 }
 
