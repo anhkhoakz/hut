@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"os/exec"
 	"path"
@@ -47,13 +48,15 @@ func (ex *HgExporter) Export(ctx context.Context, dir string) error {
 		return err
 	}
 
+	baseURL, err := url.Parse(ex.BaseURL())
+	if err != nil {
+		panic(err)
+	}
+
 	// TODO: Should we fetch & store ACLs?
 	for _, repo := range repos.Results {
 		repoPath := path.Join(dir, "repos", repo.Name)
-		// XXX: May want to use SSH so we can clone private repositories, but we
-		// probably want to advise the user to set up an SSH agent
-		cloneURL := fmt.Sprintf("%s/%s/%s", ex.BaseURL(),
-			repo.Owner.CanonicalName, repo.Name)
+		cloneURL := fmt.Sprintf("ssh://hg@%s/%s/%s", baseURL.Host, repo.Owner.CanonicalName, repo.Name)
 		if _, err := os.Stat(repoPath); err == nil {
 			log.Printf("\tSkipping %s (already exists)", repo.Name)
 			continue

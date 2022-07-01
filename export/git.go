@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"os/exec"
 	"path"
@@ -42,18 +43,26 @@ type GitRepoInfo struct {
 func (ex *GitExporter) Export(ctx context.Context, dir string) error {
 	log.Println("git.sr.ht")
 
+	settings, err := gitsrht.SshSettings(ex.client, ctx)
+	if err != nil {
+		return err
+	}
+	sshUser := settings.Settings.SshUser
+
 	repos, err := gitsrht.Repositories(ex.client, ctx)
 	if err != nil {
 		return err
 	}
 
+	baseURL, err := url.Parse(ex.BaseURL())
+	if err != nil {
+		panic(err)
+	}
+
 	// TODO: Should we fetch & store ACLs?
 	for _, repo := range repos.Results {
 		repoPath := path.Join(dir, "repos", repo.Name)
-		// XXX: May want to use SSH so we can clone private repositories, but we
-		// probably want to advise the user to set up an SSH agent
-		cloneURL := fmt.Sprintf("%s/%s/%s", ex.BaseURL(),
-			repo.Owner.CanonicalName, repo.Name)
+		cloneURL := fmt.Sprintf("%s@%s:%s/%s", sshUser, baseURL.Host, repo.Owner.CanonicalName, repo.Name)
 		if _, err := os.Stat(repoPath); err == nil {
 			log.Printf("\tSkipping %s (already exists)", repo.Name)
 			continue
