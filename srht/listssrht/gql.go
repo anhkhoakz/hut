@@ -544,6 +544,15 @@ func MailingLists(client *gqlclient.Client, ctx context.Context) (mailingLists *
 	return respData.MailingLists, err
 }
 
+func ExportMailingLists(client *gqlclient.Client, ctx context.Context) (mailingLists *MailingListCursor, err error) {
+	op := gqlclient.NewOperation("query exportMailingLists {\n\tmailingLists {\n\t\tresults {\n\t\t\tname\n\t\t\tdescription\n\t\t\tpermitMime\n\t\t\trejectMime\n\t\t\tarchive\n\t\t}\n\t}\n}\n")
+	var respData struct {
+		MailingLists *MailingListCursor
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.MailingLists, err
+}
+
 func MailingListsByUser(client *gqlclient.Client, ctx context.Context, username string) (userByName *User, err error) {
 	op := gqlclient.NewOperation("query mailingListsByUser ($username: String!) {\n\tuserByName(username: $username) {\n\t\tlists {\n\t\t\t... lists\n\t\t}\n\t}\n}\nfragment lists on MailingListCursor {\n\tresults {\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t}\n}\n")
 	op.Var("username", username)

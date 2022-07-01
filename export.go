@@ -36,6 +36,10 @@ func newExportCommand() *cobra.Command {
 		hg := export.NewHgExporter(hc.Client, hc.BaseURL)
 		exporters = append(exporters, hg)
 
+		lc := createClient("lists", cmd)
+		lists := export.NewListsExporter(lc.Client, lc.BaseURL, lc.HTTP)
+		exporters = append(exporters, lists)
+
 		if _, ok := os.LookupEnv("SSH_AUTH_SOCK"); !ok {
 			log.Println("Warning! SSH_AUTH_SOCK is not set in your environment.")
 			log.Println("Using an SSH agent is advised to avoid unlocking your SSH keys repeatedly during the export.")
