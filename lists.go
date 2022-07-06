@@ -586,13 +586,13 @@ func newListsUserWebhookCreateCommand() *cobra.Command {
 
 		var config listssrht.UserWebhookInput
 		config.Url = url
-		config.Query = readWebhookQuery(stdin)
 
 		whEvents, err := listssrht.ParseUserEvents(events)
 		if err != nil {
 			log.Fatal(err)
 		}
 		config.Events = whEvents
+		config.Query = readWebhookQuery(stdin)
 
 		webhook, err := listssrht.CreateUserWebhook(c.Client, ctx, config)
 		if err != nil {

@@ -154,13 +154,13 @@ func newHgUserWebhookCreateCommand() *cobra.Command {
 
 		var config hgsrht.UserWebhookInput
 		config.Url = url
-		config.Query = readWebhookQuery(stdin)
 
 		whEvents, err := hgsrht.ParseUserEvents(events)
 		if err != nil {
 			log.Fatal(err)
 		}
 		config.Events = whEvents
+		config.Query = readWebhookQuery(stdin)
 
 		webhook, err := hgsrht.CreateUserWebhook(c.Client, ctx, config)
 		if err != nil {

@@ -693,7 +693,6 @@ func newTodoTicketWebhookCreateCommand() *cobra.Command {
 		trackerID := getTrackerID(c, ctx, name, owner)
 
 		var config todosrht.TicketWebhookInput
-		config.Query = readWebhookQuery(stdin)
 		config.Url = url
 
 		whEvents, err := todosrht.ParseTicketWebhookEvents(events)
@@ -701,6 +700,7 @@ func newTodoTicketWebhookCreateCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 		config.Events = whEvents
+		config.Query = readWebhookQuery(stdin)
 
 		webhook, err := todosrht.CreateTicketWebhook(c.Client, ctx, trackerID, ticketID, config)
 		if err != nil {
@@ -1051,13 +1051,13 @@ func newTodoUserWebhookCreateCommand() *cobra.Command {
 
 		var config todosrht.UserWebhookInput
 		config.Url = url
-		config.Query = readWebhookQuery(stdin)
 
 		whEvents, err := todosrht.ParseUserEvents(events)
 		if err != nil {
 			log.Fatal(err)
 		}
 		config.Events = whEvents
+		config.Query = readWebhookQuery(stdin)
 
 		webhook, err := todosrht.CreateUserWebhook(c.Client, ctx, config)
 		if err != nil {

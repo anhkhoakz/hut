@@ -573,13 +573,13 @@ func newGitUserWebhookCreateCommand() *cobra.Command {
 
 		var config gitsrht.UserWebhookInput
 		config.Url = url
-		config.Query = readWebhookQuery(stdin)
 
 		whEvents, err := gitsrht.ParseEvents(events)
 		if err != nil {
 			log.Fatal(err)
 		}
 		config.Events = whEvents
+		config.Query = readWebhookQuery(stdin)
 
 		webhook, err := gitsrht.CreateUserWebhook(c.Client, ctx, config)
 		if err != nil {

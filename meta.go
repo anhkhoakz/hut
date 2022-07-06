@@ -462,13 +462,13 @@ func newMetaUserWebhookCreateCommand() *cobra.Command {
 
 		var config metasrht.ProfileWebhookInput
 		config.Url = url
-		config.Query = readWebhookQuery(stdin)
 
 		whEvents, err := metasrht.ParseUserEvents(events)
 		if err != nil {
 			log.Fatal(err)
 		}
 		config.Events = whEvents
+		config.Query = readWebhookQuery(stdin)
 
 		webhook, err := metasrht.CreateUserWebhook(c.Client, ctx, config)
 		if err != nil {
