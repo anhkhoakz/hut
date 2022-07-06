@@ -187,7 +187,7 @@ func newPasteShowCommand() *cobra.Command {
 			}
 			fmt.Println()
 
-			fetchPasteFile(ctx, c.HTTP, file)
+			fetchPasteFile(ctx, c.HTTP, &file)
 		}
 	}
 	return cmd

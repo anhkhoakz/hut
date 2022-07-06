@@ -25,8 +25,10 @@ const (
 type Cursor string
 
 type Entity struct {
-	Id            int32        `json:"id"`
-	Created       time.Time    `json:"created"`
+	Id      int32     `json:"id"`
+	Created time.Time `json:"created"`
+	// The canonical name of this entity. For users, this is their username
+	// prefixed with '~'. Additional entity types will be supported in the future.
 	CanonicalName string       `json:"canonicalName"`
 	Pastes        *PasteCursor `json:"pastes"`
 }
@@ -37,19 +39,40 @@ type File struct {
 	Contents URL     `json:"contents"`
 }
 
+type OAuthClient struct {
+	Uuid string `json:"uuid"`
+}
+
 type Paste struct {
 	Id         string     `json:"id"`
 	Created    time.Time  `json:"created"`
 	Visibility Visibility `json:"visibility"`
-	Files      []*File    `json:"files"`
+	Files      []File     `json:"files"`
 	User       *Entity    `json:"user"`
 }
 
+// A cursor for enumerating pastes
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
 type PasteCursor struct {
 	Results []Paste `json:"results"`
 	Cursor  *Cursor `json:"cursor,omitempty"`
 }
 
+type PasteEvent struct {
+	Uuid  string       `json:"uuid"`
+	Event WebhookEvent `json:"event"`
+	Date  time.Time    `json:"date"`
+	Paste *Paste       `json:"paste"`
+}
+
+// URL from which some secondary data may be retrieved. You must provide the
+// same Authentication header to this address as you did to the GraphQL resolver
+// which provided it. The URL is not guaranteed to be consistent for an extended
+// length of time; applications should submit a new GraphQL query each time they
+// wish to access the data at the provided URL.
 type URL string
 
 type User struct {
@@ -60,20 +83,105 @@ type User struct {
 	Username      string       `json:"username"`
 }
 
+type UserWebhookInput struct {
+	Url    string         `json:"url"`
+	Events []WebhookEvent `json:"events"`
+	Query  string         `json:"query"`
+}
+
+type UserWebhookSubscription struct {
+	Id         int32                  `json:"id"`
+	Events     []WebhookEvent         `json:"events"`
+	Query      string                 `json:"query"`
+	Url        string                 `json:"url"`
+	Client     *OAuthClient           `json:"client,omitempty"`
+	Deliveries *WebhookDeliveryCursor `json:"deliveries"`
+	Sample     string                 `json:"sample"`
+}
+
 type Version struct {
-	Major           int32     `json:"major"`
-	Minor           int32     `json:"minor"`
-	Patch           int32     `json:"patch"`
+	Major int32 `json:"major"`
+	Minor int32 `json:"minor"`
+	Patch int32 `json:"patch"`
+	// If this API version is scheduled for deprecation, this is the date on which
+	// it will stop working; or null if this API version is not scheduled for
+	// deprecation.
 	DeprecationDate time.Time `json:"deprecationDate,omitempty"`
 }
 
 type Visibility string
 
 const (
-	VisibilityPublic   Visibility = "PUBLIC"
+	// Visible to everyone, listed on your profile
+	VisibilityPublic Visibility = "PUBLIC"
+	// Visible to everyone (if they know the URL), not listed on your profile
 	VisibilityUnlisted Visibility = "UNLISTED"
-	VisibilityPrivate  Visibility = "PRIVATE"
+	// Not visible to anyone except those explicitly added to the access list
+	VisibilityPrivate Visibility = "PRIVATE"
 )
+
+type WebhookDelivery struct {
+	Uuid         string               `json:"uuid"`
+	Date         time.Time            `json:"date"`
+	Event        WebhookEvent         `json:"event"`
+	Subscription *WebhookSubscription `json:"subscription"`
+	RequestBody  string               `json:"requestBody"`
+	// These details are provided only after a response is received from the
+	// remote server. If a response is sent whose Content-Type is not text/*, or
+	// cannot be decoded as UTF-8, the response body will be null. It will be
+	// truncated after 64 KiB.
+	ResponseBody    *string `json:"responseBody,omitempty"`
+	ResponseHeaders *string `json:"responseHeaders,omitempty"`
+	ResponseStatus  *int32  `json:"responseStatus,omitempty"`
+}
+
+// A cursor for enumerating a list of webhook deliveries
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
+type WebhookDeliveryCursor struct {
+	Results []WebhookDelivery `json:"results"`
+	Cursor  *Cursor           `json:"cursor,omitempty"`
+}
+
+type WebhookEvent string
+
+const (
+	WebhookEventPasteCreated WebhookEvent = "PASTE_CREATED"
+	WebhookEventPasteUpdated WebhookEvent = "PASTE_UPDATED"
+	WebhookEventPasteDeleted WebhookEvent = "PASTE_DELETED"
+)
+
+type WebhookPayload struct {
+	Uuid  string       `json:"uuid"`
+	Event WebhookEvent `json:"event"`
+	Date  time.Time    `json:"date"`
+}
+
+type WebhookSubscription struct {
+	Id     int32          `json:"id"`
+	Events []WebhookEvent `json:"events"`
+	Query  string         `json:"query"`
+	Url    string         `json:"url"`
+	// If this webhook was registered by an authorized OAuth 2.0 client, this
+	// field is non-null.
+	Client *OAuthClient `json:"client,omitempty"`
+	// All deliveries which have been sent to this webhook.
+	Deliveries *WebhookDeliveryCursor `json:"deliveries"`
+	// Returns a sample payload for this subscription, for testing purposes
+	Sample string `json:"sample"`
+}
+
+// A cursor for enumerating a list of webhook subscriptions
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
+type WebhookSubscriptionCursor struct {
+	Results []WebhookSubscription `json:"results"`
+	Cursor  *Cursor               `json:"cursor,omitempty"`
+}
 
 func CreatePaste(client *gqlclient.Client, ctx context.Context, files []gqlclient.Upload, visibility Visibility) (create *Paste, err error) {
 	op := gqlclient.NewOperation("mutation createPaste ($files: [Upload!]!, $visibility: Visibility!) {\n\tcreate(files: $files, visibility: $visibility) {\n\t\tid\n\t\tuser {\n\t\t\tcanonicalName\n\t\t}\n\t}\n}\n")
