@@ -80,6 +80,7 @@ query show($id: Int!) {
 query secrets {
     secrets {
         results {
+            created
             uuid
             name
         }

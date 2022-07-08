@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/juju/ansiterm/tabwriter"
 	"github.com/spf13/cobra"
 
 	"git.sr.ht/~emersion/hut/srht/buildssrht"
@@ -390,12 +391,16 @@ func newBuildsSecretsCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
+		tw := tabwriter.NewWriter(os.Stdout, 0, 2, 2, ' ', 0)
+		defer tw.Flush()
 		for _, secret := range secrets.Results {
+			// TODO: Display secret type (and path, mode for files)
+			created := termfmt.Dim.Sprintf("%s ago", timeDelta(secret.Created))
+			s := fmt.Sprintf("%s\t%s\n", termfmt.DarkYellow.Sprint(secret.Uuid), created)
 			if secret.Name != nil {
-				fmt.Printf("%s (%s)\n", secret.Uuid, *secret.Name)
-			} else {
-				fmt.Println(secret.Uuid)
+				s += fmt.Sprintf("%s\n", *secret.Name)
 			}
+			fmt.Fprintln(tw, s)
 		}
 	}
 
