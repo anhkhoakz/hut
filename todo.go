@@ -800,7 +800,7 @@ func newTodoTicketWebhookDeleteCommand() *cobra.Command {
 		Use:               "delete <ID>",
 		Short:             "Delete a ticket webhook",
 		Args:              cobra.ExactArgs(1),
-		ValidArgsFunction: completeTodoUserWebhookID,
+		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
 	return cmd
@@ -1136,7 +1136,7 @@ func newTodoUserWebhookDeleteCommand() *cobra.Command {
 		Use:               "delete <ID>",
 		Short:             "Delete a user webhook",
 		Args:              cobra.ExactArgs(1),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction: completeTodoUserWebhookID,
 		Run:               run,
 	}
 	return cmd
