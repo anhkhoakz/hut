@@ -151,6 +151,7 @@ func newPagesUserWebhookCommand() *cobra.Command {
 	}
 	cmd.AddCommand(newPagesUserWebhookCreateCommand())
 	cmd.AddCommand(newPagesUserWebhookListCommand())
+	cmd.AddCommand(newPagesUserWebhookDeleteCommand())
 	return cmd
 }
 
@@ -221,6 +222,34 @@ func newPagesUserWebhookListCommand() *cobra.Command {
 	return cmd
 }
 
+func newPagesUserWebhookDeleteCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("pages", cmd)
+
+		id, err := parseInt32(args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		webhook, err := pagessrht.DeleteUserWebhook(c.Client, ctx, id)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf("Deleted webhook %d\n", webhook.Id)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "delete <ID>",
+		Short:             "Delete a user webhook",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: completePagesUserWebhookID,
+		Run:               run,
+	}
+	return cmd
+}
+
 var completeProtocol = cobra.FixedCompletions([]string{"https", "gemini"}, cobra.ShellCompDirectiveNoFileComp)
 
 func completeDomain(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -257,4 +286,22 @@ func completePagesUserWebhookEvents(cmd *cobra.Command, args []string, toComplet
 		}
 	}
 	return eventList, cobra.ShellCompDirectiveNoFileComp
+}
+
+func completePagesUserWebhookID(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	ctx := cmd.Context()
+	c := createClient("pages", cmd)
+	var webhookList []string
+
+	webhooks, err := pagessrht.UserWebhooks(c.Client, ctx)
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	for _, webhook := range webhooks.Results {
+		s := fmt.Sprintf("%d\t%s", webhook.Id, webhook.Url)
+		webhookList = append(webhookList, s)
+	}
+
+	return webhookList, cobra.ShellCompDirectiveNoFileComp
 }
