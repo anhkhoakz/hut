@@ -35,3 +35,21 @@ func ParseVisibility(s string) (Visibility, error) {
 		return "", fmt.Errorf("invalid visibility: %s", s)
 	}
 }
+
+func ParseEvents(events []string) ([]WebhookEvent, error) {
+	var whEvents []WebhookEvent
+	for _, event := range events {
+		switch strings.ToLower(event) {
+		case "paste_created":
+			whEvents = append(whEvents, WebhookEventPasteCreated)
+		case "paste_updated":
+			whEvents = append(whEvents, WebhookEventPasteUpdated)
+		case "paste_deleted":
+			whEvents = append(whEvents, WebhookEventPasteDeleted)
+		default:
+			return whEvents, fmt.Errorf("invalid event: %q", event)
+		}
+	}
+
+	return whEvents, nil
+}

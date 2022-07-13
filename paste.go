@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"git.sr.ht/~emersion/gqlclient"
 	"github.com/spf13/cobra"
@@ -27,6 +28,7 @@ func newPasteCommand() *cobra.Command {
 	cmd.AddCommand(newPasteListCommand())
 	cmd.AddCommand(newPasteShowCommand())
 	cmd.AddCommand(newPasteUpdateCommand())
+	cmd.AddCommand(newPasteUserWebhookCommand())
 	return cmd
 }
 
@@ -246,6 +248,58 @@ func newPasteUpdateCommand() *cobra.Command {
 	return cmd
 }
 
+func newPasteUserWebhookCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "user-webhook",
+		Short: "Manage user webhooks",
+	}
+	cmd.AddCommand(newPasteUserWebhookCreateCommand())
+	return cmd
+}
+
+func newPasteUserWebhookCreateCommand() *cobra.Command {
+	var events []string
+	var stdin bool
+	var url string
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("paste", cmd)
+
+		var config pastesrht.UserWebhookInput
+		config.Url = url
+
+		whEvents, err := pastesrht.ParseEvents(events)
+		if err != nil {
+			log.Fatal(err)
+		}
+		config.Events = whEvents
+		config.Query = readWebhookQuery(stdin)
+
+		webhook, err := pastesrht.CreateUserWebhook(c.Client, ctx, config)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf("Created user webhook with ID %d\n", webhook.Id)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "create",
+		Short:             "Create a user webhook",
+		Args:              cobra.ExactArgs(0),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	cmd.Flags().StringSliceVarP(&events, "events", "e", nil, "webhook events")
+	cmd.RegisterFlagCompletionFunc("events", completePasteUserWebhookEvents)
+	cmd.MarkFlagRequired("events")
+	cmd.Flags().BoolVar(&stdin, "stdin", false, "read webhook query from stdin")
+	cmd.Flags().StringVarP(&url, "url", "u", "", "payload url")
+	cmd.RegisterFlagCompletionFunc("url", cobra.NoFileCompletions)
+	cmd.MarkFlagRequired("url")
+	return cmd
+}
+
 func completePasteID(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	ctx := cmd.Context()
 	c := createClient("paste", cmd)
@@ -281,4 +335,16 @@ func completePasteID(cmd *cobra.Command, args []string, toComplete string) ([]st
 	}
 
 	return pasteList, cobra.ShellCompDirectiveNoFileComp
+}
+
+func completePasteUserWebhookEvents(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	var eventList []string
+	events := [3]string{"paste_created", "paste_updated", "paste_deleted"}
+	set := strings.ToLower(cmd.Flag("events").Value.String())
+	for _, event := range events {
+		if !strings.Contains(set, event) {
+			eventList = append(eventList, event)
+		}
+	}
+	return eventList, cobra.ShellCompDirectiveNoFileComp
 }

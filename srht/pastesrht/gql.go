@@ -215,6 +215,16 @@ func Update(client *gqlclient.Client, ctx context.Context, id string, visibility
 	return respData.Update, err
 }
 
+func CreateUserWebhook(client *gqlclient.Client, ctx context.Context, config UserWebhookInput) (createUserWebhook *WebhookSubscription, err error) {
+	op := gqlclient.NewOperation("mutation createUserWebhook ($config: UserWebhookInput!) {\n\tcreateUserWebhook(config: $config) {\n\t\tid\n\t}\n}\n")
+	op.Var("config", config)
+	var respData struct {
+		CreateUserWebhook *WebhookSubscription
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.CreateUserWebhook, err
+}
+
 func Pastes(client *gqlclient.Client, ctx context.Context) (pastes *PasteCursor, err error) {
 	op := gqlclient.NewOperation("query pastes {\n\tpastes {\n\t\tresults {\n\t\t\tid\n\t\t\tcreated\n\t\t\tvisibility\n\t\t\tfiles {\n\t\t\t\tfilename\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	var respData struct {

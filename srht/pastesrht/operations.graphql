@@ -19,6 +19,12 @@ mutation update($id: String!, $visibility: Visibility!) {
     }
 }
 
+mutation createUserWebhook($config: UserWebhookInput!) {
+    createUserWebhook(config: $config) {
+        id
+    }
+}
+
 query pastes {
     pastes {
         results {
