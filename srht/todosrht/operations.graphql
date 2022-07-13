@@ -507,3 +507,9 @@ mutation createTrackerWebhook($trackerId: Int!, $config: TrackerWebhookInput!) {
         id
     }
 }
+
+mutation deleteTrackerWebhook($id: Int!) {
+    deleteTrackerWebhook(id: $id) {
+        id
+    }
+}

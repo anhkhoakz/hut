@@ -1038,6 +1038,7 @@ func newTodoWebhookCommand() *cobra.Command {
 	}
 	cmd.AddCommand(newTodoWebhookCreateCommand())
 	cmd.AddCommand(newTodoWebhookListCommand())
+	cmd.AddCommand(newTodoWebhookDeleteCommand())
 	return cmd
 }
 
@@ -1145,6 +1146,34 @@ func newTodoWebhookListCommand() *cobra.Command {
 		Short:             "List tracker webhooks",
 		Args:              cobra.MaximumNArgs(1),
 		ValidArgsFunction: completeTracker,
+		Run:               run,
+	}
+	return cmd
+}
+
+func newTodoWebhookDeleteCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("todo", cmd)
+
+		id, err := parseInt32(args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		webhook, err := todosrht.DeleteTrackerWebhook(c.Client, ctx, id)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf("Deleted webhook %d\n", webhook.Id)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "delete <ID>",
+		Short:             "Delete a tracker webhook",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
 	return cmd
