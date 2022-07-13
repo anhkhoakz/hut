@@ -25,6 +25,12 @@ mutation createUserWebhook($config: UserWebhookInput!) {
     }
 }
 
+mutation deleteUserWebhook($id: Int!) {
+    deleteUserWebhook(id: $id) {
+        id
+    }
+}
+
 query pastes {
     pastes {
         results {

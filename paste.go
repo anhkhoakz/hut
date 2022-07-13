@@ -255,6 +255,7 @@ func newPasteUserWebhookCommand() *cobra.Command {
 	}
 	cmd.AddCommand(newPasteUserWebhookCreateCommand())
 	cmd.AddCommand(newPasteUserWebhookListCommand())
+	cmd.AddCommand(newPasteUserWebhookDeleteCommand())
 	return cmd
 }
 
@@ -325,6 +326,34 @@ func newPasteUserWebhookListCommand() *cobra.Command {
 	return cmd
 }
 
+func newPasteUserWebhookDeleteCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("paste", cmd)
+
+		id, err := parseInt32(args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		webhook, err := pastesrht.DeleteUserWebhook(c.Client, ctx, id)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf("Deleted webhook %d\n", webhook.Id)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "delete <ID>",
+		Short:             "Delete a user webhook",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: completePasteUserWebhookID,
+		Run:               run,
+	}
+	return cmd
+}
+
 func completePasteID(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	ctx := cmd.Context()
 	c := createClient("paste", cmd)
@@ -372,4 +401,22 @@ func completePasteUserWebhookEvents(cmd *cobra.Command, args []string, toComplet
 		}
 	}
 	return eventList, cobra.ShellCompDirectiveNoFileComp
+}
+
+func completePasteUserWebhookID(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	ctx := cmd.Context()
+	c := createClient("paste", cmd)
+	var webhookList []string
+
+	webhooks, err := pastesrht.UserWebhooks(c.Client, ctx)
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	for _, webhook := range webhooks.Results {
+		s := fmt.Sprintf("%d\t%s", webhook.Id, webhook.Url)
+		webhookList = append(webhookList, s)
+	}
+
+	return webhookList, cobra.ShellCompDirectiveNoFileComp
 }
