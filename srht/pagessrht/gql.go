@@ -239,3 +239,12 @@ func Sites(client *gqlclient.Client, ctx context.Context) (sites *SiteCursor, er
 	err = client.Execute(ctx, op, &respData)
 	return respData.Sites, err
 }
+
+func UserWebhooks(client *gqlclient.Client, ctx context.Context) (userWebhooks *WebhookSubscriptionCursor, err error) {
+	op := gqlclient.NewOperation("query userWebhooks {\n\tuserWebhooks {\n\t\tresults {\n\t\t\tid\n\t\t\turl\n\t\t}\n\t}\n}\n")
+	var respData struct {
+		UserWebhooks *WebhookSubscriptionCursor
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.UserWebhooks, err
+}

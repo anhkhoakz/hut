@@ -150,6 +150,7 @@ func newPagesUserWebhookCommand() *cobra.Command {
 		Short: "Manage user webhooks",
 	}
 	cmd.AddCommand(newPagesUserWebhookCreateCommand())
+	cmd.AddCommand(newPagesUserWebhookListCommand())
 	return cmd
 }
 
@@ -193,6 +194,30 @@ func newPagesUserWebhookCreateCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&url, "url", "u", "", "payload url")
 	cmd.RegisterFlagCompletionFunc("url", cobra.NoFileCompletions)
 	cmd.MarkFlagRequired("url")
+	return cmd
+}
+
+func newPagesUserWebhookListCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("pages", cmd)
+
+		webhooks, err := pagessrht.UserWebhooks(c.Client, ctx)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for _, webhook := range webhooks.Results {
+			fmt.Printf("%s %s\n", termfmt.DarkYellow.Sprintf("#%d", webhook.Id), webhook.Url)
+		}
+	}
+
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List user webhooks",
+		Args:  cobra.ExactArgs(0),
+		Run:   run,
+	}
 	return cmd
 }
 

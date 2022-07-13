@@ -24,3 +24,12 @@ query sites {
         }
     }
 }
+
+query userWebhooks {
+    userWebhooks {
+        results {
+            id
+            url
+        }
+    }
+}

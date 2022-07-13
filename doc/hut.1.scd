@@ -472,6 +472,9 @@ Options are:
 	*-u*, *--url* <URL>
 		The payload URL which receives the _POST_ request. Required.
 
+*user-webhook list*
+	List user webhooks.
+
 ## paste
 
 *create* <filenames...>
