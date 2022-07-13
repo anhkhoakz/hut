@@ -708,6 +708,8 @@ Options are:
 	*-u*, *--url* <URL>
 		The payload URL which receives the _POST_ request. Required.
 
+*webhook list* [tracker]
+	List tracker webhooks.
 
 # CONFIGURATION
 

@@ -301,6 +301,31 @@ query completeUserWebhookId {
     }
 }
 
+query trackerWebhooks($name: String!) {
+    me {
+        tracker(name: $name) {
+            ...trackerWebhooks
+        }
+    }
+}
+
+query trackerWebhooksByUser($username: String!, $name: String!) {
+    user(username: $username) {
+        tracker(name: $name) {
+            ...trackerWebhooks
+        }
+    }
+}
+
+fragment trackerWebhooks on Tracker {
+    webhooks {
+        results {
+            id
+            url
+        }
+    }
+}
+
 mutation deleteTracker($id: Int!) {
     deleteTracker(id: $id) {
         name

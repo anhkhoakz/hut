@@ -1037,6 +1037,7 @@ func newTodoWebhookCommand() *cobra.Command {
 		Short: "Manage tracker webhooks",
 	}
 	cmd.AddCommand(newTodoWebhookCreateCommand())
+	cmd.AddCommand(newTodoWebhookListCommand())
 	return cmd
 }
 
@@ -1093,6 +1094,59 @@ func newTodoWebhookCreateCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&url, "url", "u", "", "payload url")
 	cmd.RegisterFlagCompletionFunc("url", cobra.NoFileCompletions)
 	cmd.MarkFlagRequired("url")
+	return cmd
+}
+
+func newTodoWebhookListCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		var name, owner, instance string
+		if len(args) > 0 {
+			name, owner, instance = parseResourceName(args[0])
+		} else {
+			var err error
+			name, owner, instance, err = getTrackerName(ctx, cmd)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
+		c := createClientWithInstance("todo", cmd, instance)
+
+		var (
+			user     *todosrht.User
+			username string
+			err      error
+		)
+
+		if owner != "" {
+			username = strings.TrimLeft(owner, ownerPrefixes)
+			user, err = todosrht.TrackerWebhooksByUser(c.Client, ctx, username, name)
+		} else {
+			user, err = todosrht.TrackerWebhooks(c.Client, ctx, name)
+		}
+
+		if err != nil {
+			log.Fatal(err)
+		} else if user == nil {
+			log.Fatalf("no such user %q", username)
+		} else if user.Tracker == nil {
+			log.Fatalf("no such tracker %q", name)
+		}
+
+		for _, webhook := range user.Tracker.Webhooks.Results {
+			fmt.Printf("%s %s\n", termfmt.DarkYellow.Sprintf("#%d", webhook.Id), webhook.Url)
+		}
+	}
+
+	cmd := &cobra.Command{
+		Use:               "list [tracker]",
+		Short:             "List tracker webhooks",
+		Args:              cobra.MaximumNArgs(1),
+		ValidArgsFunction: completeTracker,
+		Run:               run,
+	}
 	return cmd
 }
 
