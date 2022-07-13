@@ -221,6 +221,16 @@ func Unpublish(client *gqlclient.Client, ctx context.Context, domain string, pro
 	return respData.Unpublish, err
 }
 
+func CreateUserWebhook(client *gqlclient.Client, ctx context.Context, config UserWebhookInput) (createUserWebhook *WebhookSubscription, err error) {
+	op := gqlclient.NewOperation("mutation createUserWebhook ($config: UserWebhookInput!) {\n\tcreateUserWebhook(config: $config) {\n\t\tid\n\t}\n}\n")
+	op.Var("config", config)
+	var respData struct {
+		CreateUserWebhook *WebhookSubscription
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.CreateUserWebhook, err
+}
+
 func Sites(client *gqlclient.Client, ctx context.Context) (sites *SiteCursor, err error) {
 	op := gqlclient.NewOperation("query sites {\n\tsites {\n\t\tresults {\n\t\t\tdomain\n\t\t\tprotocol\n\t\t}\n\t}\n}\n")
 	var respData struct {

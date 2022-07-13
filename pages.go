@@ -22,6 +22,7 @@ func newPagesCommand() *cobra.Command {
 	cmd.AddCommand(newPagesPublishCommand())
 	cmd.AddCommand(newPagesUnpublishCommand())
 	cmd.AddCommand(newPagesListCommand())
+	cmd.AddCommand(newPagesUserWebhookCommand())
 	return cmd
 }
 
@@ -143,6 +144,58 @@ func newPagesListCommand() *cobra.Command {
 	return cmd
 }
 
+func newPagesUserWebhookCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "user-webhook",
+		Short: "Manage user webhooks",
+	}
+	cmd.AddCommand(newPagesUserWebhookCreateCommand())
+	return cmd
+}
+
+func newPagesUserWebhookCreateCommand() *cobra.Command {
+	var events []string
+	var stdin bool
+	var url string
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("pages", cmd)
+
+		var config pagessrht.UserWebhookInput
+		config.Url = url
+
+		whEvents, err := pagessrht.ParseEvents(events)
+		if err != nil {
+			log.Fatal(err)
+		}
+		config.Events = whEvents
+		config.Query = readWebhookQuery(stdin)
+
+		webhook, err := pagessrht.CreateUserWebhook(c.Client, ctx, config)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf("Created user webhook with ID %d\n", webhook.Id)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "create",
+		Short:             "Create a user webhook",
+		Args:              cobra.ExactArgs(0),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	cmd.Flags().StringSliceVarP(&events, "events", "e", nil, "webhook events")
+	cmd.RegisterFlagCompletionFunc("events", completePagesUserWebhookEvents)
+	cmd.MarkFlagRequired("events")
+	cmd.Flags().BoolVar(&stdin, "stdin", false, "read webhook query from stdin")
+	cmd.Flags().StringVarP(&url, "url", "u", "", "payload url")
+	cmd.RegisterFlagCompletionFunc("url", cobra.NoFileCompletions)
+	cmd.MarkFlagRequired("url")
+	return cmd
+}
+
 var completeProtocol = cobra.FixedCompletions([]string{"https", "gemini"}, cobra.ShellCompDirectiveNoFileComp)
 
 func completeDomain(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -167,4 +220,16 @@ func completeDomain(cmd *cobra.Command, args []string, toComplete string) ([]str
 	}
 
 	return domainList, cobra.ShellCompDirectiveNoFileComp
+}
+
+func completePagesUserWebhookEvents(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	var eventList []string
+	events := [2]string{"site_published", "site_unpublished"}
+	set := strings.ToLower(cmd.Flag("events").Value.String())
+	for _, event := range events {
+		if !strings.Contains(set, event) {
+			eventList = append(eventList, event)
+		}
+	}
+	return eventList, cobra.ShellCompDirectiveNoFileComp
 }

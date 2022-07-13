@@ -10,6 +10,12 @@ mutation unpublish($domain: String!, $protocol: Protocol!) {
     }
 }
 
+mutation createUserWebhook($config: UserWebhookInput!) {
+    createUserWebhook(config: $config) {
+        id
+    }
+}
+
 query sites {
     sites {
         results {
