@@ -63,3 +63,12 @@ query showPaste($id: String!) {
         }
     }
 }
+
+query userWebhooks {
+    userWebhooks {
+        results {
+            id
+            url
+        }
+    }
+}
