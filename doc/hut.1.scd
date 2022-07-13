@@ -692,6 +692,23 @@ Options are:
 *user-webhook list*
 	List user webhooks.
 
+*webhook create* [tracker] [options...]
+	Create a tracker webhook.
+
+	Options are:
+
+	*-e*, *--events* <strings...>
+		List of events that should trigger the webhook (TRACKER_UPDATE,
+		TRACKER_DELETED, LABEL_CREATED, LABEL_UPDATE, LABEL_DELETED,
+		TICKET_CREATED, TICKET_UPDATE, TICKET_DELETED, EVENT_CREATED). Required.
+
+	*--stdin*
+		Read query from _stdin_.
+
+	*-u*, *--url* <URL>
+		The payload URL which receives the _POST_ request. Required.
+
+
 # CONFIGURATION
 
 Generate a new OAuth2 access token on _meta.sr.ht_.

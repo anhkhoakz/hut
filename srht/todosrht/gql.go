@@ -1076,3 +1076,14 @@ func DeleteUserWebhook(client *gqlclient.Client, ctx context.Context, id int32) 
 	err = client.Execute(ctx, op, &respData)
 	return respData.DeleteUserWebhook, err
 }
+
+func CreateTrackerWebhook(client *gqlclient.Client, ctx context.Context, trackerId int32, config TrackerWebhookInput) (createTrackerWebhook *WebhookSubscription, err error) {
+	op := gqlclient.NewOperation("mutation createTrackerWebhook ($trackerId: Int!, $config: TrackerWebhookInput!) {\n\tcreateTrackerWebhook(trackerId: $trackerId, config: $config) {\n\t\tid\n\t}\n}\n")
+	op.Var("trackerId", trackerId)
+	op.Var("config", config)
+	var respData struct {
+		CreateTrackerWebhook *WebhookSubscription
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.CreateTrackerWebhook, err
+}

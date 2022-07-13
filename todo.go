@@ -29,6 +29,7 @@ func newTodoCommand() *cobra.Command {
 	cmd.AddCommand(newTodoTicketCommand())
 	cmd.AddCommand(newTodoLabelCommand())
 	cmd.AddCommand(newTodoACLCommand())
+	cmd.AddCommand(newTodoWebhookCommand())
 	cmd.AddCommand(newTodoUserWebhookCommand())
 	cmd.PersistentFlags().StringP("tracker", "t", "", "name of tracker")
 	cmd.RegisterFlagCompletionFunc("tracker", completeTracker)
@@ -1030,6 +1031,71 @@ func newTodoACLDeleteCommand() *cobra.Command {
 	return cmd
 }
 
+func newTodoWebhookCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "webhook",
+		Short: "Manage tracker webhooks",
+	}
+	cmd.AddCommand(newTodoWebhookCreateCommand())
+	return cmd
+}
+
+func newTodoWebhookCreateCommand() *cobra.Command {
+	var events []string
+	var stdin bool
+	var url string
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		var name, owner, instance string
+		if len(args) > 0 {
+			name, owner, instance = parseResourceName(args[0])
+		} else {
+			var err error
+			name, owner, instance, err = getTrackerName(ctx, cmd)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
+		c := createClientWithInstance("todo", cmd, instance)
+		id := getTrackerID(c, ctx, name, owner)
+
+		var config todosrht.TrackerWebhookInput
+		config.Url = url
+
+		whEvents, err := todosrht.ParseTrackerWebhookEvents(events)
+		if err != nil {
+			log.Fatal(err)
+		}
+		config.Events = whEvents
+		config.Query = readWebhookQuery(stdin)
+
+		webhook, err := todosrht.CreateTrackerWebhook(c.Client, ctx, id, config)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf("Created tracker webhook with ID %d\n", webhook.Id)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "create [tracker]",
+		Short:             "Create a tracker webhook",
+		Args:              cobra.MaximumNArgs(1),
+		ValidArgsFunction: completeTracker,
+		Run:               run,
+	}
+	cmd.Flags().StringSliceVarP(&events, "events", "e", nil, "webhook events")
+	cmd.RegisterFlagCompletionFunc("events", completeTrackerWebhookEvents)
+	cmd.MarkFlagRequired("events")
+	cmd.Flags().BoolVar(&stdin, "stdin", false, "read webhook query from stdin")
+	cmd.Flags().StringVarP(&url, "url", "u", "", "payload url")
+	cmd.RegisterFlagCompletionFunc("url", cobra.NoFileCompletions)
+	cmd.MarkFlagRequired("url")
+	return cmd
+}
+
 func newTodoUserWebhookCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "user-webhook",
@@ -1481,4 +1547,17 @@ func completeTodoUserWebhookID(cmd *cobra.Command, args []string, toComplete str
 	}
 
 	return webhookList, cobra.ShellCompDirectiveNoFileComp
+}
+
+func completeTrackerWebhookEvents(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	var eventList []string
+	events := [9]string{"tracker_update", "tracker_deleted", "label_created", "label_update", "label_deleted",
+		"ticket_created", "ticket_update", "ticket_deleted", "event_created"}
+	set := strings.ToLower(cmd.Flag("events").Value.String())
+	for _, event := range events {
+		if !strings.Contains(set, event) {
+			eventList = append(eventList, event)
+		}
+	}
+	return eventList, cobra.ShellCompDirectiveNoFileComp
 }
