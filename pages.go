@@ -50,7 +50,7 @@ func newPagesPublishCommand() *cobra.Command {
 
 		var upload gqlclient.Upload
 		if filename == "" {
-			upload = gqlclient.Upload{Body: os.Stdin, Filename: "-"}
+			upload = gqlclient.Upload{Body: os.Stdin}
 		} else {
 			f, err := os.Open(filename)
 			if err != nil {
@@ -60,6 +60,7 @@ func newPagesPublishCommand() *cobra.Command {
 
 			upload = gqlclient.Upload{Body: f, Filename: filepath.Base(filename)}
 		}
+		upload.MIMEType = "application/gzip"
 
 		site, err := pagessrht.Publish(c.Client, ctx, domain, upload, pagesProtocol, subdirectory, siteConfig)
 		if err != nil {
