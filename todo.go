@@ -442,8 +442,10 @@ func newTodoTicketStatusCommand() *cobra.Command {
 		if ticketStatus != todosrht.TicketStatusResolved && input.Resolution != nil {
 			log.Fatalf("resolution %q specified, but ticket not marked as resolved", resolution)
 		}
+
 		if ticketStatus == todosrht.TicketStatusResolved && input.Resolution == nil {
-			log.Fatalf("resolution is required when status is RESOLVED")
+			res := todosrht.TicketResolutionClosed
+			input.Resolution = &res
 		}
 
 		ticketID, name, owner, instance, err := parseTicketResource(ctx, cmd, args[0])

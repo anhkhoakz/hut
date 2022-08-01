@@ -600,11 +600,12 @@ Options are:
 	Options are:
 
 	*-r*, *--resolution*
-		Resolution for resolved tickets (required if status _RESOLVED_ is used).
-		If status is omitted, it will be set to _RESOLVED_.
+		Resolution for resolved tickets. If status is omitted, it will be set to
+		_RESOLVED_.
 
 	*-s*, *--status*
-		New ticket status.
+		New ticket status. If set to _RESOLVED_, resolution will default to
+		_CLOSED_.
 
 	*--stdin*
 		Read comment from _stdin_.
