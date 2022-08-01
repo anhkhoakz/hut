@@ -367,6 +367,7 @@ type TicketResolution string
 
 const (
 	TicketResolutionUnresolved  TicketResolution = "UNRESOLVED"
+	TicketResolutionClosed      TicketResolution = "CLOSED"
 	TicketResolutionFixed       TicketResolution = "FIXED"
 	TicketResolutionImplemented TicketResolution = "IMPLEMENTED"
 	TicketResolutionWontFix     TicketResolution = "WONT_FIX"

@@ -197,7 +197,7 @@ type UserWebhookSubscription implements WebhookSubscription {
   url: String!
   client: OAuthClient @private
   deliveries(cursor: Cursor): WebhookDeliveryCursor!
-  sample(event: WebhookEvent): String!
+  sample(event: WebhookEvent!): String!
 }
 
 type TrackerWebhookSubscription implements WebhookSubscription {
@@ -299,6 +299,7 @@ enum TicketStatus {
 
 enum TicketResolution {
   UNRESOLVED
+  CLOSED
   FIXED
   IMPLEMENTED
   WONT_FIX

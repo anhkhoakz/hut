@@ -296,7 +296,7 @@ func newTodoTicketListCommand() *cobra.Command {
 		for _, ticket := range user.Tracker.Tickets.Results {
 			var labels string
 			s := termfmt.DarkYellow.Sprintf("#%d %s ", ticket.Id, ticket.Status.TermString())
-			if ticket.Status == todosrht.TicketStatusResolved {
+			if ticket.Status == todosrht.TicketStatusResolved && ticket.Resolution != todosrht.TicketResolutionClosed {
 				s += termfmt.Green.Sprintf("%s ", strings.ToLower(string(ticket.Resolution)))
 			}
 
@@ -1463,6 +1463,7 @@ var completeTicketStatus = cobra.FixedCompletions([]string{
 
 var completeTicketResolution = cobra.FixedCompletions([]string{
 	"unresolved",
+	"closed",
 	"fixed",
 	"implemented",
 	"wont_fix",

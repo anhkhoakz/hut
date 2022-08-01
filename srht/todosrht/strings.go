@@ -81,6 +81,8 @@ func ParseTicketResolution(s string) (TicketResolution, error) {
 		return TicketResolutionUnresolved, nil
 	case "fixed":
 		return TicketResolutionFixed, nil
+	case "closed":
+		return TicketResolutionClosed, nil
 	case "implemented":
 		return TicketResolutionImplemented, nil
 	case "wont_fix":
