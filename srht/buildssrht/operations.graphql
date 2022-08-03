@@ -44,15 +44,27 @@ query jobIDs {
 
 query jobs {
     jobs {
-        results {
-            id
+        ...jobs
+    }
+}
+
+query jobsByUser($username: String!) {
+    userByName(username: $username) {
+        jobs {
+            ...jobs
+        }
+    }
+}
+
+fragment jobs on JobCursor {
+    results {
+        id
+        status
+        note
+        tags
+        tasks {
+            name
             status
-            note
-            tags
-            tasks {
-                name
-                status
-            }
         }
     }
 }

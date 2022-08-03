@@ -79,7 +79,7 @@ hut is a CLI companion utility to interact with sr.ht.
 *cancel* <IDs...>
 	Cancel jobs.
 
-*list*
+*list* [owner]
 	List jobs.
 
 *resubmit* <ID>

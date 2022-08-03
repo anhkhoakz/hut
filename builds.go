@@ -309,9 +309,22 @@ func newBuildsListCommand() *cobra.Command {
 		ctx := cmd.Context()
 		c := createClient("builds", cmd)
 
-		jobs, err := buildssrht.Jobs(c.Client, ctx)
-		if err != nil {
-			log.Fatal(err)
+		var jobs *buildssrht.JobCursor
+		if len(args) > 0 {
+			username := strings.TrimLeft(args[0], ownerPrefixes)
+			user, err := buildssrht.JobsByUser(c.Client, ctx, username)
+			if err != nil {
+				log.Fatal(err)
+			} else if user == nil {
+				log.Fatal("no such user")
+			}
+			jobs = user.Jobs
+		} else {
+			var err error
+			jobs, err = buildssrht.Jobs(c.Client, ctx)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 
 		for _, job := range jobs.Results {
@@ -320,10 +333,11 @@ func newBuildsListCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "List jobs",
-		Args:  cobra.ExactArgs(0),
-		Run:   run,
+		Use:               "list [owner]",
+		Short:             "List jobs",
+		Args:              cobra.MaximumNArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
 	}
 	return cmd
 }
