@@ -203,6 +203,10 @@ Options are:
 	*-b*, *--default-branch* <branch>
 		Set the default branch.
 
+	*--readme* <file>
+		Update the custom README HTML from file. Pass "-" as the filename to
+		read from _stdin_.
+
 	*-v*, *--visibility* <string>
 		Visibility to use (public, unlisted, private).
 

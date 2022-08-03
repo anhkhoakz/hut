@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/url"
 	"os"
@@ -667,7 +668,7 @@ func newGitUserWebhookDeleteCommand() *cobra.Command {
 }
 
 func newGitUpdateCommand() *cobra.Command {
-	var visibility, branch string
+	var visibility, branch, readme string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
@@ -698,6 +699,25 @@ func newGitUpdateCommand() *cobra.Command {
 			input.HEAD = &branch
 		}
 
+		if readme != "" {
+			var (
+				b   []byte
+				err error
+			)
+
+			if readme == "-" {
+				b, err = ioutil.ReadAll(os.Stdin)
+			} else {
+				b, err = os.ReadFile(readme)
+			}
+			if err != nil {
+				log.Fatalf("failed to read custom README: %v", err)
+			}
+
+			s := string(b)
+			input.Readme = &s
+		}
+
 		repo, err := gitsrht.UpdateRepository(c.Client, ctx, id, input)
 		if err != nil {
 			log.Fatal(err)
@@ -718,6 +738,7 @@ func newGitUpdateCommand() *cobra.Command {
 	cmd.RegisterFlagCompletionFunc("visibility", completeVisibility)
 	cmd.Flags().StringVarP(&branch, "default-branch", "b", "", "default branch")
 	cmd.RegisterFlagCompletionFunc("default-branch", completeBranches)
+	cmd.Flags().StringVar(&readme, "readme", "", "update the custom README")
 	return cmd
 }
 
