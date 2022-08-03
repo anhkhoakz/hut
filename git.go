@@ -30,6 +30,7 @@ func newGitCommand() *cobra.Command {
 	cmd.AddCommand(newGitACLCommand())
 	cmd.AddCommand(newGitShowCommand())
 	cmd.AddCommand(newGitUserWebhookCommand())
+	cmd.AddCommand(newGitUpdateCommand())
 	cmd.PersistentFlags().StringP("repo", "r", "", "name of repository")
 	cmd.RegisterFlagCompletionFunc("repo", completeRepo)
 	return cmd
@@ -665,6 +666,61 @@ func newGitUserWebhookDeleteCommand() *cobra.Command {
 	return cmd
 }
 
+func newGitUpdateCommand() *cobra.Command {
+	var visibility, branch string
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		var name, owner, instance string
+		if len(args) > 0 {
+			name, owner, instance = parseResourceName(args[0])
+		} else {
+			var err error
+			name, owner, instance, err = getRepoName(ctx, cmd)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
+		c := createClientWithInstance("git", cmd, instance)
+		id := getRepoID(c, ctx, name, owner)
+		var input gitsrht.RepoInput
+
+		if visibility != "" {
+			repoVisibility, err := gitsrht.ParseVisibility(visibility)
+			if err != nil {
+				log.Fatal(err)
+			}
+			input.Visibility = &repoVisibility
+		}
+
+		if branch != "" {
+			input.HEAD = &branch
+		}
+
+		repo, err := gitsrht.UpdateRepository(c.Client, ctx, id, input)
+		if err != nil {
+			log.Fatal(err)
+		} else if repo == nil {
+			log.Fatalf("failed to update repository %q", name)
+		}
+
+		fmt.Printf("Successfully updated repository %q\n", repo.Name)
+	}
+	cmd := &cobra.Command{
+		Use:               "update [repo]",
+		Short:             "Update a repository",
+		Args:              cobra.MaximumNArgs(1),
+		ValidArgsFunction: completeRepo,
+		Run:               run,
+	}
+	cmd.Flags().StringVarP(&visibility, "visibility", "v", "", "repository visibility")
+	cmd.RegisterFlagCompletionFunc("visibility", completeVisibility)
+	cmd.Flags().StringVarP(&branch, "default-branch", "b", "", "default branch")
+	cmd.RegisterFlagCompletionFunc("default-branch", completeBranches)
+	return cmd
+}
+
 func getRepoName(ctx context.Context, cmd *cobra.Command) (repoName, owner, instance string, err error) {
 	repoName, err = cmd.Flags().GetString("repo")
 	if err != nil {
@@ -853,4 +909,27 @@ func completeGitUserWebhookID(cmd *cobra.Command, args []string, toComplete stri
 	}
 
 	return webhookList, cobra.ShellCompDirectiveNoFileComp
+}
+
+func completeBranches(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	ctx := cmd.Context()
+	repoName, owner, instace, err := getRepoName(ctx, cmd)
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+	c := createClientWithInstance("git", cmd, instace)
+
+	var user *gitsrht.User
+	if owner != "" {
+		username := strings.TrimLeft(owner, ownerPrefixes)
+		user, err = gitsrht.RevsByUser(c.Client, ctx, username, repoName)
+	} else {
+		user, err = gitsrht.RevsByRepoName(c.Client, ctx, repoName)
+	}
+
+	if err != nil || user == nil || user.Repository == nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	return user.Repository.References.Heads(), cobra.ShellCompDirectiveNoFileComp
 }

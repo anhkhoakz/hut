@@ -515,13 +515,24 @@ func RepoNames(client *gqlclient.Client, ctx context.Context) (repositories *Rep
 }
 
 func RevsByRepoName(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
-	op := gqlclient.NewOperation("query revsByRepoName ($name: String!) {\n\tme {\n\t\trepository(name: $name) {\n\t\t\treferences {\n\t\t\t\tresults {\n\t\t\t\t\tname\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op := gqlclient.NewOperation("query revsByRepoName ($name: String!) {\n\tme {\n\t\trepository(name: $name) {\n\t\t\t... revs\n\t\t}\n\t}\n}\nfragment revs on Repository {\n\treferences {\n\t\tresults {\n\t\t\tname\n\t\t}\n\t}\n}\n")
 	op.Var("name", name)
 	var respData struct {
 		Me *User
 	}
 	err = client.Execute(ctx, op, &respData)
 	return respData.Me, err
+}
+
+func RevsByUser(client *gqlclient.Client, ctx context.Context, username string, name string) (user *User, err error) {
+	op := gqlclient.NewOperation("query revsByUser ($username: String!, $name: String!) {\n\tuser(username: $username) {\n\t\trepository(name: $name) {\n\t\t\t... revs\n\t\t}\n\t}\n}\nfragment revs on Repository {\n\treferences {\n\t\tresults {\n\t\t\tname\n\t\t}\n\t}\n}\n")
+	op.Var("username", username)
+	op.Var("name", name)
+	var respData struct {
+		User *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.User, err
 }
 
 func AclByRepoName(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
@@ -637,4 +648,15 @@ func CreateUserWebhook(client *gqlclient.Client, ctx context.Context, config Use
 	}
 	err = client.Execute(ctx, op, &respData)
 	return respData.CreateWebhook, err
+}
+
+func UpdateRepository(client *gqlclient.Client, ctx context.Context, id int32, input RepoInput) (updateRepository *Repository, err error) {
+	op := gqlclient.NewOperation("mutation updateRepository ($id: Int!, $input: RepoInput!) {\n\tupdateRepository(id: $id, input: $input) {\n\t\tname\n\t}\n}\n")
+	op.Var("id", id)
+	op.Var("input", input)
+	var respData struct {
+		UpdateRepository *Repository
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.UpdateRepository, err
 }

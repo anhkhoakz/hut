@@ -126,11 +126,23 @@ query repoNames {
 query revsByRepoName($name: String!) {
     me {
         repository(name: $name) {
-            references {
-                results {
-                    name
-                }
-            }
+            ...revs
+        }
+    }
+}
+
+query revsByUser($username: String!, $name: String!) {
+    user(username: $username) {
+        repository(name: $name) {
+            ...revs
+        }
+    }
+}
+
+fragment revs on Repository {
+    references {
+        results {
+            name
         }
     }
 }
@@ -237,5 +249,11 @@ mutation deleteUserWebhook($id: Int!) {
 mutation createUserWebhook($config: UserWebhookInput!) {
     createWebhook(config: $config) {
         id
+    }
+}
+
+mutation updateRepository($id: Int!, $input: RepoInput!) {
+    updateRepository(id: $id, input: $input) {
+        name
     }
 }
