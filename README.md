@@ -1,6 +1,6 @@
 # [hut]
 
-[![builds.sr.ht status](https://builds.sr.ht/~emersion/hut/commits.svg)](https://builds.sr.ht/~emersion/hut/commits?)
+[![builds.sr.ht status](https://builds.sr.ht/~emersion/hut/commits/master.svg)](https://builds.sr.ht/~emersion/hut/commits/master?)
 
 A CLI tool for [sr.ht].
 
