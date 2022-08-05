@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -133,7 +132,7 @@ func newMetaSSHKeyCreateCommand() *cobra.Command {
 			}
 		}
 
-		b, err := ioutil.ReadFile(filename)
+		b, err := os.ReadFile(filename)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -295,7 +294,7 @@ func newMetaPGPKeyCreateCommand() *cobra.Command {
 			err      error
 		)
 		if len(args) > 0 {
-			keyBytes, err = ioutil.ReadFile(args[0])
+			keyBytes, err = os.ReadFile(args[0])
 		} else {
 			keyBytes, err = exportDefaultPGPKey(ctx)
 		}

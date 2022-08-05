@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/url"
 	"os"
@@ -706,7 +706,7 @@ func newGitUpdateCommand() *cobra.Command {
 			)
 
 			if readme == "-" {
-				b, err = ioutil.ReadAll(os.Stdin)
+				b, err = io.ReadAll(os.Stdin)
 			} else {
 				b, err = os.ReadFile(readme)
 			}

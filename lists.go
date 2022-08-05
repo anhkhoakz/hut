@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/mail"
 	"os"
@@ -213,7 +212,7 @@ func newListsCreateCommand() *cobra.Command {
 		var description *string
 
 		if stdin {
-			b, err := ioutil.ReadAll(os.Stdin)
+			b, err := io.ReadAll(os.Stdin)
 			if err != nil {
 				log.Fatalf("failed to read mailing list description: %v", err)
 			}

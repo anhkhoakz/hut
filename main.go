@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -148,7 +147,7 @@ func getInputWithEditor(pattern, initialText string) (string, error) {
 		return "", errors.New("EDITOR not set")
 	}
 
-	file, err := ioutil.TempFile("", pattern)
+	file, err := os.CreateTemp("", pattern)
 	if err != nil {
 		return "", err
 	}
@@ -176,7 +175,7 @@ func getInputWithEditor(pattern, initialText string) (string, error) {
 		return "", err
 	}
 
-	content, err := ioutil.ReadFile(file.Name())
+	content, err := os.ReadFile(file.Name())
 	if err != nil {
 		return "", err
 	}
