@@ -203,6 +203,9 @@ Options are:
 	*-b*, *--default-branch* <branch>
 		Set the default branch.
 
+	*-d*, *--description* <description>
+		Set one-line repository description.
+
 	*--readme* <file>
 		Update the custom README HTML from file. Pass "-" as the filename to
 		read from _stdin_.

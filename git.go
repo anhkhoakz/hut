@@ -668,7 +668,7 @@ func newGitUserWebhookDeleteCommand() *cobra.Command {
 }
 
 func newGitUpdateCommand() *cobra.Command {
-	var visibility, branch, readme string
+	var visibility, branch, readme, description string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
@@ -693,6 +693,10 @@ func newGitUpdateCommand() *cobra.Command {
 				log.Fatal(err)
 			}
 			input.Visibility = &repoVisibility
+		}
+
+		if cmd.Flags().Changed("description") {
+			input.Description = &description
 		}
 
 		if branch != "" {
@@ -739,6 +743,8 @@ func newGitUpdateCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&branch, "default-branch", "b", "", "default branch")
 	cmd.RegisterFlagCompletionFunc("default-branch", completeBranches)
 	cmd.Flags().StringVar(&readme, "readme", "", "update the custom README")
+	cmd.Flags().StringVarP(&description, "description", "d", "", "repository description")
+	cmd.RegisterFlagCompletionFunc("description", cobra.NoFileCompletions);
 	return cmd
 }
 
