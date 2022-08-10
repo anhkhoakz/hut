@@ -744,7 +744,7 @@ func newGitUpdateCommand() *cobra.Command {
 	cmd.RegisterFlagCompletionFunc("default-branch", completeBranches)
 	cmd.Flags().StringVar(&readme, "readme", "", "update the custom README")
 	cmd.Flags().StringVarP(&description, "description", "d", "", "repository description")
-	cmd.RegisterFlagCompletionFunc("description", cobra.NoFileCompletions);
+	cmd.RegisterFlagCompletionFunc("description", cobra.NoFileCompletions)
 	return cmd
 }
 
