@@ -491,7 +491,7 @@ func fetchJobLogs(ctx context.Context, l *buildLog, job *buildssrht.Job) error {
 
 func fetchTaskLogs(ctx context.Context, l *buildLog, task buildssrht.Task) error {
 	switch task.Status {
-	case buildssrht.TaskStatusPending:
+	case buildssrht.TaskStatusPending, buildssrht.TaskStatusSkipped:
 		return nil
 	}
 
