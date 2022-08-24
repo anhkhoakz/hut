@@ -259,6 +259,7 @@ func newTodoTicketCommand() *cobra.Command {
 	cmd.AddCommand(newTodoTicketAssignCommand())
 	cmd.AddCommand(newTodoTicketUnassignCommand())
 	cmd.AddCommand(newTodoTicketDeleteCommand())
+	cmd.AddCommand(newTodoTicketShowCommand())
 	cmd.AddCommand(newTodoTicketWebhookCommand())
 	return cmd
 }
@@ -665,6 +666,88 @@ func newTodoTicketDeleteCommand() *cobra.Command {
 		Run:               run,
 	}
 	cmd.Flags().BoolVarP(&autoConfirm, "yes", "y", false, "auto confirm")
+	return cmd
+}
+
+func newTodoTicketShowCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		ticketID, name, owner, instance, err := parseTicketResource(ctx, cmd, args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		c := createClientWithInstance("todo", cmd, instance)
+		var (
+			user     *todosrht.User
+			username string
+		)
+
+		if owner != "" {
+			username = strings.TrimLeft(owner, ownerPrefixes)
+			user, err = todosrht.TicketByUser(c.Client, ctx, username, name, ticketID)
+		} else {
+			user, err = todosrht.TicketByName(c.Client, ctx, name, ticketID)
+		}
+		if err != nil {
+			log.Fatal(err)
+		} else if user == nil {
+			log.Fatalf("no such user %q", username)
+		} else if user.Tracker == nil {
+			log.Fatalf("no such tracker %q", name)
+		}
+
+		ticket := user.Tracker.Ticket
+		fmt.Printf("%s\n\n", termfmt.Bold.String(ticket.Subject))
+
+		fmt.Printf("Status: %s\n", termfmt.Green.Sprintf("%s %s", ticket.Status, ticket.Resolution))
+		fmt.Printf("Submitter: %s\n", ticket.Submitter.CanonicalName)
+
+		assigned := "Assigned to: "
+		if len(ticket.Assignees) == 0 {
+			assigned += "No-one"
+		} else {
+			for i, assignee := range ticket.Assignees {
+				assigned += assignee.CanonicalName
+				if i != len(ticket.Assignees)-1 {
+					assigned += ", "
+				}
+			}
+		}
+		fmt.Println(assigned)
+
+		fmt.Printf("Submitted: %s ago\n", timeDelta(ticket.Created))
+		fmt.Printf("Updated: %s ago\n", timeDelta(ticket.Updated))
+
+		labels := "Labels: "
+		if len(ticket.Labels) == 0 {
+			labels += "No labels applied."
+		} else {
+			for i, label := range ticket.Labels {
+				labels += label.TermString()
+				if i != len(ticket.Labels)-1 {
+					labels += " "
+				}
+			}
+		}
+		fmt.Println(labels)
+		fmt.Println()
+
+		if ticket.Body != nil {
+			fmt.Println(*ticket.Body)
+		}
+
+		// TODO: handle events
+		// Depends on https://todo.sr.ht/~emersion/gqlclient/3
+	}
+	cmd := &cobra.Command{
+		Use:               "show <ID>",
+		Short:             "Show a ticket",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: completeTicketID,
+		Run:               run,
+	}
 	return cmd
 }
 

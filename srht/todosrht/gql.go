@@ -901,6 +901,29 @@ func TrackerWebhooksByUser(client *gqlclient.Client, ctx context.Context, userna
 	return respData.User, err
 }
 
+func TicketByName(client *gqlclient.Client, ctx context.Context, name string, id int32) (me *User, err error) {
+	op := gqlclient.NewOperation("query ticketByName ($name: String!, $id: Int!) {\n\tme {\n\t\ttracker(name: $name) {\n\t\t\tticket(id: $id) {\n\t\t\t\t... ticket\n\t\t\t}\n\t\t}\n\t}\n}\nfragment ticket on Ticket {\n\tcreated\n\tupdated\n\tsubmitter {\n\t\tcanonicalName\n\t}\n\tsubject\n\tbody\n\tstatus\n\tresolution\n\tlabels {\n\t\tname\n\t\tbackgroundColor\n\t\tforegroundColor\n\t}\n\tassignees {\n\t\tcanonicalName\n\t}\n}\n")
+	op.Var("name", name)
+	op.Var("id", id)
+	var respData struct {
+		Me *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Me, err
+}
+
+func TicketByUser(client *gqlclient.Client, ctx context.Context, username string, tracker string, id int32) (user *User, err error) {
+	op := gqlclient.NewOperation("query ticketByUser ($username: String!, $tracker: String!, $id: Int!) {\n\tuser(username: $username) {\n\t\ttracker(name: $tracker) {\n\t\t\tticket(id: $id) {\n\t\t\t\t... ticket\n\t\t\t}\n\t\t}\n\t}\n}\nfragment ticket on Ticket {\n\tcreated\n\tupdated\n\tsubmitter {\n\t\tcanonicalName\n\t}\n\tsubject\n\tbody\n\tstatus\n\tresolution\n\tlabels {\n\t\tname\n\t\tbackgroundColor\n\t\tforegroundColor\n\t}\n\tassignees {\n\t\tcanonicalName\n\t}\n}\n")
+	op.Var("username", username)
+	op.Var("tracker", tracker)
+	op.Var("id", id)
+	var respData struct {
+		User *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.User, err
+}
+
 func DeleteTracker(client *gqlclient.Client, ctx context.Context, id int32) (deleteTracker *Tracker, err error) {
 	op := gqlclient.NewOperation("mutation deleteTracker ($id: Int!) {\n\tdeleteTracker(id: $id) {\n\t\tname\n\t}\n}\n")
 	op.Var("id", id)

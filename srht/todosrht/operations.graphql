@@ -326,6 +326,46 @@ fragment trackerWebhooks on Tracker {
     }
 }
 
+query ticketByName($name: String!, $id: Int!) {
+    me {
+        tracker(name: $name) {
+            ticket(id: $id) {
+                ...ticket
+            }
+        }
+    }
+}
+
+query ticketByUser($username: String!, $tracker: String!, $id: Int!) {
+    user(username: $username) {
+        tracker(name: $tracker) {
+            ticket(id: $id) {
+                ...ticket
+            }
+        }
+    }
+}
+
+fragment ticket on Ticket {
+    created
+    updated
+    submitter {
+        canonicalName
+    }
+    subject
+    body
+    status
+    resolution
+    labels {
+        name
+        backgroundColor
+        foregroundColor
+    }
+    assignees {
+        canonicalName
+    }
+}
+
 mutation deleteTracker($id: Int!) {
     deleteTracker(id: $id) {
         name

@@ -639,6 +639,9 @@ Options are:
 *ticket list*
 	List tickets.
 
+*ticket show* <ID>
+	Display a ticket.
+
 *ticket subscribe* <ID>
 	Subscribe to a ticket.
 
