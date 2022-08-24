@@ -313,7 +313,6 @@ func newTodoTicketListCommand() *cobra.Command {
 				ticket.Submitter.CanonicalName, timeDelta(ticket.Created))
 			fmt.Println(s)
 		}
-
 	}
 
 	cmd := &cobra.Command{
