@@ -254,7 +254,7 @@ func newInitCommand() *cobra.Command {
 
 		scanner := bufio.NewScanner(os.Stdin)
 		scanner.Scan()
-		token := scanner.Text()
+		token := strings.TrimSpace(scanner.Text())
 		if err := scanner.Err(); err != nil {
 			log.Fatalf("failed to read token from stdin: %v", err)
 		} else if token == "" {
