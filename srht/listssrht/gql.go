@@ -257,15 +257,15 @@ type OAuthClient struct {
 
 // Information parsed from the subject line of a patch, such that the following:
 //
-//     [PATCH myproject v2 3/4] Add foo to bar
+//	[PATCH myproject v2 3/4] Add foo to bar
 //
 // Will produce:
 //
-//     index: 3
-//     count: 4
-//     version: 2
-//     prefix: "myproject"
-//     subject: "Add foo to bar"
+//	index: 3
+//	count: 4
+//	version: 2
+//	prefix: "myproject"
+//	subject: "Add foo to bar"
 type Patch struct {
 	Index   *int32  `json:"index,omitempty"`
 	Count   *int32  `json:"count,omitempty"`
