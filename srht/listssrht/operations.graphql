@@ -5,25 +5,29 @@ mutation deleteMailingList($id: Int!) {
 }
 
 query mailingLists {
-    mailingLists {
-        ...lists
+    me {
+        lists {
+            ...lists
+        }
     }
 }
 
 query exportMailingLists {
-    mailingLists {
-        results {
-            name
-            description
-            permitMime
-            rejectMime
-            archive
+    me {
+        lists {
+            results {
+                name
+                description
+                permitMime
+                rejectMime
+                archive
+            }
         }
     }
 }
 
 query mailingListsByUser($username: String!) {
-    userByName(username: $username) {
+    user(username: $username) {
         lists {
             ...lists
         }
@@ -39,26 +43,34 @@ fragment lists on MailingListCursor {
 }
 
 query mailingListIDByName($name: String!) {
-    mailingListByName(name: $name) {
-        id
+    me {
+        list(name: $name) {
+            id
+        }
     }
 }
 
-query mailingListIDByOwner($ownerName: String!, $listName: String!) {
-    mailingListByOwner(ownerName: $ownerName, listName: $listName) {
-        id
+query mailingListIDByUser($username: String!, $name: String!) {
+    user(username: $username) {
+        list(name: $name) {
+            id
+        }
     }
 }
 
-query patches($name: String!) {
-    mailingListByName(name: $name) {
-        ...patchsetsByList
+query listPatches($name: String!) {
+    me {
+        list(name: $name) {
+            ...patchsetsByList
+        }
     }
 }
 
-query patchesByOwner($ownerName: String!, $listName: String!) {
-    mailingListByOwner(ownerName: $ownerName, listName: $listName) {
-        ...patchsetsByList
+query listPatchesByUser($username: String!, $name: String!) {
+    user(username: $username) {
+        list(name: $name) {
+            ...patchsetsByList
+        }
     }
 }
 
@@ -78,14 +90,14 @@ fragment patchsetsByList on MailingList {
     }
 }
 
-query patchesByMe {
+query patches {
     me {
         ...patchsets
     }
 }
 
 query patchesByUser($username: String!) {
-    userByName(username: $username) {
+    user(username: $username) {
         ...patchsets
     }
 }
@@ -123,14 +135,18 @@ query patchsetById($id: Int!) {
 }
 
 query completePatchsetId($name: String!) {
-    mailingListByName(name: $name) {
-        ...completePatchset
+    me {
+        list(name: $name) {
+            ...completePatchset
+        }
     }
 }
 
-query completePatchsetIdByOwner($ownerName: String!, $listName: String!) {
-    mailingListByOwner(ownerName: $ownerName, listName: $listName) {
-        ...completePatchset
+query completePatchsetIdByUser($username: String!, $name: String!) {
+    user(username: $username) {
+        list(name: $name) {
+            ...completePatchset
+        }
     }
 }
 
@@ -147,24 +163,26 @@ fragment completePatchset on MailingList {
 }
 
 query aclByListName($name: String!) {
-    mailingListByName(name: $name) {
-        defaultACL {
-            browse
-            reply
-            post
-            moderate
-        }
-        acl {
-            results {
-                id
-                created
-                entity {
-                    canonicalName
-                }
+    me {
+        list(name: $name) {
+            defaultACL {
                 browse
                 reply
                 post
                 moderate
+            }
+            acl {
+                results {
+                    id
+                    created
+                    entity {
+                        canonicalName
+                    }
+                    browse
+                    reply
+                    post
+                    moderate
+                }
             }
         }
     }

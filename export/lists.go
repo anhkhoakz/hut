@@ -59,13 +59,13 @@ type MailingListInfo struct {
 func (ex *ListsExporter) Export(ctx context.Context, dir string) error {
 	log.Println("lists.sr.ht")
 
-	lists, err := listssrht.ExportMailingLists(ex.client, ctx)
+	user, err := listssrht.ExportMailingLists(ex.client, ctx)
 	if err != nil {
 		return err
 	}
 
 	var ret error
-	for _, list := range lists.Results {
+	for _, list := range user.Lists.Results {
 		base := path.Join(dir, list.Name)
 		if err := os.MkdirAll(base, 0o755); err != nil {
 			return err

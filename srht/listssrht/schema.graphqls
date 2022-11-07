@@ -13,6 +13,7 @@ length of time; applications should submit a new GraphQL query each time they
 wish to access the data at the provided URL.
 """
 scalar URL
+scalar Upload
 
 "Used to provide a human-friendly description of an access scope"
 directive @scopehelp(details: String!) on ENUM_VALUE
@@ -79,6 +80,7 @@ type User implements Entity {
   location: String
   bio: String
 
+  list(name: String!): MailingList @access(scope: LISTS, kind: RO)
   lists(cursor: Cursor): MailingListCursor @access(scope: LISTS, kind: RO)
   emails(cursor: Cursor): EmailCursor @access(scope: EMAILS, kind: RO)
   threads(cursor: Cursor): ThreadCursor @access(scope: EMAILS, kind: RO)
@@ -599,13 +601,7 @@ type Query {
   me: User! @access(scope: PROFILE, kind: RO)
 
   "Looks up a specific user"
-  user(id: Int!): User @access(scope: PROFILE, kind: RO)
-  userByName(username: String!): User @access(scope: PROFILE, kind: RO)
-
-  "Looks up a specific mailing list"
-  mailingList(id: Int!): MailingList @access(scope: LISTS, kind: RO)
-  mailingListByName(name: String!): MailingList @access(scope: LISTS, kind: RO)
-  mailingListByOwner(ownerName: String!, listName: String!): MailingList @access(scope: LISTS, kind: RO)
+  user(username: String!): User @access(scope: PROFILE, kind: RO)
 
   "Looks up a specific email by its ID"
   email(id: Int!): Email @access(scope: EMAILS, kind: RO)
@@ -616,9 +612,6 @@ type Query {
   message(messageID: String!): Email @access(scope: EMAILS, kind: RO)
   "Looks up a patchset by ID"
   patchset(id: Int!): Patchset @access(scope: EMAILS, kind: RO)
-
-  "List of mailing lists that the authenticated user has ownership of"
-  mailingLists(cursor: Cursor): MailingListCursor! @access(scope: LISTS, kind: RO)
 
   "List of subscriptions of the authenticated user"
   subscriptions(cursor: Cursor): ActivitySubscriptionCursor @access(scope: SUBSCRIPTIONS, kind: RO)
@@ -733,6 +726,9 @@ type Mutation {
   "Deletes a mailing list subscription"
   mailingListUnsubscribe(listID: Int!): MailingListSubscription @access(scope: SUBSCRIPTIONS, kind: RW)
 
+  "Imports a mail spool (must be in the Mbox format)"
+  importMailingListSpool(listID: Int!, spool: Upload!): Boolean! @access(scope: LISTS, kind: RW)
+
   """
   Creates a new user webhook subscription. When an event from the
   provided list of events occurs, the 'query' parameter (a GraphQL query)
@@ -764,4 +760,9 @@ type Mutation {
 
   triggerUserEmailWebhooks(emailId: Int!): Email! @internal
   triggerListEmailWebhooks(listId: Int!, emailId: Int!): Email! @internal
+
+  """
+  Deletes the authenticated user's account. Internal use only.
+  """
+  deleteUser: Int! @internal
 }

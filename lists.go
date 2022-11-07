@@ -104,10 +104,11 @@ func newListsListCommand() *cobra.Command {
 			lists = user.Lists
 		} else {
 			var err error
-			lists, err = listssrht.MailingLists(c.Client, ctx)
+			user, err := listssrht.MailingLists(c.Client, ctx)
 			if err != nil {
 				log.Fatal(err)
 			}
+			lists = user.Lists
 		}
 
 		for _, list := range lists.Results {
@@ -291,7 +292,7 @@ func newListsPatchsetListCommand() *cobra.Command {
 				name = strings.TrimLeft(name, ownerPrefixes)
 				user, err = listssrht.PatchesByUser(c.Client, ctx, name)
 			} else {
-				user, err = listssrht.PatchesByMe(c.Client, ctx)
+				user, err = listssrht.Patches(c.Client, ctx)
 			}
 
 			if err != nil {
@@ -301,19 +302,26 @@ func newListsPatchsetListCommand() *cobra.Command {
 			}
 			patches = user.Patches
 		} else {
-			var list *listssrht.MailingList
+			var (
+				user     *listssrht.User
+				username string
+			)
+
 			if owner != "" {
-				list, err = listssrht.PatchesByOwner(c.Client, ctx, owner, name)
+				username = strings.TrimLeft(owner, ownerPrefixes)
+				user, err = listssrht.ListPatchesByUser(c.Client, ctx, username, name)
 			} else {
-				list, err = listssrht.Patches(c.Client, ctx, name)
+				user, err = listssrht.ListPatches(c.Client, ctx, name)
 			}
 
 			if err != nil {
 				log.Fatal(err)
-			} else if list == nil {
+			} else if user == nil {
+				log.Fatalf("no such user %q", username)
+			} else if user.List == nil {
 				log.Fatalf("no such list %q", name)
 			}
-			patches = list.Patches
+			patches = user.List.Patches
 		}
 
 		tw := tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
@@ -498,23 +506,23 @@ func newListsACLListCommand() *cobra.Command {
 
 		c := createClientWithInstance("lists", cmd, instance)
 
-		list, err := listssrht.AclByListName(c.Client, ctx, name)
+		user, err := listssrht.AclByListName(c.Client, ctx, name)
 		if err != nil {
 			log.Fatal(err)
-		} else if list == nil {
+		} else if user.List == nil {
 			log.Fatalf("no such list %q", name)
 		}
 
 		fmt.Println(termfmt.Bold.Sprint("Default permissions"))
-		fmt.Println(list.DefaultACL.TermString())
+		fmt.Println(user.List.DefaultACL.TermString())
 
-		if len(list.Acl.Results) > 0 {
+		if len(user.List.Acl.Results) > 0 {
 			fmt.Println(termfmt.Bold.Sprint("\nUser permissions"))
 		}
 
 		tw := tabwriter.NewWriter(os.Stdout, 0, 2, 2, ' ', 0)
 		defer tw.Flush()
-		for _, acl := range list.Acl.Results {
+		for _, acl := range user.List.Acl.Results {
 			s := fmt.Sprintf("%s browse  %s reply  %s post  %s moderate",
 				listssrht.PermissionIcon(acl.Browse), listssrht.PermissionIcon(acl.Reply),
 				listssrht.PermissionIcon(acl.Post), listssrht.PermissionIcon(acl.Moderate))
@@ -678,23 +686,28 @@ func newListsUserWebhookDeleteCommand() *cobra.Command {
 
 func getMailingListID(c *Client, ctx context.Context, name, owner string) int32 {
 	var (
-		list *listssrht.MailingList
-		err  error
+		user     *listssrht.User
+		username string
+		err      error
 	)
+
 	if owner == "" {
-		list, err = listssrht.MailingListIDByName(c.Client, ctx, name)
+		user, err = listssrht.MailingListIDByName(c.Client, ctx, name)
 	} else {
-		list, err = listssrht.MailingListIDByOwner(c.Client, ctx, owner, name)
+		username = strings.TrimLeft(owner, ownerPrefixes)
+		user, err = listssrht.MailingListIDByUser(c.Client, ctx, username, name)
 	}
 	if err != nil {
 		log.Fatal(err)
-	} else if list == nil {
+	} else if user == nil {
+		log.Fatalf("no such user %q", username)
+	} else if user.List == nil {
 		if owner == "" {
 			log.Fatalf("no such mailing list %s", name)
 		}
 		log.Fatalf("no such mailing list %s/%s/%s", c.BaseURL, owner, name)
 	}
-	return list.Id
+	return user.List.Id
 }
 
 func getMailingListName(ctx context.Context, cmd *cobra.Command) (name, owner, instance string, err error) {
@@ -793,18 +806,19 @@ func completePatchsetID(cmd *cobra.Command, args []string, toComplete string) ([
 
 	c := createClientWithInstance("lists", cmd, instance)
 
-	var list *listssrht.MailingList
+	var user *listssrht.User
 	if owner != "" {
-		list, err = listssrht.CompletePatchsetIdByOwner(c.Client, ctx, owner, name)
+		username := strings.TrimLeft(owner, ownerPrefixes)
+		user, err = listssrht.CompletePatchsetIdByUser(c.Client, ctx, username, name)
 	} else {
-		list, err = listssrht.CompletePatchsetId(c.Client, ctx, name)
+		user, err = listssrht.CompletePatchsetId(c.Client, ctx, name)
 	}
 
-	if err != nil || list == nil {
+	if err != nil || user == nil || user.List == nil {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	for _, patchset := range list.Patches.Results {
+	for _, patchset := range user.List.Patches.Results {
 		// TODO: filter with API
 		if cmd.Name() == "apply" && !patchsetApplicable(patchset.Status) {
 			continue

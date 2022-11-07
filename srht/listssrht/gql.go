@@ -420,6 +420,7 @@ type User struct {
 	Url           *string            `json:"url,omitempty"`
 	Location      *string            `json:"location,omitempty"`
 	Bio           *string            `json:"bio,omitempty"`
+	List          *MailingList       `json:"list,omitempty"`
 	Lists         *MailingListCursor `json:"lists,omitempty"`
 	Emails        *EmailCursor       `json:"emails,omitempty"`
 	Threads       *ThreadCursor      `json:"threads,omitempty"`
@@ -535,78 +536,8 @@ func DeleteMailingList(client *gqlclient.Client, ctx context.Context, id int32) 
 	return respData.DeleteMailingList, err
 }
 
-func MailingLists(client *gqlclient.Client, ctx context.Context) (mailingLists *MailingListCursor, err error) {
-	op := gqlclient.NewOperation("query mailingLists {\n\tmailingLists {\n\t\t... lists\n\t}\n}\nfragment lists on MailingListCursor {\n\tresults {\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t}\n}\n")
-	var respData struct {
-		MailingLists *MailingListCursor
-	}
-	err = client.Execute(ctx, op, &respData)
-	return respData.MailingLists, err
-}
-
-func ExportMailingLists(client *gqlclient.Client, ctx context.Context) (mailingLists *MailingListCursor, err error) {
-	op := gqlclient.NewOperation("query exportMailingLists {\n\tmailingLists {\n\t\tresults {\n\t\t\tname\n\t\t\tdescription\n\t\t\tpermitMime\n\t\t\trejectMime\n\t\t\tarchive\n\t\t}\n\t}\n}\n")
-	var respData struct {
-		MailingLists *MailingListCursor
-	}
-	err = client.Execute(ctx, op, &respData)
-	return respData.MailingLists, err
-}
-
-func MailingListsByUser(client *gqlclient.Client, ctx context.Context, username string) (userByName *User, err error) {
-	op := gqlclient.NewOperation("query mailingListsByUser ($username: String!) {\n\tuserByName(username: $username) {\n\t\tlists {\n\t\t\t... lists\n\t\t}\n\t}\n}\nfragment lists on MailingListCursor {\n\tresults {\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t}\n}\n")
-	op.Var("username", username)
-	var respData struct {
-		UserByName *User
-	}
-	err = client.Execute(ctx, op, &respData)
-	return respData.UserByName, err
-}
-
-func MailingListIDByName(client *gqlclient.Client, ctx context.Context, name string) (mailingListByName *MailingList, err error) {
-	op := gqlclient.NewOperation("query mailingListIDByName ($name: String!) {\n\tmailingListByName(name: $name) {\n\t\tid\n\t}\n}\n")
-	op.Var("name", name)
-	var respData struct {
-		MailingListByName *MailingList
-	}
-	err = client.Execute(ctx, op, &respData)
-	return respData.MailingListByName, err
-}
-
-func MailingListIDByOwner(client *gqlclient.Client, ctx context.Context, ownerName string, listName string) (mailingListByOwner *MailingList, err error) {
-	op := gqlclient.NewOperation("query mailingListIDByOwner ($ownerName: String!, $listName: String!) {\n\tmailingListByOwner(ownerName: $ownerName, listName: $listName) {\n\t\tid\n\t}\n}\n")
-	op.Var("ownerName", ownerName)
-	op.Var("listName", listName)
-	var respData struct {
-		MailingListByOwner *MailingList
-	}
-	err = client.Execute(ctx, op, &respData)
-	return respData.MailingListByOwner, err
-}
-
-func Patches(client *gqlclient.Client, ctx context.Context, name string) (mailingListByName *MailingList, err error) {
-	op := gqlclient.NewOperation("query patches ($name: String!) {\n\tmailingListByName(name: $name) {\n\t\t... patchsetsByList\n\t}\n}\nfragment patchsetsByList on MailingList {\n\tpatches {\n\t\tresults {\n\t\t\tid\n\t\t\tsubject\n\t\t\tstatus\n\t\t\tcreated\n\t\t\tversion\n\t\t\tprefix\n\t\t\tsubmitter {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t}\n\t}\n}\n")
-	op.Var("name", name)
-	var respData struct {
-		MailingListByName *MailingList
-	}
-	err = client.Execute(ctx, op, &respData)
-	return respData.MailingListByName, err
-}
-
-func PatchesByOwner(client *gqlclient.Client, ctx context.Context, ownerName string, listName string) (mailingListByOwner *MailingList, err error) {
-	op := gqlclient.NewOperation("query patchesByOwner ($ownerName: String!, $listName: String!) {\n\tmailingListByOwner(ownerName: $ownerName, listName: $listName) {\n\t\t... patchsetsByList\n\t}\n}\nfragment patchsetsByList on MailingList {\n\tpatches {\n\t\tresults {\n\t\t\tid\n\t\t\tsubject\n\t\t\tstatus\n\t\t\tcreated\n\t\t\tversion\n\t\t\tprefix\n\t\t\tsubmitter {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t}\n\t}\n}\n")
-	op.Var("ownerName", ownerName)
-	op.Var("listName", listName)
-	var respData struct {
-		MailingListByOwner *MailingList
-	}
-	err = client.Execute(ctx, op, &respData)
-	return respData.MailingListByOwner, err
-}
-
-func PatchesByMe(client *gqlclient.Client, ctx context.Context) (me *User, err error) {
-	op := gqlclient.NewOperation("query patchesByMe {\n\tme {\n\t\t... patchsets\n\t}\n}\nfragment patchsets on User {\n\tpatches {\n\t\tresults {\n\t\t\tid\n\t\t\tsubject\n\t\t\tstatus\n\t\t\tcreated\n\t\t\tversion\n\t\t\tprefix\n\t\t\tlist {\n\t\t\t\tname\n\t\t\t\towner {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
+func MailingLists(client *gqlclient.Client, ctx context.Context) (me *User, err error) {
+	op := gqlclient.NewOperation("query mailingLists {\n\tme {\n\t\tlists {\n\t\t\t... lists\n\t\t}\n\t}\n}\nfragment lists on MailingListCursor {\n\tresults {\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t}\n}\n")
 	var respData struct {
 		Me *User
 	}
@@ -614,14 +545,84 @@ func PatchesByMe(client *gqlclient.Client, ctx context.Context) (me *User, err e
 	return respData.Me, err
 }
 
-func PatchesByUser(client *gqlclient.Client, ctx context.Context, username string) (userByName *User, err error) {
-	op := gqlclient.NewOperation("query patchesByUser ($username: String!) {\n\tuserByName(username: $username) {\n\t\t... patchsets\n\t}\n}\nfragment patchsets on User {\n\tpatches {\n\t\tresults {\n\t\t\tid\n\t\t\tsubject\n\t\t\tstatus\n\t\t\tcreated\n\t\t\tversion\n\t\t\tprefix\n\t\t\tlist {\n\t\t\t\tname\n\t\t\t\towner {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
-	op.Var("username", username)
+func ExportMailingLists(client *gqlclient.Client, ctx context.Context) (me *User, err error) {
+	op := gqlclient.NewOperation("query exportMailingLists {\n\tme {\n\t\tlists {\n\t\t\tresults {\n\t\t\t\tname\n\t\t\t\tdescription\n\t\t\t\tpermitMime\n\t\t\t\trejectMime\n\t\t\t\tarchive\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	var respData struct {
-		UserByName *User
+		Me *User
 	}
 	err = client.Execute(ctx, op, &respData)
-	return respData.UserByName, err
+	return respData.Me, err
+}
+
+func MailingListsByUser(client *gqlclient.Client, ctx context.Context, username string) (user *User, err error) {
+	op := gqlclient.NewOperation("query mailingListsByUser ($username: String!) {\n\tuser(username: $username) {\n\t\tlists {\n\t\t\t... lists\n\t\t}\n\t}\n}\nfragment lists on MailingListCursor {\n\tresults {\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t}\n}\n")
+	op.Var("username", username)
+	var respData struct {
+		User *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.User, err
+}
+
+func MailingListIDByName(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
+	op := gqlclient.NewOperation("query mailingListIDByName ($name: String!) {\n\tme {\n\t\tlist(name: $name) {\n\t\t\tid\n\t\t}\n\t}\n}\n")
+	op.Var("name", name)
+	var respData struct {
+		Me *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Me, err
+}
+
+func MailingListIDByUser(client *gqlclient.Client, ctx context.Context, username string, name string) (user *User, err error) {
+	op := gqlclient.NewOperation("query mailingListIDByUser ($username: String!, $name: String!) {\n\tuser(username: $username) {\n\t\tlist(name: $name) {\n\t\t\tid\n\t\t}\n\t}\n}\n")
+	op.Var("username", username)
+	op.Var("name", name)
+	var respData struct {
+		User *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.User, err
+}
+
+func ListPatches(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
+	op := gqlclient.NewOperation("query listPatches ($name: String!) {\n\tme {\n\t\tlist(name: $name) {\n\t\t\t... patchsetsByList\n\t\t}\n\t}\n}\nfragment patchsetsByList on MailingList {\n\tpatches {\n\t\tresults {\n\t\t\tid\n\t\t\tsubject\n\t\t\tstatus\n\t\t\tcreated\n\t\t\tversion\n\t\t\tprefix\n\t\t\tsubmitter {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op.Var("name", name)
+	var respData struct {
+		Me *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Me, err
+}
+
+func ListPatchesByUser(client *gqlclient.Client, ctx context.Context, username string, name string) (user *User, err error) {
+	op := gqlclient.NewOperation("query listPatchesByUser ($username: String!, $name: String!) {\n\tuser(username: $username) {\n\t\tlist(name: $name) {\n\t\t\t... patchsetsByList\n\t\t}\n\t}\n}\nfragment patchsetsByList on MailingList {\n\tpatches {\n\t\tresults {\n\t\t\tid\n\t\t\tsubject\n\t\t\tstatus\n\t\t\tcreated\n\t\t\tversion\n\t\t\tprefix\n\t\t\tsubmitter {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op.Var("username", username)
+	op.Var("name", name)
+	var respData struct {
+		User *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.User, err
+}
+
+func Patches(client *gqlclient.Client, ctx context.Context) (me *User, err error) {
+	op := gqlclient.NewOperation("query patches {\n\tme {\n\t\t... patchsets\n\t}\n}\nfragment patchsets on User {\n\tpatches {\n\t\tresults {\n\t\t\tid\n\t\t\tsubject\n\t\t\tstatus\n\t\t\tcreated\n\t\t\tversion\n\t\t\tprefix\n\t\t\tlist {\n\t\t\t\tname\n\t\t\t\towner {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	var respData struct {
+		Me *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Me, err
+}
+
+func PatchesByUser(client *gqlclient.Client, ctx context.Context, username string) (user *User, err error) {
+	op := gqlclient.NewOperation("query patchesByUser ($username: String!) {\n\tuser(username: $username) {\n\t\t... patchsets\n\t}\n}\nfragment patchsets on User {\n\tpatches {\n\t\tresults {\n\t\t\tid\n\t\t\tsubject\n\t\t\tstatus\n\t\t\tcreated\n\t\t\tversion\n\t\t\tprefix\n\t\t\tlist {\n\t\t\t\tname\n\t\t\t\towner {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op.Var("username", username)
+	var respData struct {
+		User *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.User, err
 }
 
 func PatchsetById(client *gqlclient.Client, ctx context.Context, id int32) (patchset *Patchset, err error) {
@@ -634,35 +635,35 @@ func PatchsetById(client *gqlclient.Client, ctx context.Context, id int32) (patc
 	return respData.Patchset, err
 }
 
-func CompletePatchsetId(client *gqlclient.Client, ctx context.Context, name string) (mailingListByName *MailingList, err error) {
-	op := gqlclient.NewOperation("query completePatchsetId ($name: String!) {\n\tmailingListByName(name: $name) {\n\t\t... completePatchset\n\t}\n}\nfragment completePatchset on MailingList {\n\tpatches {\n\t\tresults {\n\t\t\tid\n\t\t\tsubject\n\t\t\tstatus\n\t\t\tversion\n\t\t\tprefix\n\t\t}\n\t}\n}\n")
+func CompletePatchsetId(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
+	op := gqlclient.NewOperation("query completePatchsetId ($name: String!) {\n\tme {\n\t\tlist(name: $name) {\n\t\t\t... completePatchset\n\t\t}\n\t}\n}\nfragment completePatchset on MailingList {\n\tpatches {\n\t\tresults {\n\t\t\tid\n\t\t\tsubject\n\t\t\tstatus\n\t\t\tversion\n\t\t\tprefix\n\t\t}\n\t}\n}\n")
 	op.Var("name", name)
 	var respData struct {
-		MailingListByName *MailingList
+		Me *User
 	}
 	err = client.Execute(ctx, op, &respData)
-	return respData.MailingListByName, err
+	return respData.Me, err
 }
 
-func CompletePatchsetIdByOwner(client *gqlclient.Client, ctx context.Context, ownerName string, listName string) (mailingListByOwner *MailingList, err error) {
-	op := gqlclient.NewOperation("query completePatchsetIdByOwner ($ownerName: String!, $listName: String!) {\n\tmailingListByOwner(ownerName: $ownerName, listName: $listName) {\n\t\t... completePatchset\n\t}\n}\nfragment completePatchset on MailingList {\n\tpatches {\n\t\tresults {\n\t\t\tid\n\t\t\tsubject\n\t\t\tstatus\n\t\t\tversion\n\t\t\tprefix\n\t\t}\n\t}\n}\n")
-	op.Var("ownerName", ownerName)
-	op.Var("listName", listName)
-	var respData struct {
-		MailingListByOwner *MailingList
-	}
-	err = client.Execute(ctx, op, &respData)
-	return respData.MailingListByOwner, err
-}
-
-func AclByListName(client *gqlclient.Client, ctx context.Context, name string) (mailingListByName *MailingList, err error) {
-	op := gqlclient.NewOperation("query aclByListName ($name: String!) {\n\tmailingListByName(name: $name) {\n\t\tdefaultACL {\n\t\t\tbrowse\n\t\t\treply\n\t\t\tpost\n\t\t\tmoderate\n\t\t}\n\t\tacl {\n\t\t\tresults {\n\t\t\t\tid\n\t\t\t\tcreated\n\t\t\t\tentity {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t\tbrowse\n\t\t\t\treply\n\t\t\t\tpost\n\t\t\t\tmoderate\n\t\t\t}\n\t\t}\n\t}\n}\n")
+func CompletePatchsetIdByUser(client *gqlclient.Client, ctx context.Context, username string, name string) (user *User, err error) {
+	op := gqlclient.NewOperation("query completePatchsetIdByUser ($username: String!, $name: String!) {\n\tuser(username: $username) {\n\t\tlist(name: $name) {\n\t\t\t... completePatchset\n\t\t}\n\t}\n}\nfragment completePatchset on MailingList {\n\tpatches {\n\t\tresults {\n\t\t\tid\n\t\t\tsubject\n\t\t\tstatus\n\t\t\tversion\n\t\t\tprefix\n\t\t}\n\t}\n}\n")
+	op.Var("username", username)
 	op.Var("name", name)
 	var respData struct {
-		MailingListByName *MailingList
+		User *User
 	}
 	err = client.Execute(ctx, op, &respData)
-	return respData.MailingListByName, err
+	return respData.User, err
+}
+
+func AclByListName(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
+	op := gqlclient.NewOperation("query aclByListName ($name: String!) {\n\tme {\n\t\tlist(name: $name) {\n\t\t\tdefaultACL {\n\t\t\t\tbrowse\n\t\t\t\treply\n\t\t\t\tpost\n\t\t\t\tmoderate\n\t\t\t}\n\t\t\tacl {\n\t\t\t\tresults {\n\t\t\t\t\tid\n\t\t\t\t\tcreated\n\t\t\t\t\tentity {\n\t\t\t\t\t\tcanonicalName\n\t\t\t\t\t}\n\t\t\t\t\tbrowse\n\t\t\t\t\treply\n\t\t\t\t\tpost\n\t\t\t\t\tmoderate\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op.Var("name", name)
+	var respData struct {
+		Me *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Me, err
 }
 
 func UserWebhooks(client *gqlclient.Client, ctx context.Context) (userWebhooks *WebhookSubscriptionCursor, err error) {
