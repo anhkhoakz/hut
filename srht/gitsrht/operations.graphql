@@ -150,7 +150,7 @@ fragment revs on Repository {
 query aclByRepoName($name: String!) {
     me {
         repository(name: $name) {
-            accessControlList {
+            acls {
                 results {
                     id
                     created
@@ -241,13 +241,13 @@ mutation deleteACL($id: Int!) {
 }
 
 mutation deleteUserWebhook($id: Int!) {
-    deleteWebhook(id: $id) {
+    deleteUserWebhook(id: $id) {
         id
     }
 }
 
 mutation createUserWebhook($config: UserWebhookInput!) {
-    createWebhook(config: $config) {
+    createUserWebhook(config: $config) {
         id
     }
 }

@@ -115,15 +115,9 @@ type Entity struct {
 	// The canonical name of this entity. For users, this is their username
 	// prefixed with '~'. Additional entity types will be supported in the future.
 	CanonicalName string `json:"canonicalName"`
-	// Returns a specific repository owned by the user.
+	// Returns a specific repository owned by the entity.
 	Repository *Repository `json:"repository,omitempty"`
-	// Returns repositories that the user has access to.
-	//
-	// NOTE: in this version of the API, only repositories owned by the
-	// authenticated user are returned, but in the future the default behavior
-	// will be to return all repositories that the user either (1) has been given
-	// explicit access to via ACLs or (2) has implicit access to either by
-	// ownership or group membership.
+	// Returns a list of repositories owned by the entity.
 	Repositories *RepositoryCursor `json:"repositories"`
 }
 
@@ -203,10 +197,12 @@ type Repository struct {
 	//
 	// NOTICE: This returns unsanitized HTML. It is the client's responsibility to
 	// sanitize this for display on the web, if so desired.
-	Readme            *string          `json:"readme,omitempty"`
-	AccessControlList *ACLCursor       `json:"accessControlList"`
-	Objects           []*Object        `json:"objects"`
-	References        *ReferenceCursor `json:"references"`
+	Readme *string `json:"readme,omitempty"`
+	// The access that applies to this user for this repository
+	Access     AccessMode       `json:"access"`
+	Acls       *ACLCursor       `json:"acls"`
+	Objects    []*Object        `json:"objects"`
+	References *ReferenceCursor `json:"references"`
 	// The HEAD reference for this repository (equivalent to the default branch)
 	HEAD *Reference `json:"HEAD,omitempty"`
 	// Returns a list of comments sorted by committer time (similar to `git log`'s
@@ -536,7 +532,7 @@ func RevsByUser(client *gqlclient.Client, ctx context.Context, username string, 
 }
 
 func AclByRepoName(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
-	op := gqlclient.NewOperation("query aclByRepoName ($name: String!) {\n\tme {\n\t\trepository(name: $name) {\n\t\t\taccessControlList {\n\t\t\t\tresults {\n\t\t\t\t\tid\n\t\t\t\t\tcreated\n\t\t\t\t\tentity {\n\t\t\t\t\t\tcanonicalName\n\t\t\t\t\t}\n\t\t\t\t\tmode\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op := gqlclient.NewOperation("query aclByRepoName ($name: String!) {\n\tme {\n\t\trepository(name: $name) {\n\t\t\tacls {\n\t\t\t\tresults {\n\t\t\t\t\tid\n\t\t\t\t\tcreated\n\t\t\t\t\tentity {\n\t\t\t\t\t\tcanonicalName\n\t\t\t\t\t}\n\t\t\t\t\tmode\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	op.Var("name", name)
 	var respData struct {
 		Me *User
@@ -630,24 +626,24 @@ func DeleteACL(client *gqlclient.Client, ctx context.Context, id int32) (deleteA
 	return respData.DeleteACL, err
 }
 
-func DeleteUserWebhook(client *gqlclient.Client, ctx context.Context, id int32) (deleteWebhook *WebhookSubscription, err error) {
-	op := gqlclient.NewOperation("mutation deleteUserWebhook ($id: Int!) {\n\tdeleteWebhook(id: $id) {\n\t\tid\n\t}\n}\n")
+func DeleteUserWebhook(client *gqlclient.Client, ctx context.Context, id int32) (deleteUserWebhook *WebhookSubscription, err error) {
+	op := gqlclient.NewOperation("mutation deleteUserWebhook ($id: Int!) {\n\tdeleteUserWebhook(id: $id) {\n\t\tid\n\t}\n}\n")
 	op.Var("id", id)
 	var respData struct {
-		DeleteWebhook *WebhookSubscription
+		DeleteUserWebhook *WebhookSubscription
 	}
 	err = client.Execute(ctx, op, &respData)
-	return respData.DeleteWebhook, err
+	return respData.DeleteUserWebhook, err
 }
 
-func CreateUserWebhook(client *gqlclient.Client, ctx context.Context, config UserWebhookInput) (createWebhook *WebhookSubscription, err error) {
-	op := gqlclient.NewOperation("mutation createUserWebhook ($config: UserWebhookInput!) {\n\tcreateWebhook(config: $config) {\n\t\tid\n\t}\n}\n")
+func CreateUserWebhook(client *gqlclient.Client, ctx context.Context, config UserWebhookInput) (createUserWebhook *WebhookSubscription, err error) {
+	op := gqlclient.NewOperation("mutation createUserWebhook ($config: UserWebhookInput!) {\n\tcreateUserWebhook(config: $config) {\n\t\tid\n\t}\n}\n")
 	op.Var("config", config)
 	var respData struct {
-		CreateWebhook *WebhookSubscription
+		CreateUserWebhook *WebhookSubscription
 	}
 	err = client.Execute(ctx, op, &respData)
-	return respData.CreateWebhook, err
+	return respData.CreateUserWebhook, err
 }
 
 func UpdateRepository(client *gqlclient.Client, ctx context.Context, id int32, input RepoInput) (updateRepository *Repository, err error) {

@@ -13,6 +13,12 @@ access token, and are not available to clients using OAuth 2.0 access tokens.
 """
 directive @private on FIELD_DEFINITION
 
+"""
+This used to decorate fields which are for internal use, and are not
+available to normal API users.
+"""
+directive @internal on FIELD_DEFINITION
+
 enum AccessScope {
   PROFILE      @scopehelp(details: "profile information")
   REPOSITORIES @scopehelp(details: "repository metadata")
@@ -87,18 +93,10 @@ interface Entity {
   """
   canonicalName: String!
 
-  "Returns a specific repository owned by the user."
+  "Returns a specific repository owned by the entity."
   repository(name: String!): Repository @access(scope: REPOSITORIES, kind: RO)
 
-  """
-  Returns repositories that the user has access to.
-
-  NOTE: in this version of the API, only repositories owned by the
-  authenticated user are returned, but in the future the default behavior
-  will be to return all repositories that the user either (1) has been given
-  explicit access to via ACLs or (2) has implicit access to either by
-  ownership or group membership.
-  """
+  "Returns a list of repositories owned by the entity."
   repositories(cursor: Cursor, filter: Filter): RepositoryCursor! @access(scope: REPOSITORIES, kind: RO)
 }
 
@@ -134,7 +132,11 @@ type Repository {
   """
   readme: String
 
-  accessControlList(cursor: Cursor): ACLCursor! @access(scope: ACLS, kind: RO)
+  "The access that applies to this user for this repository"
+  access: AccessMode! @access(scope: ACLS, kind: RO)
+
+  # Only available to the repository owner
+  acls(cursor: Cursor): ACLCursor! @access(scope: ACLS, kind: RO)
 
   ## Plumbing API:
 
@@ -564,7 +566,7 @@ type Mutation {
   may be used to access details of the event which trigged the webhook. The
   query may not make any mutations.
   """
-  createWebhook(config: UserWebhookInput!): WebhookSubscription!
+  createUserWebhook(config: UserWebhookInput!): WebhookSubscription!
 
   """
   Deletes a user webhook. Any events already queued may still be
@@ -574,5 +576,10 @@ type Mutation {
   Manually deleting a webhook configured by a third-party client may cause
   unexpected behavior with the third-party integration.
   """
-  deleteWebhook(id: Int!): WebhookSubscription
+  deleteUserWebhook(id: Int!): WebhookSubscription!
+
+  """
+  Deletes the authenticated user's account. Internal use only.
+  """
+  deleteUser: Int! @internal
 }

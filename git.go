@@ -370,7 +370,7 @@ func newGitACLListCommand() *cobra.Command {
 
 		tw := tabwriter.NewWriter(os.Stdout, 0, 2, 2, ' ', 0)
 		defer tw.Flush()
-		for _, acl := range user.Repository.AccessControlList.Results {
+		for _, acl := range user.Repository.Acls.Results {
 			var mode string
 			if acl.Mode != nil {
 				mode = string(*acl.Mode)
