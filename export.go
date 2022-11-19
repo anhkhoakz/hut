@@ -86,10 +86,13 @@ func newExportCommand() *cobra.Command {
 		log.Println("Export complete.")
 	}
 	cmd := &cobra.Command{
-		Use:   "export",
+		Use:   "export <directory>",
 		Short: "Exports your account data",
 		Args:  cobra.ExactArgs(1),
-		Run:   run,
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			return nil, cobra.ShellCompDirectiveFilterDirs
+		},
+		Run: run,
 	}
 	return cmd
 }
