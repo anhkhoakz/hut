@@ -24,6 +24,8 @@ const ownerPrefixes = "~"
 
 const dateLayout = "Mon, 02 Jan 2006 15:04:05 -0700"
 
+const fileTransferTimeout = 10 * time.Minute
+
 func main() {
 	log.SetFlags(0) // disable date/time prefix
 

@@ -47,6 +47,7 @@ func newPagesPublishCommand() *cobra.Command {
 		}
 
 		c := createClient("pages", cmd)
+		c.HTTP.Timeout = fileTransferTimeout
 
 		var upload gqlclient.Upload
 		if filename == "" {
