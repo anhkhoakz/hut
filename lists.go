@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/http"
 	"net/mail"
 	"os"
 	"os/exec"
@@ -30,6 +31,7 @@ func newListsCommand() *cobra.Command {
 	cmd.AddCommand(newListsSubscribeCommand())
 	cmd.AddCommand(newListsUnsubscribeCommand())
 	cmd.AddCommand(newListsCreateCommand())
+	cmd.AddCommand(newListsArchiveCommand())
 	cmd.AddCommand(newListsPatchsetCommand())
 	cmd.AddCommand(newListsACLCommand())
 	cmd.AddCommand(newListsUserWebhookCommand())
@@ -249,6 +251,72 @@ func newListsCreateCommand() *cobra.Command {
 	cmd.Flags().BoolVar(&stdin, "stdin", false, "read mailing list from stdin")
 	cmd.Flags().StringVarP(&visibility, "visibility", "v", "public", "mailing list visibility")
 	cmd.RegisterFlagCompletionFunc("visibility", completeVisibility)
+	return cmd
+}
+
+func newListsArchiveCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		var name, owner, instance string
+		if len(args) > 0 {
+			name, owner, instance = parseResourceName(args[0])
+		} else {
+			var err error
+			name, owner, instance, err = getMailingListName(ctx, cmd)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
+		c := createClientWithInstance("lists", cmd, instance)
+		c.HTTP.Timeout = fileTransferTimeout
+
+		var (
+			user     *listssrht.User
+			username string
+			err      error
+		)
+		if owner == "" {
+			user, err = listssrht.Archive(c.Client, ctx, name)
+		} else {
+			username = strings.TrimLeft(owner, ownerPrefixes)
+			user, err = listssrht.ArchiveByUser(c.Client, ctx, username, name)
+		}
+		if err != nil {
+			log.Fatal(err)
+		} else if user == nil {
+			log.Fatalf("no such user %q", username)
+		} else if user.List == nil {
+			if owner == "" {
+				log.Fatalf("no such mailing list %s", name)
+			}
+			log.Fatalf("no such mailing list %s/%s/%s", c.BaseURL, owner, name)
+		}
+
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, string(user.List.Archive), nil)
+		if err != nil {
+			log.Fatalf("Failed to create request to fetch archive: %v", err)
+		}
+
+		resp, err := c.HTTP.Do(req)
+		if err != nil {
+			log.Fatalf("Failed to fetch archive: %v", err)
+		}
+		defer resp.Body.Close()
+
+		if _, err := io.Copy(os.Stdout, resp.Body); err != nil {
+			log.Fatalf("Failed to copy to stdout: %v", err)
+		}
+	}
+
+	cmd := &cobra.Command{
+		Use:               "archive [list]",
+		Short:             "Download a mailing list archive",
+		Args:              cobra.MaximumNArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
 	return cmd
 }
 

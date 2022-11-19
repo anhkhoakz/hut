@@ -208,6 +208,22 @@ query completeUserWebhookId {
     }
 }
 
+query archive($name: String!) {
+    me {
+        list(name: $name) {
+            archive
+        }
+    }
+}
+
+query archiveByUser($username: String!, $name: String!) {
+    user(username: $username) {
+        list(name: $name) {
+            archive
+        }
+    }
+}
+
 mutation mailingListSubscribe($listID: Int!) {
     mailingListSubscribe(listID: $listID) {
         list {

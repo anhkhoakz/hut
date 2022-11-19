@@ -297,6 +297,9 @@ Options are:
 *acl list* [list]
 	List ACL entries of a mailing list.
 
+*archive* [list]
+	Download a mailing list archive as an mbox file to _stdout_.
+
 *create* <name> [options...]
 	Create a mailing list.
 

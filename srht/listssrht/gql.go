@@ -684,6 +684,27 @@ func CompleteUserWebhookId(client *gqlclient.Client, ctx context.Context) (userW
 	return respData.UserWebhooks, err
 }
 
+func Archive(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
+	op := gqlclient.NewOperation("query archive ($name: String!) {\n\tme {\n\t\tlist(name: $name) {\n\t\t\tarchive\n\t\t}\n\t}\n}\n")
+	op.Var("name", name)
+	var respData struct {
+		Me *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Me, err
+}
+
+func ArchiveByUser(client *gqlclient.Client, ctx context.Context, username string, name string) (user *User, err error) {
+	op := gqlclient.NewOperation("query archiveByUser ($username: String!, $name: String!) {\n\tuser(username: $username) {\n\t\tlist(name: $name) {\n\t\t\tarchive\n\t\t}\n\t}\n}\n")
+	op.Var("username", username)
+	op.Var("name", name)
+	var respData struct {
+		User *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.User, err
+}
+
 func MailingListSubscribe(client *gqlclient.Client, ctx context.Context, listID int32) (mailingListSubscribe *MailingListSubscription, err error) {
 	op := gqlclient.NewOperation("mutation mailingListSubscribe ($listID: Int!) {\n\tmailingListSubscribe(listID: $listID) {\n\t\tlist {\n\t\t\tname\n\t\t\towner {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	op.Var("listID", listID)
