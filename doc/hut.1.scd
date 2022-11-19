@@ -297,8 +297,14 @@ Options are:
 *acl list* [list]
 	List ACL entries of a mailing list.
 
-*archive* [list]
+*archive* [list] [options...]
 	Download a mailing list archive as an mbox file to _stdout_.
+
+	Options are:
+
+	*-d*, *--days* <int>
+		Number of last days for which the archive should be downloaded.
+		By default the entire archive will be selected.
 
 *create* <name> [options...]
 	Create a mailing list.

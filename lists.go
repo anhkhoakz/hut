@@ -255,6 +255,7 @@ func newListsCreateCommand() *cobra.Command {
 }
 
 func newListsArchiveCommand() *cobra.Command {
+	var days int
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
@@ -294,7 +295,12 @@ func newListsArchiveCommand() *cobra.Command {
 			log.Fatalf("no such mailing list %s/%s/%s", c.BaseURL, owner, name)
 		}
 
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, string(user.List.Archive), nil)
+		url := string(user.List.Archive)
+		if days != 0 {
+			url = fmt.Sprintf("%s?since=%d", url, days)
+		}
+
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, string(url), nil)
 		if err != nil {
 			log.Fatalf("Failed to create request to fetch archive: %v", err)
 		}
@@ -317,6 +323,8 @@ func newListsArchiveCommand() *cobra.Command {
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
+	cmd.Flags().IntVarP(&days, "days", "d", 0, "number of last days to download")
+	cmd.RegisterFlagCompletionFunc("days", cobra.NoFileCompletions)
 	return cmd
 }
 
