@@ -507,9 +507,7 @@ func newMetaUserWebhookListCommand() *cobra.Command {
 		}
 
 		for _, webhook := range webhooks.Results {
-			fmt.Printf("%s %s %s\n", termfmt.DarkYellow.Sprintf("#%d", webhook.Id),
-				webhook.Url, webhook.Events)
-			fmt.Println(indent(webhook.Query, "  "))
+			fmt.Printf("%s %s\n", termfmt.DarkYellow.Sprintf("#%d", webhook.Id), webhook.Url)
 		}
 	}
 
@@ -608,7 +606,7 @@ func completeMetaUserWebhookID(cmd *cobra.Command, args []string, toComplete str
 	c := createClient("meta", cmd)
 	var webhookList []string
 
-	webhooks, err := metasrht.CompleteUserWebhookId(c.Client, ctx)
+	webhooks, err := metasrht.UserWebhooks(c.Client, ctx)
 	if err != nil {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}

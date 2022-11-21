@@ -633,11 +633,8 @@ func newGitUserWebhookListCommand() *cobra.Command {
 		}
 
 		for _, webhook := range webhooks.Results {
-			fmt.Printf("%s %s %s\n", termfmt.DarkYellow.Sprintf("#%d", webhook.Id),
-				webhook.Url, webhook.Events)
-			fmt.Println(indent(webhook.Query, "  "))
+			fmt.Printf("%s %s\n", termfmt.DarkYellow.Sprintf("#%d", webhook.Id), webhook.Url)
 		}
-
 	}
 
 	cmd := &cobra.Command{
@@ -937,7 +934,7 @@ func completeGitUserWebhookID(cmd *cobra.Command, args []string, toComplete stri
 	c := createClient("git", cmd)
 	var webhookList []string
 
-	webhooks, err := gitsrht.CompleteUserWebhookId(c.Client, ctx)
+	webhooks, err := gitsrht.UserWebhooks(c.Client, ctx)
 	if err != nil {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}

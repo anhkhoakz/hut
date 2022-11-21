@@ -856,9 +856,7 @@ func newTodoTicketWebhookListCommand() *cobra.Command {
 		}
 
 		for _, webhook := range user.Tracker.Ticket.Webhooks.Results {
-			fmt.Printf("%s %s %s\n", termfmt.DarkYellow.Sprintf("#%d", webhook.Id),
-				webhook.Url, webhook.Events)
-			fmt.Println(indent(webhook.Query, "  "))
+			fmt.Printf("%s %s\n", termfmt.DarkYellow.Sprintf("#%d", webhook.Id), webhook.Url)
 		}
 	}
 
@@ -1341,9 +1339,7 @@ func newTodoUserWebhookListCommand() *cobra.Command {
 		}
 
 		for _, webhook := range webhooks.Results {
-			fmt.Printf("%s %s %s\n", termfmt.DarkYellow.Sprintf("#%d", webhook.Id),
-				webhook.Url, webhook.Events)
-			fmt.Println(indent(webhook.Query, "  "))
+			fmt.Printf("%s %s\n", termfmt.DarkYellow.Sprintf("#%d", webhook.Id), webhook.Url)
 		}
 	}
 
@@ -1715,7 +1711,7 @@ func completeTodoUserWebhookID(cmd *cobra.Command, args []string, toComplete str
 	c := createClient("todo", cmd)
 	var webhookList []string
 
-	webhooks, err := todosrht.CompleteUserWebhookId(c.Client, ctx)
+	webhooks, err := todosrht.UserWebhooks(c.Client, ctx)
 	if err != nil {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}

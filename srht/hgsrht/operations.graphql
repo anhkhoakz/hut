@@ -44,17 +44,6 @@ query userWebhooks {
     userWebhooks {
         results {
             id
-            events
-            query
-            url
-        }
-    }
-}
-
-query completeUserWebhookId {
-    userWebhooks {
-        results {
-            id
             url
         }
     }

@@ -275,25 +275,12 @@ fragment ticketWebhooks on Ticket {
     webhooks {
         results {
             id
-            events
-            query
             url
         }
     }
 }
 
 query userWebhooks {
-    userWebhooks {
-        results {
-            id
-            events
-            query
-            url
-        }
-    }
-}
-
-query completeUserWebhookId {
     userWebhooks {
         results {
             id

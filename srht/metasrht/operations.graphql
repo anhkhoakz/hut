@@ -116,17 +116,6 @@ query userWebhooks {
     profileWebhooks {
         results {
             id
-            events
-            query
-            url
-        }
-    }
-}
-
-query completeUserWebhookId {
-    profileWebhooks {
-        results {
-            id
             url
         }
     }

@@ -408,16 +408,7 @@ func AuditLog(client *gqlclient.Client, ctx context.Context) (auditLog *AuditLog
 }
 
 func UserWebhooks(client *gqlclient.Client, ctx context.Context) (profileWebhooks *WebhookSubscriptionCursor, err error) {
-	op := gqlclient.NewOperation("query userWebhooks {\n\tprofileWebhooks {\n\t\tresults {\n\t\t\tid\n\t\t\tevents\n\t\t\tquery\n\t\t\turl\n\t\t}\n\t}\n}\n")
-	var respData struct {
-		ProfileWebhooks *WebhookSubscriptionCursor
-	}
-	err = client.Execute(ctx, op, &respData)
-	return respData.ProfileWebhooks, err
-}
-
-func CompleteUserWebhookId(client *gqlclient.Client, ctx context.Context) (profileWebhooks *WebhookSubscriptionCursor, err error) {
-	op := gqlclient.NewOperation("query completeUserWebhookId {\n\tprofileWebhooks {\n\t\tresults {\n\t\t\tid\n\t\t\turl\n\t\t}\n\t}\n}\n")
+	op := gqlclient.NewOperation("query userWebhooks {\n\tprofileWebhooks {\n\t\tresults {\n\t\t\tid\n\t\t\turl\n\t\t}\n\t}\n}\n")
 	var respData struct {
 		ProfileWebhooks *WebhookSubscriptionCursor
 	}

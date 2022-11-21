@@ -339,16 +339,7 @@ func RepositoriesByUser(client *gqlclient.Client, ctx context.Context, username 
 }
 
 func UserWebhooks(client *gqlclient.Client, ctx context.Context) (userWebhooks *WebhookSubscriptionCursor, err error) {
-	op := gqlclient.NewOperation("query userWebhooks {\n\tuserWebhooks {\n\t\tresults {\n\t\t\tid\n\t\t\tevents\n\t\t\tquery\n\t\t\turl\n\t\t}\n\t}\n}\n")
-	var respData struct {
-		UserWebhooks *WebhookSubscriptionCursor
-	}
-	err = client.Execute(ctx, op, &respData)
-	return respData.UserWebhooks, err
-}
-
-func CompleteUserWebhookId(client *gqlclient.Client, ctx context.Context) (userWebhooks *WebhookSubscriptionCursor, err error) {
-	op := gqlclient.NewOperation("query completeUserWebhookId {\n\tuserWebhooks {\n\t\tresults {\n\t\t\tid\n\t\t\turl\n\t\t}\n\t}\n}\n")
+	op := gqlclient.NewOperation("query userWebhooks {\n\tuserWebhooks {\n\t\tresults {\n\t\t\tid\n\t\t\turl\n\t\t}\n\t}\n}\n")
 	var respData struct {
 		UserWebhooks *WebhookSubscriptionCursor
 	}

@@ -727,9 +727,7 @@ func newListsUserWebhookListCommand() *cobra.Command {
 		}
 
 		for _, webhook := range webhooks.Results {
-			fmt.Printf("%s %s %s\n", termfmt.DarkYellow.Sprintf("#%d", webhook.Id),
-				webhook.Url, webhook.Events)
-			fmt.Println(indent(webhook.Query, "  "))
+			fmt.Printf("%s %s\n", termfmt.DarkYellow.Sprintf("#%d", webhook.Id), webhook.Url)
 		}
 	}
 
@@ -952,7 +950,7 @@ func completeListsUserWebhookID(cmd *cobra.Command, args []string, toComplete st
 	c := createClient("lists", cmd)
 	var webhookList []string
 
-	webhooks, err := listssrht.CompleteUserWebhookId(c.Client, ctx)
+	webhooks, err := listssrht.UserWebhooks(c.Client, ctx)
 	if err != nil {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}

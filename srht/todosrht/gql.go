@@ -842,7 +842,7 @@ func TrackerNames(client *gqlclient.Client, ctx context.Context) (trackers *Trac
 }
 
 func TicketWebhooks(client *gqlclient.Client, ctx context.Context, name string, id int32) (me *User, err error) {
-	op := gqlclient.NewOperation("query ticketWebhooks ($name: String!, $id: Int!) {\n\tme {\n\t\ttracker(name: $name) {\n\t\t\tticket(id: $id) {\n\t\t\t\t... ticketWebhooks\n\t\t\t}\n\t\t}\n\t}\n}\nfragment ticketWebhooks on Ticket {\n\twebhooks {\n\t\tresults {\n\t\t\tid\n\t\t\tevents\n\t\t\tquery\n\t\t\turl\n\t\t}\n\t}\n}\n")
+	op := gqlclient.NewOperation("query ticketWebhooks ($name: String!, $id: Int!) {\n\tme {\n\t\ttracker(name: $name) {\n\t\t\tticket(id: $id) {\n\t\t\t\t... ticketWebhooks\n\t\t\t}\n\t\t}\n\t}\n}\nfragment ticketWebhooks on Ticket {\n\twebhooks {\n\t\tresults {\n\t\t\tid\n\t\t\turl\n\t\t}\n\t}\n}\n")
 	op.Var("name", name)
 	op.Var("id", id)
 	var respData struct {
@@ -853,7 +853,7 @@ func TicketWebhooks(client *gqlclient.Client, ctx context.Context, name string, 
 }
 
 func TicketWebhooksByUser(client *gqlclient.Client, ctx context.Context, username string, name string, id int32) (user *User, err error) {
-	op := gqlclient.NewOperation("query ticketWebhooksByUser ($username: String!, $name: String!, $id: Int!) {\n\tuser(username: $username) {\n\t\ttracker(name: $name) {\n\t\t\tticket(id: $id) {\n\t\t\t\t... ticketWebhooks\n\t\t\t}\n\t\t}\n\t}\n}\nfragment ticketWebhooks on Ticket {\n\twebhooks {\n\t\tresults {\n\t\t\tid\n\t\t\tevents\n\t\t\tquery\n\t\t\turl\n\t\t}\n\t}\n}\n")
+	op := gqlclient.NewOperation("query ticketWebhooksByUser ($username: String!, $name: String!, $id: Int!) {\n\tuser(username: $username) {\n\t\ttracker(name: $name) {\n\t\t\tticket(id: $id) {\n\t\t\t\t... ticketWebhooks\n\t\t\t}\n\t\t}\n\t}\n}\nfragment ticketWebhooks on Ticket {\n\twebhooks {\n\t\tresults {\n\t\t\tid\n\t\t\turl\n\t\t}\n\t}\n}\n")
 	op.Var("username", username)
 	op.Var("name", name)
 	op.Var("id", id)
@@ -865,16 +865,7 @@ func TicketWebhooksByUser(client *gqlclient.Client, ctx context.Context, usernam
 }
 
 func UserWebhooks(client *gqlclient.Client, ctx context.Context) (userWebhooks *WebhookSubscriptionCursor, err error) {
-	op := gqlclient.NewOperation("query userWebhooks {\n\tuserWebhooks {\n\t\tresults {\n\t\t\tid\n\t\t\tevents\n\t\t\tquery\n\t\t\turl\n\t\t}\n\t}\n}\n")
-	var respData struct {
-		UserWebhooks *WebhookSubscriptionCursor
-	}
-	err = client.Execute(ctx, op, &respData)
-	return respData.UserWebhooks, err
-}
-
-func CompleteUserWebhookId(client *gqlclient.Client, ctx context.Context) (userWebhooks *WebhookSubscriptionCursor, err error) {
-	op := gqlclient.NewOperation("query completeUserWebhookId {\n\tuserWebhooks {\n\t\tresults {\n\t\t\tid\n\t\t\turl\n\t\t}\n\t}\n}\n")
+	op := gqlclient.NewOperation("query userWebhooks {\n\tuserWebhooks {\n\t\tresults {\n\t\t\tid\n\t\t\turl\n\t\t}\n\t}\n}\n")
 	var respData struct {
 		UserWebhooks *WebhookSubscriptionCursor
 	}
