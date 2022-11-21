@@ -36,6 +36,7 @@ func newListsCommand() *cobra.Command {
 	cmd.AddCommand(newListsACLCommand())
 	cmd.AddCommand(newListsUserWebhookCommand())
 	cmd.PersistentFlags().StringP("mailing-list", "l", "", "mailing list name")
+	cmd.RegisterFlagCompletionFunc("mailing-list", completeList)
 	return cmd
 }
 
@@ -76,7 +77,7 @@ func newListsDeleteCommand() *cobra.Command {
 		Use:               "delete [list]",
 		Short:             "Delete a mailing list",
 		Args:              cobra.MaximumNArgs(1),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction: completeList,
 		Run:               run,
 	}
 	cmd.Flags().BoolVarP(&autoConfirm, "yes", "y", false, "auto confirm")
@@ -332,7 +333,7 @@ func newListsArchiveCommand() *cobra.Command {
 		Use:               "archive [list]",
 		Short:             "Download a mailing list archive",
 		Args:              cobra.MaximumNArgs(1),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction: completeList,
 		Run:               run,
 	}
 	cmd.Flags().IntVarP(&days, "days", "d", 0, "number of last days to download")
@@ -961,4 +962,21 @@ func completeListsUserWebhookID(cmd *cobra.Command, args []string, toComplete st
 	}
 
 	return webhookList, cobra.ShellCompDirectiveNoFileComp
+}
+
+func completeList(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	ctx := cmd.Context()
+	c := createClient("lists", cmd)
+	var listsList []string
+
+	user, err := listssrht.CompleteLists(c.Client, ctx)
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	for _, list := range user.Lists.Results {
+		listsList = append(listsList, list.Name)
+	}
+
+	return listsList, cobra.ShellCompDirectiveNoFileComp
 }

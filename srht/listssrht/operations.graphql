@@ -214,6 +214,16 @@ query archiveByUser($username: String!, $name: String!) {
     }
 }
 
+query completeLists {
+    me {
+        lists {
+            results {
+                name
+            }
+        }
+    }
+}
+
 mutation mailingListSubscribe($listID: Int!) {
     mailingListSubscribe(listID: $listID) {
         list {
