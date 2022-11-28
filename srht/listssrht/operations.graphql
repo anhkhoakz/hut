@@ -4,9 +4,9 @@ mutation deleteMailingList($id: Int!) {
     }
 }
 
-query mailingLists {
+query mailingLists($cursor: Cursor) {
     me {
-        lists {
+        lists(cursor: $cursor) {
             ...lists
         }
     }
@@ -26,9 +26,9 @@ query exportMailingLists {
     }
 }
 
-query mailingListsByUser($username: String!) {
+query mailingListsByUser($username: String!, $cursor: Cursor) {
     user(username: $username) {
-        lists {
+        lists(cursor: $cursor) {
             ...lists
         }
     }
@@ -40,6 +40,7 @@ fragment lists on MailingListCursor {
         description
         visibility
     }
+    cursor
 }
 
 query mailingListIDByName($name: String!) {

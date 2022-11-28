@@ -257,15 +257,15 @@ type OAuthClient struct {
 
 // Information parsed from the subject line of a patch, such that the following:
 //
-//	[PATCH myproject v2 3/4] Add foo to bar
+//     [PATCH myproject v2 3/4] Add foo to bar
 //
 // Will produce:
 //
-//	index: 3
-//	count: 4
-//	version: 2
-//	prefix: "myproject"
-//	subject: "Add foo to bar"
+//     index: 3
+//     count: 4
+//     version: 2
+//     prefix: "myproject"
+//     subject: "Add foo to bar"
 type Patch struct {
 	Index   *int32  `json:"index,omitempty"`
 	Count   *int32  `json:"count,omitempty"`
@@ -536,8 +536,9 @@ func DeleteMailingList(client *gqlclient.Client, ctx context.Context, id int32) 
 	return respData.DeleteMailingList, err
 }
 
-func MailingLists(client *gqlclient.Client, ctx context.Context) (me *User, err error) {
-	op := gqlclient.NewOperation("query mailingLists {\n\tme {\n\t\tlists {\n\t\t\t... lists\n\t\t}\n\t}\n}\nfragment lists on MailingListCursor {\n\tresults {\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t}\n}\n")
+func MailingLists(client *gqlclient.Client, ctx context.Context, cursor *Cursor) (me *User, err error) {
+	op := gqlclient.NewOperation("query mailingLists ($cursor: Cursor) {\n\tme {\n\t\tlists(cursor: $cursor) {\n\t\t\t... lists\n\t\t}\n\t}\n}\nfragment lists on MailingListCursor {\n\tresults {\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t}\n\tcursor\n}\n")
+	op.Var("cursor", cursor)
 	var respData struct {
 		Me *User
 	}
@@ -554,9 +555,10 @@ func ExportMailingLists(client *gqlclient.Client, ctx context.Context) (me *User
 	return respData.Me, err
 }
 
-func MailingListsByUser(client *gqlclient.Client, ctx context.Context, username string) (user *User, err error) {
-	op := gqlclient.NewOperation("query mailingListsByUser ($username: String!) {\n\tuser(username: $username) {\n\t\tlists {\n\t\t\t... lists\n\t\t}\n\t}\n}\nfragment lists on MailingListCursor {\n\tresults {\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t}\n}\n")
+func MailingListsByUser(client *gqlclient.Client, ctx context.Context, username string, cursor *Cursor) (user *User, err error) {
+	op := gqlclient.NewOperation("query mailingListsByUser ($username: String!, $cursor: Cursor) {\n\tuser(username: $username) {\n\t\tlists(cursor: $cursor) {\n\t\t\t... lists\n\t\t}\n\t}\n}\nfragment lists on MailingListCursor {\n\tresults {\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t}\n\tcursor\n}\n")
 	op.Var("username", username)
+	op.Var("cursor", cursor)
 	var respData struct {
 		User *User
 	}

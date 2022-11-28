@@ -40,33 +40,36 @@ func newTodoListCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("todo", cmd)
-
-		var trackers *todosrht.TrackerCursor
-
+		var cursor *todosrht.Cursor
+		var username string
 		if len(args) > 0 {
-			username := strings.TrimLeft(args[0], ownerPrefixes)
-			user, err := todosrht.TrackersByUser(c.Client, ctx, username)
-			if err != nil {
-				log.Fatal(err)
-			} else if user == nil {
-				log.Fatal("no such user")
-			}
-			trackers = user.Trackers
-		} else {
-			var err error
-			trackers, err = todosrht.Trackers(c.Client, ctx)
-			if err != nil {
-				log.Fatal(err)
-			}
+			username = strings.TrimLeft(args[0], ownerPrefixes)
 		}
+		pagerify(func(p pager) bool {
+			var trackers *todosrht.TrackerCursor
+			if len(username) > 0 {
+				user, err := todosrht.TrackersByUser(c.Client, ctx, username, cursor)
+				if err != nil {
+					log.Fatal(err)
+				} else if user == nil {
+					log.Fatal("no such user")
+				}
+				trackers = user.Trackers
+			} else {
+				var err error
+				trackers, err = todosrht.Trackers(c.Client, ctx, cursor)
+				if err != nil {
+					log.Fatal(err)
+				}
+			}
 
-		for _, tracker := range trackers.Results {
-			fmt.Printf("%s (%s)\n", termfmt.Bold.String(tracker.Name), tracker.Visibility.TermString())
-			if tracker.Description != nil && *tracker.Description != "" {
-				fmt.Println(indent(strings.TrimSpace(*tracker.Description), "  "))
+			for _, tracker := range trackers.Results {
+				printTracker(p, &tracker)
 			}
-			fmt.Println()
-		}
+
+			cursor = trackers.Cursor
+			return cursor == nil
+		})
 	}
 
 	cmd := &cobra.Command{
@@ -77,6 +80,14 @@ func newTodoListCommand() *cobra.Command {
 		Run:               run,
 	}
 	return cmd
+}
+
+func printTracker(w io.Writer, tracker *todosrht.Tracker) {
+	fmt.Fprintf(w, "%s (%s)\n", termfmt.Bold.String(tracker.Name), tracker.Visibility.TermString())
+	if tracker.Description != nil && *tracker.Description != "" {
+		fmt.Fprintln(w, indent(strings.TrimSpace(*tracker.Description), "  "))
+	}
+	fmt.Fprintln(w)
 }
 
 func newTodoDeleteCommand() *cobra.Command {

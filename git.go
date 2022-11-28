@@ -107,35 +107,39 @@ func newGitCreateCommand() *cobra.Command {
 func newGitListCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-
-		var repos *gitsrht.RepositoryCursor
+		var cursor *gitsrht.Cursor
+		var owner, instance string
 		if len(args) > 0 {
-			owner, instance := parseOwnerName(args[0])
-			c := createClientWithInstance("git", cmd, instance)
-			username := strings.TrimLeft(owner, ownerPrefixes)
-			user, err := gitsrht.RepositoriesByUser(c.Client, ctx, username)
-			if err != nil {
-				log.Fatal(err)
-			} else if user == nil {
-				log.Fatal("no such user")
-			}
-			repos = user.Repositories
-		} else {
-			c := createClient("git", cmd)
-			var err error
-			repos, err = gitsrht.Repositories(c.Client, ctx)
-			if err != nil {
-				log.Fatal(err)
-			}
+			owner, instance = parseOwnerName(args[0])
 		}
+		pagerify(func(p pager) bool {
+			var repos *gitsrht.RepositoryCursor
+			if len(owner) > 0 {
+				c := createClientWithInstance("git", cmd, instance)
+				username := strings.TrimLeft(owner, ownerPrefixes)
+				user, err := gitsrht.RepositoriesByUser(c.Client, ctx, username, cursor)
+				if err != nil {
+					log.Fatal(err)
+				} else if user == nil {
+					log.Fatal("no such user")
+				}
+				repos = user.Repositories
+			} else {
+				c := createClient("git", cmd)
+				var err error
+				repos, err = gitsrht.Repositories(c.Client, ctx, cursor)
+				if err != nil {
+					log.Fatal(err)
+				}
+			}
 
-		for _, repo := range repos.Results {
-			fmt.Printf("%s (%s)\n", termfmt.Bold.String(repo.Name), repo.Visibility.TermString())
-			if repo.Description != nil && *repo.Description != "" {
-				fmt.Printf("  %s\n", *repo.Description)
+			for _, repo := range repos.Results {
+				printGitRepo(p, &repo)
 			}
-			fmt.Println()
-		}
+
+			cursor = repos.Cursor
+			return cursor == nil
+		})
 	}
 
 	cmd := &cobra.Command{
@@ -146,6 +150,14 @@ func newGitListCommand() *cobra.Command {
 		Run:               run,
 	}
 	return cmd
+}
+
+func printGitRepo(w io.Writer, repo *gitsrht.Repository) {
+	fmt.Fprintf(w, "%s (%s)\n", termfmt.Bold.String(repo.Name), repo.Visibility.TermString())
+	if repo.Description != nil && *repo.Description != "" {
+		fmt.Fprintf(w, "  %s\n", *repo.Description)
+	}
+	fmt.Fprintln(w)
 }
 
 func newGitDeleteCommand() *cobra.Command {

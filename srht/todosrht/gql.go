@@ -658,8 +658,9 @@ type WebhookSubscriptionCursor struct {
 	Cursor  *Cursor               `json:"cursor,omitempty"`
 }
 
-func Trackers(client *gqlclient.Client, ctx context.Context) (trackers *TrackerCursor, err error) {
-	op := gqlclient.NewOperation("query trackers {\n\ttrackers {\n\t\t... trackers\n\t}\n}\nfragment trackers on TrackerCursor {\n\tresults {\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t}\n}\n")
+func Trackers(client *gqlclient.Client, ctx context.Context, cursor *Cursor) (trackers *TrackerCursor, err error) {
+	op := gqlclient.NewOperation("query trackers ($cursor: Cursor) {\n\ttrackers(cursor: $cursor) {\n\t\t... trackers\n\t}\n}\nfragment trackers on TrackerCursor {\n\tresults {\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t}\n\tcursor\n}\n")
+	op.Var("cursor", cursor)
 	var respData struct {
 		Trackers *TrackerCursor
 	}
@@ -667,9 +668,10 @@ func Trackers(client *gqlclient.Client, ctx context.Context) (trackers *TrackerC
 	return respData.Trackers, err
 }
 
-func TrackersByUser(client *gqlclient.Client, ctx context.Context, username string) (user *User, err error) {
-	op := gqlclient.NewOperation("query trackersByUser ($username: String!) {\n\tuser(username: $username) {\n\t\ttrackers {\n\t\t\t... trackers\n\t\t}\n\t}\n}\nfragment trackers on TrackerCursor {\n\tresults {\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t}\n}\n")
+func TrackersByUser(client *gqlclient.Client, ctx context.Context, username string, cursor *Cursor) (user *User, err error) {
+	op := gqlclient.NewOperation("query trackersByUser ($username: String!, $cursor: Cursor) {\n\tuser(username: $username) {\n\t\ttrackers(cursor: $cursor) {\n\t\t\t... trackers\n\t\t}\n\t}\n}\nfragment trackers on TrackerCursor {\n\tresults {\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t}\n\tcursor\n}\n")
 	op.Var("username", username)
+	op.Var("cursor", cursor)
 	var respData struct {
 		User *User
 	}

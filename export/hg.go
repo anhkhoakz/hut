@@ -43,7 +43,7 @@ type HgRepoInfo struct {
 func (ex *HgExporter) Export(ctx context.Context, dir string) error {
 	log.Println("hg.sr.ht")
 
-	repos, err := hgsrht.Repositories(ex.client, ctx)
+	repos, err := hgsrht.Repositories(ex.client, ctx, nil)
 	if err != nil {
 		return err
 	}

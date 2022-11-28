@@ -14,15 +14,15 @@ query repositoryIDByUser($username: String!, $name: String!) {
     }
 }
 
-query repositories {
-    repositories {
+query repositories($cursor: Cursor) {
+    repositories(cursor: $cursor) {
         ...repos
     }
 }
 
-query repositoriesByUser($username: String!) {
+query repositoriesByUser($username: String!, $cursor: Cursor) {
     user(username: $username) {
-        repositories {
+        repositories(cursor: $cursor) {
             ...repos
         }
     }
@@ -37,6 +37,7 @@ fragment repos on RepositoryCursor {
           canonicalName
         }
     }
+    cursor
 }
 
 query userWebhooks {

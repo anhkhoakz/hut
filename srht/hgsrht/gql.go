@@ -317,8 +317,9 @@ func RepositoryIDByUser(client *gqlclient.Client, ctx context.Context, username 
 	return respData.User, err
 }
 
-func Repositories(client *gqlclient.Client, ctx context.Context) (repositories *RepositoryCursor, err error) {
-	op := gqlclient.NewOperation("query repositories {\n\trepositories {\n\t\t... repos\n\t}\n}\nfragment repos on RepositoryCursor {\n\tresults {\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t\towner {\n\t\t\tcanonicalName\n\t\t}\n\t}\n}\n")
+func Repositories(client *gqlclient.Client, ctx context.Context, cursor *Cursor) (repositories *RepositoryCursor, err error) {
+	op := gqlclient.NewOperation("query repositories ($cursor: Cursor) {\n\trepositories(cursor: $cursor) {\n\t\t... repos\n\t}\n}\nfragment repos on RepositoryCursor {\n\tresults {\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t\towner {\n\t\t\tcanonicalName\n\t\t}\n\t}\n\tcursor\n}\n")
+	op.Var("cursor", cursor)
 	var respData struct {
 		Repositories *RepositoryCursor
 	}
@@ -326,9 +327,10 @@ func Repositories(client *gqlclient.Client, ctx context.Context) (repositories *
 	return respData.Repositories, err
 }
 
-func RepositoriesByUser(client *gqlclient.Client, ctx context.Context, username string) (user *User, err error) {
-	op := gqlclient.NewOperation("query repositoriesByUser ($username: String!) {\n\tuser(username: $username) {\n\t\trepositories {\n\t\t\t... repos\n\t\t}\n\t}\n}\nfragment repos on RepositoryCursor {\n\tresults {\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t\towner {\n\t\t\tcanonicalName\n\t\t}\n\t}\n}\n")
+func RepositoriesByUser(client *gqlclient.Client, ctx context.Context, username string, cursor *Cursor) (user *User, err error) {
+	op := gqlclient.NewOperation("query repositoriesByUser ($username: String!, $cursor: Cursor) {\n\tuser(username: $username) {\n\t\trepositories(cursor: $cursor) {\n\t\t\t... repos\n\t\t}\n\t}\n}\nfragment repos on RepositoryCursor {\n\tresults {\n\t\tname\n\t\tdescription\n\t\tvisibility\n\t\towner {\n\t\t\tcanonicalName\n\t\t}\n\t}\n\tcursor\n}\n")
 	op.Var("username", username)
+	op.Var("cursor", cursor)
 	var respData struct {
 		User *User
 	}

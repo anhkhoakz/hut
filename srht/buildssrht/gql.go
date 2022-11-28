@@ -307,8 +307,9 @@ func JobIDs(client *gqlclient.Client, ctx context.Context) (jobs *JobCursor, err
 	return respData.Jobs, err
 }
 
-func Jobs(client *gqlclient.Client, ctx context.Context) (jobs *JobCursor, err error) {
-	op := gqlclient.NewOperation("query jobs {\n\tjobs {\n\t\t... jobs\n\t}\n}\nfragment jobs on JobCursor {\n\tresults {\n\t\tid\n\t\tstatus\n\t\tnote\n\t\ttags\n\t\ttasks {\n\t\t\tname\n\t\t\tstatus\n\t\t}\n\t}\n}\n")
+func Jobs(client *gqlclient.Client, ctx context.Context, cursor *Cursor) (jobs *JobCursor, err error) {
+	op := gqlclient.NewOperation("query jobs ($cursor: Cursor) {\n\tjobs(cursor: $cursor) {\n\t\t... jobs\n\t}\n}\nfragment jobs on JobCursor {\n\tresults {\n\t\tid\n\t\tstatus\n\t\tnote\n\t\ttags\n\t\ttasks {\n\t\t\tname\n\t\t\tstatus\n\t\t}\n\t}\n\tcursor\n}\n")
+	op.Var("cursor", cursor)
 	var respData struct {
 		Jobs *JobCursor
 	}
@@ -317,7 +318,7 @@ func Jobs(client *gqlclient.Client, ctx context.Context) (jobs *JobCursor, err e
 }
 
 func JobsByUser(client *gqlclient.Client, ctx context.Context, username string) (userByName *User, err error) {
-	op := gqlclient.NewOperation("query jobsByUser ($username: String!) {\n\tuserByName(username: $username) {\n\t\tjobs {\n\t\t\t... jobs\n\t\t}\n\t}\n}\nfragment jobs on JobCursor {\n\tresults {\n\t\tid\n\t\tstatus\n\t\tnote\n\t\ttags\n\t\ttasks {\n\t\t\tname\n\t\t\tstatus\n\t\t}\n\t}\n}\n")
+	op := gqlclient.NewOperation("query jobsByUser ($username: String!) {\n\tuserByName(username: $username) {\n\t\tjobs {\n\t\t\t... jobs\n\t\t}\n\t}\n}\nfragment jobs on JobCursor {\n\tresults {\n\t\tid\n\t\tstatus\n\t\tnote\n\t\ttags\n\t\ttasks {\n\t\t\tname\n\t\t\tstatus\n\t\t}\n\t}\n\tcursor\n}\n")
 	op.Var("username", username)
 	var respData struct {
 		UserByName *User

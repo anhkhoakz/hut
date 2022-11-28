@@ -42,8 +42,8 @@ query jobIDs {
     }
 }
 
-query jobs {
-    jobs {
+query jobs($cursor: Cursor) {
+    jobs(cursor: $cursor) {
         ...jobs
     }
 }
@@ -67,6 +67,7 @@ fragment jobs on JobCursor {
             status
         }
     }
+    cursor
 }
 
 query exportJobs {

@@ -260,7 +260,7 @@ func newBuildsShowCommand() *cobra.Command {
 			}
 		}
 
-		printJob(job)
+		printJob(os.Stdout, job)
 
 		failedTask := -1
 		for i, task := range job.Tasks {
@@ -308,28 +308,36 @@ func newBuildsListCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("builds", cmd)
-
-		var jobs *buildssrht.JobCursor
+		var cursor *buildssrht.Cursor
+		var username string
 		if len(args) > 0 {
-			username := strings.TrimLeft(args[0], ownerPrefixes)
-			user, err := buildssrht.JobsByUser(c.Client, ctx, username)
-			if err != nil {
-				log.Fatal(err)
-			} else if user == nil {
-				log.Fatal("no such user")
-			}
-			jobs = user.Jobs
-		} else {
-			var err error
-			jobs, err = buildssrht.Jobs(c.Client, ctx)
-			if err != nil {
-				log.Fatal(err)
-			}
+			username = strings.TrimLeft(args[0], ownerPrefixes)
 		}
+		pagerify(func(p pager) bool {
+			var jobs *buildssrht.JobCursor
+			if len(username) > 0 {
+				user, err := buildssrht.JobsByUser(c.Client, ctx, username)
+				if err != nil {
+					log.Fatal(err)
+				} else if user == nil {
+					log.Fatal("no such user")
+				}
+				jobs = user.Jobs
+			} else {
+				var err error
+				jobs, err = buildssrht.Jobs(c.Client, ctx, nil)
+				if err != nil {
+					log.Fatal(err)
+				}
+			}
 
-		for _, job := range jobs.Results {
-			printJob(&job)
-		}
+			for _, job := range jobs.Results {
+				printJob(p, &job)
+			}
+
+			cursor = jobs.Cursor
+			return cursor == nil
+		})
 	}
 
 	cmd := &cobra.Command{
@@ -376,23 +384,23 @@ func newBuildsSSHCommand() *cobra.Command {
 	return cmd
 }
 
-func printJob(job *buildssrht.Job) {
-	fmt.Print(termfmt.DarkYellow.Sprintf("#%d", job.Id))
+func printJob(w io.Writer, job *buildssrht.Job) {
+	fmt.Fprint(w, termfmt.DarkYellow.Sprintf("#%d", job.Id))
 	if tagString := formatJobTags(job); tagString != "" {
-		fmt.Printf(" - %s", termfmt.Bold.String(tagString))
+		fmt.Fprintf(w, " - %s", termfmt.Bold.String(tagString))
 	}
-	fmt.Printf(": %s\n", job.Status.TermString())
+	fmt.Fprintf(w, ": %s\n", job.Status.TermString())
 
 	for _, task := range job.Tasks {
-		fmt.Printf("%s %s  ", task.Status.TermIcon(), task.Name)
+		fmt.Fprintf(w, "%s %s  ", task.Status.TermIcon(), task.Name)
 	}
-	fmt.Println()
+	fmt.Fprintln(w)
 
 	if job.Note != nil {
-		fmt.Println("\n" + indent(strings.TrimSpace(*job.Note), "  "))
+		fmt.Fprintln(w, "\n"+indent(strings.TrimSpace(*job.Note), "  "))
 	}
 
-	fmt.Println()
+	fmt.Fprintln(w)
 }
 
 func newBuildsSecretsCommand() *cobra.Command {
@@ -657,7 +665,7 @@ func completeJobs(cmd *cobra.Command, onlyRunning bool) ([]string, cobra.ShellCo
 	c := createClient("builds", cmd)
 	var jobList []string
 
-	jobs, err := buildssrht.Jobs(c.Client, ctx)
+	jobs, err := buildssrht.Jobs(c.Client, ctx, nil)
 	if err != nil {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}

@@ -49,7 +49,7 @@ func (ex *GitExporter) Export(ctx context.Context, dir string) error {
 	}
 	sshUser := settings.Settings.SshUser
 
-	repos, err := gitsrht.Repositories(ex.client, ctx)
+	repos, err := gitsrht.Repositories(ex.client, ctx, nil)
 	if err != nil {
 		return err
 	}

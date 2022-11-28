@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"strings"
 
@@ -27,33 +28,36 @@ func newHgListCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("hg", cmd)
-
-		var repos *hgsrht.RepositoryCursor
-
+		var cursor *hgsrht.Cursor
+		var username string
 		if len(args) > 0 {
-			username := strings.TrimLeft(args[0], ownerPrefixes)
-			user, err := hgsrht.RepositoriesByUser(c.Client, ctx, username)
-			if err != nil {
-				log.Fatal(err)
-			} else if user == nil {
-				log.Fatal("no such user")
-			}
-			repos = user.Repositories
-		} else {
-			var err error
-			repos, err = hgsrht.Repositories(c.Client, ctx)
-			if err != nil {
-				log.Fatal(err)
-			}
+			username = strings.TrimLeft(args[0], ownerPrefixes)
 		}
+		pagerify(func(p pager) bool {
+			var repos *hgsrht.RepositoryCursor
+			if len(username) > 0 {
+				user, err := hgsrht.RepositoriesByUser(c.Client, ctx, username, cursor)
+				if err != nil {
+					log.Fatal(err)
+				} else if user == nil {
+					log.Fatal("no such user")
+				}
+				repos = user.Repositories
+			} else {
+				var err error
+				repos, err = hgsrht.Repositories(c.Client, ctx, cursor)
+				if err != nil {
+					log.Fatal(err)
+				}
+			}
 
-		for _, repo := range repos.Results {
-			fmt.Printf("%s (%s)\n", termfmt.Bold.String(repo.Name), repo.Visibility.TermString())
-			if repo.Description != nil && *repo.Description != "" {
-				fmt.Printf("  %s\n", *repo.Description)
+			for _, repo := range repos.Results {
+				printHgRepo(p, repo)
 			}
-			fmt.Println()
-		}
+
+			cursor = repos.Cursor
+			return cursor == nil
+		})
 	}
 
 	cmd := &cobra.Command{
@@ -63,6 +67,14 @@ func newHgListCommand() *cobra.Command {
 		Run:   run,
 	}
 	return cmd
+}
+
+func printHgRepo(w io.Writer, repo *hgsrht.Repository) {
+	fmt.Fprintf(w, "%s (%s)\n", termfmt.Bold.String(repo.Name), repo.Visibility.TermString())
+	if repo.Description != nil && *repo.Description != "" {
+		fmt.Fprintf(w, "  %s\n", *repo.Description)
+	}
+	fmt.Fprintln(w)
 }
 
 func newHgCreateCommand() *cobra.Command {

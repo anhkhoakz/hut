@@ -93,34 +93,46 @@ func newListsListCommand() *cobra.Command {
 	cmd.Run = func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("lists", cmd)
-
-		var lists *listssrht.MailingListCursor
+		var cursor *listssrht.Cursor
+		var username string
 		if len(args) > 0 {
-			username := strings.TrimLeft(args[0], ownerPrefixes)
-			user, err := listssrht.MailingListsByUser(c.Client, ctx, username)
-			if err != nil {
-				log.Fatal(err)
-			} else if user == nil {
-				log.Fatal("no such user")
-			}
-			lists = user.Lists
-		} else {
-			var err error
-			user, err := listssrht.MailingLists(c.Client, ctx)
-			if err != nil {
-				log.Fatal(err)
-			}
-			lists = user.Lists
+			username = strings.TrimLeft(args[0], ownerPrefixes)
 		}
+		pagerify(func(p pager) bool {
+			var lists *listssrht.MailingListCursor
+			if len(username) > 0 {
+				user, err := listssrht.MailingListsByUser(c.Client, ctx, username, cursor)
+				if err != nil {
+					log.Fatal(err)
+				} else if user == nil {
+					log.Fatal("no such user")
+				}
+				lists = user.Lists
+			} else {
+				var err error
+				user, err := listssrht.MailingLists(c.Client, ctx, cursor)
+				if err != nil {
+					log.Fatal(err)
+				}
+				lists = user.Lists
+			}
 
-		for _, list := range lists.Results {
-			fmt.Printf("%s (%s)\n", termfmt.Bold.String(list.Name), list.Visibility.TermString())
-			if list.Description != nil && *list.Description != "" {
-				fmt.Println("\n" + indent(*list.Description, "  ") + "\n")
+			for _, list := range lists.Results {
+				printList(p, &list)
 			}
-		}
+
+			cursor = lists.Cursor
+			return cursor == nil
+		})
 	}
 	return cmd
+}
+
+func printList(w io.Writer, list *listssrht.MailingList) {
+	fmt.Fprintf(w, "%s (%s)\n", termfmt.Bold.String(list.Name), list.Visibility.TermString())
+	if list.Description != nil && *list.Description != "" {
+		fmt.Fprintln(w, "\n"+indent(*list.Description, "  ")+"\n")
+	}
 }
 
 func newListsSubscribeCommand() *cobra.Command {
