@@ -123,6 +123,9 @@ hut is a CLI companion utility to interact with sr.ht.
 
 	Options are:
 
+	*-e*, *--edit*
+		Edit manifest with _$EDITOR_.
+
 	*-f*, *--follow*
 		Follow build logs.
 

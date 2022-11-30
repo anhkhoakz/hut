@@ -36,8 +36,15 @@ func newBuildsCommand() *cobra.Command {
 	return cmd
 }
 
+const buildsSubmitPrefill = `
+
+# Please write a build manifest above. The build manifest reference is
+# available at:
+# https://man.sr.ht/builds.sr.ht/manifest.md
+`
+
 func newBuildsSubmitCommand() *cobra.Command {
-	var follow bool
+	var follow, edit bool
 	var note, tagString string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
@@ -60,6 +67,9 @@ func newBuildsSubmitCommand() *cobra.Command {
 			log.Fatal("--follow cannot be used when submitting multiple jobs")
 		}
 
+		tags := strings.Split(tagString, "/")
+
+		var manifests []string
 		for _, name := range filenames {
 			var b []byte
 			var err error
@@ -72,9 +82,25 @@ func newBuildsSubmitCommand() *cobra.Command {
 				log.Fatalf("failed to read manifest from %q: %v", name, err)
 			}
 
-			tags := strings.Split(tagString, "/")
+			manifests = append(manifests, string(b))
+		}
 
-			job, err := buildssrht.Submit(c.Client, ctx, string(b), tags, &note)
+		if edit {
+			if len(manifests) == 0 {
+				manifests = append(manifests, buildsSubmitPrefill)
+			}
+
+			for i, manifest := range manifests {
+				var err error
+				manifests[i], err = getInputWithEditor("hut*.yml", manifest)
+				if err != nil {
+					log.Fatal(err)
+				}
+			}
+		}
+
+		for _, manifest := range manifests {
+			job, err := buildssrht.Submit(c.Client, ctx, manifest, tags, &note)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -101,6 +127,7 @@ func newBuildsSubmitCommand() *cobra.Command {
 		Run:               run,
 	}
 	cmd.Flags().BoolVarP(&follow, "follow", "f", false, "follow build logs")
+	cmd.Flags().BoolVarP(&edit, "edit", "e", false, "edit manifest")
 	cmd.Flags().StringVarP(&note, "note", "n", "", "short job description")
 	cmd.RegisterFlagCompletionFunc("note", cobra.NoFileCompletions)
 	cmd.Flags().StringVarP(&tagString, "tags", "t", "", "job tags (slash separated)")
