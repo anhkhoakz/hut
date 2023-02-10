@@ -640,6 +640,14 @@ Options are:
 	*--stdin*
 		Read comment from _stdin_.
 
+*ticket create* [options...]
+	Create a new ticket with _$EDITOR_.
+
+	Options are:
+
+	*--stdin*
+		Read ticket from _stdin_.
+
 *ticket delete* <ID> [options...]
 	Delete a ticket.
 

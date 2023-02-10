@@ -541,3 +541,9 @@ mutation deleteTrackerWebhook($id: Int!) {
         id
     }
 }
+
+mutation submitTicket($trackerId: Int!, $input: SubmitTicketInput!) {
+    submitTicket(trackerId: $trackerId, input: $input) {
+        id
+    }
+}

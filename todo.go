@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
@@ -272,6 +273,7 @@ func newTodoTicketCommand() *cobra.Command {
 	cmd.AddCommand(newTodoTicketDeleteCommand())
 	cmd.AddCommand(newTodoTicketShowCommand())
 	cmd.AddCommand(newTodoTicketWebhookCommand())
+	cmd.AddCommand(newTodoTicketCreateCommand())
 	return cmd
 }
 
@@ -1379,6 +1381,89 @@ func newTodoUserWebhookDeleteCommand() *cobra.Command {
 		ValidArgsFunction: completeTodoUserWebhookID,
 		Run:               run,
 	}
+	return cmd
+}
+
+const todoTicketCreatePrefill = `
+<!--
+Please enter the subject of the new ticket above. The subject line
+can be followed by a blank line and a Markdown description. An
+empty subject aborts the ticket.
+-->`
+
+func newTodoTicketCreateCommand() *cobra.Command {
+	var stdin bool
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		name, owner, instance, err := getTrackerName(ctx, cmd)
+		if err != nil {
+			log.Fatal(err)
+		}
+		c := createClientWithInstance("todo", cmd, instance)
+		trackerID := getTrackerID(c, ctx, name, owner)
+
+		var input todosrht.SubmitTicketInput
+		if stdin {
+			br := bufio.NewReader(os.Stdin)
+			fmt.Printf("Subject: ")
+
+			var err error
+			input.Subject, err = br.ReadString('\n')
+			if err != nil {
+				log.Fatalf("failed to read subject: %v", err)
+			}
+			input.Subject = strings.TrimSpace(input.Subject)
+			if input.Subject == "" {
+				fmt.Println("Aborting due to empty subject.")
+				os.Exit(1)
+			}
+
+			fmt.Printf("Description %s:\n", termfmt.Dim.String("(Markdown supported)"))
+			bodyBytes, err := io.ReadAll(br)
+			if err != nil {
+				log.Fatalf("failed to read description: %v", err)
+			}
+			if body := strings.TrimSpace(string(bodyBytes)); body != "" {
+				input.Body = &body
+			}
+		} else {
+			text, err := getInputWithEditor("hut_ticket*.md", todoTicketCreatePrefill)
+			if err != nil {
+				log.Fatalf("failed to read ticket subject and description: %v", err)
+			}
+
+			text = dropComment(text, todoTicketCreatePrefill)
+
+			parts := strings.SplitN(text, "\n", 2)
+			input.Subject = strings.TrimSpace(parts[0])
+			if len(parts) > 1 {
+				body := strings.TrimSpace(parts[1])
+				input.Body = &body
+			}
+		}
+
+		if input.Subject == "" {
+			fmt.Println("Aborting due to empty subject.")
+			os.Exit(1)
+		}
+
+		ticket, err := todosrht.SubmitTicket(c.Client, ctx, trackerID, input)
+		if err != nil {
+			log.Fatal(err)
+		} else if ticket == nil {
+			log.Fatal("failed to create ticket")
+		}
+
+		fmt.Printf("Created new ticket %v\n", termfmt.DarkYellow.Sprintf("#%v", ticket.Id))
+	}
+
+	cmd := &cobra.Command{
+		Use:   "create",
+		Short: "Create a new ticket",
+		Args:  cobra.ExactArgs(0),
+		Run:   run,
+	}
+	cmd.Flags().BoolVar(&stdin, "stdin", false, "read ticket from stdin")
 	return cmd
 }
 
