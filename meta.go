@@ -91,7 +91,7 @@ func newMetaAuditLogCommand() *cobra.Command {
 			} else {
 				entry += fmt.Sprintf(" %s ", log.EventType)
 			}
-			entry += fmt.Sprintf("%s ago", timeDelta(log.Created))
+			entry += fmt.Sprintf("%s ago", timeDelta(log.Created.Time))
 			fmt.Println(entry)
 		}
 	}

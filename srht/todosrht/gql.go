@@ -5,7 +5,6 @@ package todosrht
 import (
 	"context"
 	gqlclient "git.sr.ht/~emersion/gqlclient"
-	"time"
 )
 
 type ACL struct {
@@ -63,8 +62,8 @@ const (
 )
 
 type ActivitySubscription struct {
-	Id      int32     `json:"id"`
-	Created time.Time `json:"created"`
+	Id      int32          `json:"id"`
+	Created gqlclient.Time `json:"created"`
 }
 
 // A cursor for enumerating subscriptions
@@ -150,17 +149,17 @@ type Entity struct {
 // Represents an event which affects a ticket. Multiple changes can occur in a
 // single event, and are enumerated in the "changes" field.
 type Event struct {
-	Id      int32         `json:"id"`
-	Created time.Time     `json:"created"`
-	Changes []EventDetail `json:"changes"`
-	Ticket  *Ticket       `json:"ticket"`
+	Id      int32          `json:"id"`
+	Created gqlclient.Time `json:"created"`
+	Changes []EventDetail  `json:"changes"`
+	Ticket  *Ticket        `json:"ticket"`
 }
 
 type EventCreated struct {
-	Uuid     string       `json:"uuid"`
-	Event    WebhookEvent `json:"event"`
-	Date     time.Time    `json:"date"`
-	NewEvent *Event       `json:"newEvent"`
+	Uuid     string         `json:"uuid"`
+	Event    WebhookEvent   `json:"event"`
+	Date     gqlclient.Time `json:"date"`
+	NewEvent *Event         `json:"newEvent"`
 }
 
 // A cursor for enumerating events
@@ -206,7 +205,7 @@ type ExternalUser struct {
 // to be attributed to an external user and appear as if it were submitted at a
 // specific time.
 type ImportInput struct {
-	Created time.Time `json:"created"`
+	Created gqlclient.Time `json:"created"`
 	// External user ID. By convention this should be "service:username", e.g.
 	// "codeberg:ddevault".
 	ExternalId string `json:"externalId"`
@@ -216,10 +215,10 @@ type ImportInput struct {
 }
 
 type Label struct {
-	Id      int32     `json:"id"`
-	Created time.Time `json:"created"`
-	Name    string    `json:"name"`
-	Tracker *Tracker  `json:"tracker"`
+	Id      int32          `json:"id"`
+	Created gqlclient.Time `json:"created"`
+	Name    string         `json:"name"`
+	Tracker *Tracker       `json:"tracker"`
 	// In CSS hexadecimal format
 	BackgroundColor string        `json:"backgroundColor"`
 	ForegroundColor string        `json:"foregroundColor"`
@@ -237,10 +236,10 @@ type LabelCursor struct {
 }
 
 type LabelEvent struct {
-	Uuid  string       `json:"uuid"`
-	Event WebhookEvent `json:"event"`
-	Date  time.Time    `json:"date"`
-	Label *Label       `json:"label"`
+	Uuid  string         `json:"uuid"`
+	Event WebhookEvent   `json:"event"`
+	Date  gqlclient.Time `json:"date"`
+	Label *Label         `json:"label"`
 }
 
 type LabelUpdate struct {
@@ -291,22 +290,22 @@ type SubmitTicketEmailInput struct {
 }
 
 type SubmitTicketInput struct {
-	Subject     string    `json:"subject"`
-	Body        *string   `json:"body,omitempty"`
-	Created     time.Time `json:"created,omitempty"`
-	ExternalId  *string   `json:"externalId,omitempty"`
-	ExternalUrl *string   `json:"externalUrl,omitempty"`
+	Subject     string         `json:"subject"`
+	Body        *string        `json:"body,omitempty"`
+	Created     gqlclient.Time `json:"created,omitempty"`
+	ExternalId  *string        `json:"externalId,omitempty"`
+	ExternalUrl *string        `json:"externalUrl,omitempty"`
 }
 
 type Ticket struct {
 	// The ticket ID is unique within each tracker, but is not globally unique.
 	// The first ticket opened on a given tracker will have ID 1, then 2, and so
 	// on.
-	Id        int32     `json:"id"`
-	Created   time.Time `json:"created"`
-	Updated   time.Time `json:"updated"`
-	Submitter *Entity   `json:"submitter"`
-	Tracker   *Tracker  `json:"tracker"`
+	Id        int32          `json:"id"`
+	Created   gqlclient.Time `json:"created"`
+	Updated   gqlclient.Time `json:"updated"`
+	Submitter *Entity        `json:"submitter"`
+	Tracker   *Tracker       `json:"tracker"`
 	// Canonical ticket reference string; may be used in comments to identify the
 	// ticket from anywhere.
 	Ref          string           `json:"ref"`
@@ -342,18 +341,18 @@ type TicketCursor struct {
 }
 
 type TicketDeletedEvent struct {
-	Uuid      string       `json:"uuid"`
-	Event     WebhookEvent `json:"event"`
-	Date      time.Time    `json:"date"`
-	TrackerId int32        `json:"trackerId"`
-	TicketId  int32        `json:"ticketId"`
+	Uuid      string         `json:"uuid"`
+	Event     WebhookEvent   `json:"event"`
+	Date      gqlclient.Time `json:"date"`
+	TrackerId int32          `json:"trackerId"`
+	TicketId  int32          `json:"ticketId"`
 }
 
 type TicketEvent struct {
-	Uuid   string       `json:"uuid"`
-	Event  WebhookEvent `json:"event"`
-	Date   time.Time    `json:"date"`
-	Ticket *Ticket      `json:"ticket"`
+	Uuid   string         `json:"uuid"`
+	Event  WebhookEvent   `json:"event"`
+	Date   gqlclient.Time `json:"date"`
+	Ticket *Ticket        `json:"ticket"`
 }
 
 type TicketMention struct {
@@ -390,9 +389,9 @@ const (
 // A ticket subscription will notify a participant when activity occurs on a
 // ticket.
 type TicketSubscription struct {
-	Id      int32     `json:"id"`
-	Created time.Time `json:"created"`
-	Ticket  *Ticket   `json:"ticket"`
+	Id      int32          `json:"id"`
+	Created gqlclient.Time `json:"created"`
+	Ticket  *Ticket        `json:"ticket"`
 }
 
 type TicketWebhookInput struct {
@@ -413,16 +412,16 @@ type TicketWebhookSubscription struct {
 }
 
 type Tracker struct {
-	Id          int32         `json:"id"`
-	Created     time.Time     `json:"created"`
-	Updated     time.Time     `json:"updated"`
-	Owner       *Entity       `json:"owner"`
-	Name        string        `json:"name"`
-	Description *string       `json:"description,omitempty"`
-	Visibility  Visibility    `json:"visibility"`
-	Ticket      *Ticket       `json:"ticket"`
-	Tickets     *TicketCursor `json:"tickets"`
-	Labels      *LabelCursor  `json:"labels"`
+	Id          int32          `json:"id"`
+	Created     gqlclient.Time `json:"created"`
+	Updated     gqlclient.Time `json:"updated"`
+	Owner       *Entity        `json:"owner"`
+	Name        string         `json:"name"`
+	Description *string        `json:"description,omitempty"`
+	Visibility  Visibility     `json:"visibility"`
+	Ticket      *Ticket        `json:"ticket"`
+	Tickets     *TicketCursor  `json:"tickets"`
+	Labels      *LabelCursor   `json:"labels"`
 	// If the authenticated user is subscribed to this tracker, this is that
 	// subscription.
 	Subscription *TrackerSubscription `json:"subscription,omitempty"`
@@ -447,15 +446,15 @@ type Tracker struct {
 // These ACLs are configured for specific entities, and may be used to expand or
 // constrain the rights of a participant.
 type TrackerACL struct {
-	Id      int32     `json:"id"`
-	Created time.Time `json:"created"`
-	Tracker *Tracker  `json:"tracker"`
-	Entity  *Entity   `json:"entity"`
-	Browse  bool      `json:"browse"`
-	Submit  bool      `json:"submit"`
-	Comment bool      `json:"comment"`
-	Edit    bool      `json:"edit"`
-	Triage  bool      `json:"triage"`
+	Id      int32          `json:"id"`
+	Created gqlclient.Time `json:"created"`
+	Tracker *Tracker       `json:"tracker"`
+	Entity  *Entity        `json:"entity"`
+	Browse  bool           `json:"browse"`
+	Submit  bool           `json:"submit"`
+	Comment bool           `json:"comment"`
+	Edit    bool           `json:"edit"`
+	Triage  bool           `json:"triage"`
 }
 
 // A cursor for enumerating trackers
@@ -469,10 +468,10 @@ type TrackerCursor struct {
 }
 
 type TrackerEvent struct {
-	Uuid    string       `json:"uuid"`
-	Event   WebhookEvent `json:"event"`
-	Date    time.Time    `json:"date"`
-	Tracker *Tracker     `json:"tracker"`
+	Uuid    string         `json:"uuid"`
+	Event   WebhookEvent   `json:"event"`
+	Date    gqlclient.Time `json:"date"`
+	Tracker *Tracker       `json:"tracker"`
 }
 
 // You may omit any fields to leave them unchanged.
@@ -484,9 +483,9 @@ type TrackerInput struct {
 // A tracker subscription will notify a participant of all activity for a
 // tracker, including all new tickets and their events.
 type TrackerSubscription struct {
-	Id      int32     `json:"id"`
-	Created time.Time `json:"created"`
-	Tracker *Tracker  `json:"tracker"`
+	Id      int32          `json:"id"`
+	Created gqlclient.Time `json:"created"`
+	Tracker *Tracker       `json:"tracker"`
 }
 
 type TrackerWebhookInput struct {
@@ -533,15 +532,15 @@ type UpdateTicketInput struct {
 }
 
 type User struct {
-	Id            int32     `json:"id"`
-	Created       time.Time `json:"created"`
-	Updated       time.Time `json:"updated"`
-	CanonicalName string    `json:"canonicalName"`
-	Username      string    `json:"username"`
-	Email         string    `json:"email"`
-	Url           *string   `json:"url,omitempty"`
-	Location      *string   `json:"location,omitempty"`
-	Bio           *string   `json:"bio,omitempty"`
+	Id            int32          `json:"id"`
+	Created       gqlclient.Time `json:"created"`
+	Updated       gqlclient.Time `json:"updated"`
+	CanonicalName string         `json:"canonicalName"`
+	Username      string         `json:"username"`
+	Email         string         `json:"email"`
+	Url           *string        `json:"url,omitempty"`
+	Location      *string        `json:"location,omitempty"`
+	Bio           *string        `json:"bio,omitempty"`
 	// Returns a specific tracker.
 	Tracker  *Tracker       `json:"tracker,omitempty"`
 	Trackers *TrackerCursor `json:"trackers"`
@@ -577,7 +576,7 @@ type Version struct {
 	// If this API version is scheduled for deprecation, this is the date on which
 	// it will stop working; or null if this API version is not scheduled for
 	// deprecation.
-	DeprecationDate time.Time `json:"deprecationDate,omitempty"`
+	DeprecationDate gqlclient.Time `json:"deprecationDate,omitempty"`
 }
 
 type Visibility string
@@ -590,7 +589,7 @@ const (
 
 type WebhookDelivery struct {
 	Uuid         string               `json:"uuid"`
-	Date         time.Time            `json:"date"`
+	Date         gqlclient.Time       `json:"date"`
 	Event        WebhookEvent         `json:"event"`
 	Subscription *WebhookSubscription `json:"subscription"`
 	RequestBody  string               `json:"requestBody"`
@@ -629,9 +628,9 @@ const (
 )
 
 type WebhookPayload struct {
-	Uuid  string       `json:"uuid"`
-	Event WebhookEvent `json:"event"`
-	Date  time.Time    `json:"date"`
+	Uuid  string         `json:"uuid"`
+	Event WebhookEvent   `json:"event"`
+	Date  gqlclient.Time `json:"date"`
 }
 
 type WebhookSubscription struct {

@@ -5,7 +5,6 @@ package listssrht
 import (
 	"context"
 	gqlclient "git.sr.ht/~emersion/gqlclient"
-	"time"
 )
 
 type ACL struct {
@@ -45,8 +44,8 @@ const (
 )
 
 type ActivitySubscription struct {
-	Id      int32     `json:"id"`
-	Created time.Time `json:"created"`
+	Id      int32          `json:"id"`
+	Created gqlclient.Time `json:"created"`
 }
 
 // A cursor for enumerating subscriptions
@@ -76,9 +75,9 @@ type Email struct {
 	// with an account, or a Mailbox otherwise.
 	Sender *Entity `json:"sender"`
 	// Time we received this email (non-forgable).
-	Received time.Time `json:"received"`
+	Received gqlclient.Time `json:"received"`
 	// Time given by Date header (forgable).
-	Date time.Time `json:"date,omitempty"`
+	Date gqlclient.Time `json:"date,omitempty"`
 	// The Subject header.
 	Subject string `json:"subject"`
 	// The Message-ID header, without angle brackets.
@@ -113,10 +112,10 @@ type EmailCursor struct {
 }
 
 type EmailEvent struct {
-	Uuid  string       `json:"uuid"`
-	Event WebhookEvent `json:"event"`
-	Date  time.Time    `json:"date"`
-	Email *Email       `json:"email"`
+	Uuid  string         `json:"uuid"`
+	Event WebhookEvent   `json:"event"`
+	Date  gqlclient.Time `json:"date"`
+	Email *Email         `json:"email"`
 }
 
 type Entity struct {
@@ -140,13 +139,13 @@ type Mailbox struct {
 }
 
 type MailingList struct {
-	Id          int32      `json:"id"`
-	Created     time.Time  `json:"created"`
-	Updated     time.Time  `json:"updated"`
-	Name        string     `json:"name"`
-	Owner       *Entity    `json:"owner"`
-	Description *string    `json:"description,omitempty"`
-	Visibility  Visibility `json:"visibility"`
+	Id          int32          `json:"id"`
+	Created     gqlclient.Time `json:"created"`
+	Updated     gqlclient.Time `json:"updated"`
+	Name        string         `json:"name"`
+	Owner       *Entity        `json:"owner"`
+	Description *string        `json:"description,omitempty"`
+	Visibility  Visibility     `json:"visibility"`
 	// List of globs for permitted or rejected mimetypes on this list
 	// e.g. text/*
 	PermitMime []string `json:"permitMime"`
@@ -182,14 +181,14 @@ type MailingList struct {
 // These ACLs are configured for specific entities, and may be used to expand or
 // constrain the rights of a participant.
 type MailingListACL struct {
-	Id       int32        `json:"id"`
-	Created  time.Time    `json:"created"`
-	List     *MailingList `json:"list"`
-	Entity   *Entity      `json:"entity"`
-	Browse   bool         `json:"browse"`
-	Reply    bool         `json:"reply"`
-	Post     bool         `json:"post"`
-	Moderate bool         `json:"moderate"`
+	Id       int32          `json:"id"`
+	Created  gqlclient.Time `json:"created"`
+	List     *MailingList   `json:"list"`
+	Entity   *Entity        `json:"entity"`
+	Browse   bool           `json:"browse"`
+	Reply    bool           `json:"reply"`
+	Post     bool           `json:"post"`
+	Moderate bool           `json:"moderate"`
 }
 
 // A cursor for enumerating ACL entries
@@ -213,10 +212,10 @@ type MailingListCursor struct {
 }
 
 type MailingListEvent struct {
-	Uuid  string       `json:"uuid"`
-	Event WebhookEvent `json:"event"`
-	Date  time.Time    `json:"date"`
-	List  *MailingList `json:"list"`
+	Uuid  string         `json:"uuid"`
+	Event WebhookEvent   `json:"event"`
+	Date  gqlclient.Time `json:"date"`
+	List  *MailingList   `json:"list"`
 }
 
 type MailingListInput struct {
@@ -229,9 +228,9 @@ type MailingListInput struct {
 }
 
 type MailingListSubscription struct {
-	Id      int32        `json:"id"`
-	Created time.Time    `json:"created"`
-	List    *MailingList `json:"list"`
+	Id      int32          `json:"id"`
+	Created gqlclient.Time `json:"created"`
+	List    *MailingList   `json:"list"`
 }
 
 type MailingListWebhookInput struct {
@@ -257,15 +256,15 @@ type OAuthClient struct {
 
 // Information parsed from the subject line of a patch, such that the following:
 //
-//     [PATCH myproject v2 3/4] Add foo to bar
+//	[PATCH myproject v2 3/4] Add foo to bar
 //
 // Will produce:
 //
-//     index: 3
-//     count: 4
-//     version: 2
-//     prefix: "myproject"
-//     subject: "Add foo to bar"
+//	index: 3
+//	count: 4
+//	version: 2
+//	prefix: "myproject"
+//	subject: "Add foo to bar"
 type Patch struct {
 	Index   *int32  `json:"index,omitempty"`
 	Count   *int32  `json:"count,omitempty"`
@@ -276,8 +275,8 @@ type Patch struct {
 
 type Patchset struct {
 	Id           int32          `json:"id"`
-	Created      time.Time      `json:"created"`
-	Updated      time.Time      `json:"updated"`
+	Created      gqlclient.Time `json:"created"`
+	Updated      gqlclient.Time `json:"updated"`
 	Subject      string         `json:"subject"`
 	Version      int32          `json:"version"`
 	Prefix       *string        `json:"prefix,omitempty"`
@@ -304,10 +303,10 @@ type PatchsetCursor struct {
 }
 
 type PatchsetEvent struct {
-	Uuid     string       `json:"uuid"`
-	Event    WebhookEvent `json:"event"`
-	Date     time.Time    `json:"date"`
-	Patchset *Patchset    `json:"patchset"`
+	Uuid     string         `json:"uuid"`
+	Event    WebhookEvent   `json:"event"`
+	Date     gqlclient.Time `json:"date"`
+	Patchset *Patchset      `json:"patchset"`
 }
 
 type PatchsetStatus string
@@ -325,23 +324,23 @@ const (
 // Used to add some kind of indicator for a third-party process associated with
 // a patchset, such as a CI service validating the change.
 type PatchsetTool struct {
-	Id       int32     `json:"id"`
-	Created  time.Time `json:"created"`
-	Updated  time.Time `json:"updated"`
-	Icon     ToolIcon  `json:"icon"`
-	Details  string    `json:"details"`
-	Patchset *Patchset `json:"patchset"`
+	Id       int32          `json:"id"`
+	Created  gqlclient.Time `json:"created"`
+	Updated  gqlclient.Time `json:"updated"`
+	Icon     ToolIcon       `json:"icon"`
+	Details  string         `json:"details"`
+	Patchset *Patchset      `json:"patchset"`
 }
 
 type Thread struct {
-	Created      time.Time    `json:"created"`
-	Updated      time.Time    `json:"updated"`
-	Subject      string       `json:"subject"`
-	Replies      int32        `json:"replies"`
-	Participants int32        `json:"participants"`
-	Sender       *Entity      `json:"sender"`
-	Root         *Email       `json:"root"`
-	List         *MailingList `json:"list"`
+	Created      gqlclient.Time `json:"created"`
+	Updated      gqlclient.Time `json:"updated"`
+	Subject      string         `json:"subject"`
+	Replies      int32          `json:"replies"`
+	Participants int32          `json:"participants"`
+	Sender       *Entity        `json:"sender"`
+	Root         *Email         `json:"root"`
+	List         *MailingList   `json:"list"`
 	// Replies to this thread, in chronological order
 	Descendants *EmailCursor `json:"descendants"`
 	// A mailto: URI for replying to the latest message in this thread
@@ -412,8 +411,8 @@ type URL string
 // A registered user
 type User struct {
 	Id            int32              `json:"id"`
-	Created       time.Time          `json:"created"`
-	Updated       time.Time          `json:"updated"`
+	Created       gqlclient.Time     `json:"created"`
+	Updated       gqlclient.Time     `json:"updated"`
 	CanonicalName string             `json:"canonicalName"`
 	Username      string             `json:"username"`
 	Email         string             `json:"email"`
@@ -450,7 +449,7 @@ type Version struct {
 	// If this API version is scheduled for deprecation, this is the date on which
 	// it will stop working; or null if this API version is not scheduled for
 	// deprecation.
-	DeprecationDate time.Time `json:"deprecationDate,omitempty"`
+	DeprecationDate gqlclient.Time `json:"deprecationDate,omitempty"`
 }
 
 type Visibility string
@@ -463,7 +462,7 @@ const (
 
 type WebhookDelivery struct {
 	Uuid         string               `json:"uuid"`
-	Date         time.Time            `json:"date"`
+	Date         gqlclient.Time       `json:"date"`
 	Event        WebhookEvent         `json:"event"`
 	Subscription *WebhookSubscription `json:"subscription"`
 	RequestBody  string               `json:"requestBody"`
@@ -497,9 +496,9 @@ const (
 )
 
 type WebhookPayload struct {
-	Uuid  string       `json:"uuid"`
-	Event WebhookEvent `json:"event"`
-	Date  time.Time    `json:"date"`
+	Uuid  string         `json:"uuid"`
+	Event WebhookEvent   `json:"event"`
+	Date  gqlclient.Time `json:"date"`
 }
 
 type WebhookSubscription struct {

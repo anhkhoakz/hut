@@ -322,7 +322,7 @@ func newTodoTicketListCommand() *cobra.Command {
 				}
 			}
 			s += fmt.Sprintf("%s%s (%s %s ago)", ticket.Subject, labels,
-				ticket.Submitter.CanonicalName, timeDelta(ticket.Created))
+				ticket.Submitter.CanonicalName, timeDelta(ticket.Created.Time))
 			fmt.Println(s)
 		}
 	}
@@ -728,8 +728,8 @@ func newTodoTicketShowCommand() *cobra.Command {
 		}
 		fmt.Println(assigned)
 
-		fmt.Printf("Submitted: %s ago\n", timeDelta(ticket.Created))
-		fmt.Printf("Updated: %s ago\n", timeDelta(ticket.Updated))
+		fmt.Printf("Submitted: %s ago\n", timeDelta(ticket.Created.Time))
+		fmt.Printf("Updated: %s ago\n", timeDelta(ticket.Updated.Time))
 
 		labels := "Labels: "
 		if len(ticket.Labels) == 0 {
@@ -1078,7 +1078,7 @@ func newTodoACLListCommand() *cobra.Command {
 				todosrht.PermissionIcon(acl.Browse), todosrht.PermissionIcon(acl.Submit),
 				todosrht.PermissionIcon(acl.Comment), todosrht.PermissionIcon(acl.Edit),
 				todosrht.PermissionIcon(acl.Triage))
-			created := termfmt.Dim.Sprintf("%s ago", timeDelta(acl.Created))
+			created := termfmt.Dim.Sprintf("%s ago", timeDelta(acl.Created.Time))
 			fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n", termfmt.DarkYellow.Sprintf("#%d", acl.Id),
 				acl.Entity.CanonicalName, s, created)
 		}

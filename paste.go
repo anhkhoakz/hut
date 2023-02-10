@@ -139,7 +139,7 @@ func newPasteListCommand() *cobra.Command {
 
 		for _, paste := range pastes.Results {
 			fmt.Printf("%s %s %s ago\n", termfmt.DarkYellow.Sprint(paste.Id),
-				paste.Visibility.TermString(), timeDelta(paste.Created))
+				paste.Visibility.TermString(), timeDelta(paste.Created.Time))
 			for _, file := range paste.Files {
 				if file.Filename != nil && *file.Filename != "" {
 					fmt.Printf("  %s\n", *file.Filename)
@@ -178,7 +178,7 @@ func newPasteShowCommand() *cobra.Command {
 		}
 
 		fmt.Printf("%s %s %s ago\n", termfmt.DarkYellow.Sprint(paste.Id),
-			paste.Visibility.TermString(), timeDelta(paste.Created))
+			paste.Visibility.TermString(), timeDelta(paste.Created.Time))
 
 		for _, file := range paste.Files {
 			fmt.Print("\n■ ")

@@ -5,15 +5,14 @@ package gitsrht
 import (
 	"context"
 	gqlclient "git.sr.ht/~emersion/gqlclient"
-	"time"
 )
 
 type ACL struct {
-	Id         int32       `json:"id"`
-	Created    time.Time   `json:"created"`
-	Repository *Repository `json:"repository"`
-	Entity     *Entity     `json:"entity"`
-	Mode       *AccessMode `json:"mode,omitempty"`
+	Id         int32          `json:"id"`
+	Created    gqlclient.Time `json:"created"`
+	Repository *Repository    `json:"repository"`
+	Entity     *Entity        `json:"entity"`
+	Mode       *AccessMode    `json:"mode,omitempty"`
 }
 
 // A cursor for enumerating access control list entries
@@ -53,12 +52,12 @@ const (
 
 // Arbitrary file attached to a git repository
 type Artifact struct {
-	Id       int32     `json:"id"`
-	Created  time.Time `json:"created"`
-	Filename string    `json:"filename"`
-	Checksum string    `json:"checksum"`
-	Size     int32     `json:"size"`
-	Url      string    `json:"url"`
+	Id       int32          `json:"id"`
+	Created  gqlclient.Time `json:"created"`
+	Filename string         `json:"filename"`
+	Checksum string         `json:"checksum"`
+	Size     int32          `json:"size"`
+	Url      string         `json:"url"`
 }
 
 // A cursor for enumerating artifacts
@@ -109,9 +108,9 @@ type CommitCursor struct {
 type Cursor string
 
 type Entity struct {
-	Id      int32     `json:"id"`
-	Created time.Time `json:"created"`
-	Updated time.Time `json:"updated"`
+	Id      int32          `json:"id"`
+	Created gqlclient.Time `json:"created"`
+	Updated gqlclient.Time `json:"updated"`
 	// The canonical name of this entity. For users, this is their username
 	// prefixed with '~'. Additional entity types will be supported in the future.
 	CanonicalName string `json:"canonicalName"`
@@ -186,13 +185,13 @@ type RepoInput struct {
 }
 
 type Repository struct {
-	Id          int32      `json:"id"`
-	Created     time.Time  `json:"created"`
-	Updated     time.Time  `json:"updated"`
-	Owner       *Entity    `json:"owner"`
-	Name        string     `json:"name"`
-	Description *string    `json:"description,omitempty"`
-	Visibility  Visibility `json:"visibility"`
+	Id          int32          `json:"id"`
+	Created     gqlclient.Time `json:"created"`
+	Updated     gqlclient.Time `json:"updated"`
+	Owner       *Entity        `json:"owner"`
+	Name        string         `json:"name"`
+	Description *string        `json:"description,omitempty"`
+	Visibility  Visibility     `json:"visibility"`
 	// The repository's custom README, if set.
 	//
 	// NOTICE: This returns unsanitized HTML. It is the client's responsibility to
@@ -229,10 +228,10 @@ type RepositoryCursor struct {
 }
 
 type RepositoryEvent struct {
-	Uuid       string       `json:"uuid"`
-	Event      WebhookEvent `json:"event"`
-	Date       time.Time    `json:"date"`
-	Repository *Repository  `json:"repository"`
+	Uuid       string         `json:"uuid"`
+	Event      WebhookEvent   `json:"event"`
+	Date       gqlclient.Time `json:"date"`
+	Repository *Repository    `json:"repository"`
 }
 
 // Instance specific settings
@@ -241,9 +240,9 @@ type Settings struct {
 }
 
 type Signature struct {
-	Name  string    `json:"name"`
-	Email string    `json:"email"`
-	Time  time.Time `json:"time"`
+	Name  string         `json:"name"`
+	Email string         `json:"email"`
+	Time  gqlclient.Time `json:"time"`
 }
 
 type Tag struct {
@@ -294,8 +293,8 @@ type TreeEntryCursor struct {
 
 type User struct {
 	Id            int32             `json:"id"`
-	Created       time.Time         `json:"created"`
-	Updated       time.Time         `json:"updated"`
+	Created       gqlclient.Time    `json:"created"`
+	Updated       gqlclient.Time    `json:"updated"`
 	CanonicalName string            `json:"canonicalName"`
 	Username      string            `json:"username"`
 	Email         string            `json:"email"`
@@ -329,7 +328,7 @@ type Version struct {
 	// If this API version is scheduled for deprecation, this is the date on which
 	// it will stop working; or null if this API version is not scheduled for
 	// deprecation.
-	DeprecationDate time.Time `json:"deprecationDate,omitempty"`
+	DeprecationDate gqlclient.Time `json:"deprecationDate,omitempty"`
 	// Optional features
 	Features *Features `json:"features"`
 	// Config settings
@@ -349,7 +348,7 @@ const (
 
 type WebhookDelivery struct {
 	Uuid         string               `json:"uuid"`
-	Date         time.Time            `json:"date"`
+	Date         gqlclient.Time       `json:"date"`
 	Event        WebhookEvent         `json:"event"`
 	Subscription *WebhookSubscription `json:"subscription"`
 	RequestBody  string               `json:"requestBody"`
@@ -381,9 +380,9 @@ const (
 )
 
 type WebhookPayload struct {
-	Uuid  string       `json:"uuid"`
-	Event WebhookEvent `json:"event"`
-	Date  time.Time    `json:"date"`
+	Uuid  string         `json:"uuid"`
+	Event WebhookEvent   `json:"event"`
+	Date  gqlclient.Time `json:"date"`
 }
 
 type WebhookSubscription struct {

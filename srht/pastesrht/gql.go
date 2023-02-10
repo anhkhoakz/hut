@@ -5,7 +5,6 @@ package pastesrht
 import (
 	"context"
 	gqlclient "git.sr.ht/~emersion/gqlclient"
-	"time"
 )
 
 type AccessKind string
@@ -25,8 +24,8 @@ const (
 type Cursor string
 
 type Entity struct {
-	Id      int32     `json:"id"`
-	Created time.Time `json:"created"`
+	Id      int32          `json:"id"`
+	Created gqlclient.Time `json:"created"`
 	// The canonical name of this entity. For users, this is their username
 	// prefixed with '~'. Additional entity types will be supported in the future.
 	CanonicalName string       `json:"canonicalName"`
@@ -44,11 +43,11 @@ type OAuthClient struct {
 }
 
 type Paste struct {
-	Id         string     `json:"id"`
-	Created    time.Time  `json:"created"`
-	Visibility Visibility `json:"visibility"`
-	Files      []File     `json:"files"`
-	User       *Entity    `json:"user"`
+	Id         string         `json:"id"`
+	Created    gqlclient.Time `json:"created"`
+	Visibility Visibility     `json:"visibility"`
+	Files      []File         `json:"files"`
+	User       *Entity        `json:"user"`
 }
 
 // A cursor for enumerating pastes
@@ -62,10 +61,10 @@ type PasteCursor struct {
 }
 
 type PasteEvent struct {
-	Uuid  string       `json:"uuid"`
-	Event WebhookEvent `json:"event"`
-	Date  time.Time    `json:"date"`
-	Paste *Paste       `json:"paste"`
+	Uuid  string         `json:"uuid"`
+	Event WebhookEvent   `json:"event"`
+	Date  gqlclient.Time `json:"date"`
+	Paste *Paste         `json:"paste"`
 }
 
 // URL from which some secondary data may be retrieved. You must provide the
@@ -76,11 +75,11 @@ type PasteEvent struct {
 type URL string
 
 type User struct {
-	Id            int32        `json:"id"`
-	Created       time.Time    `json:"created"`
-	CanonicalName string       `json:"canonicalName"`
-	Pastes        *PasteCursor `json:"pastes"`
-	Username      string       `json:"username"`
+	Id            int32          `json:"id"`
+	Created       gqlclient.Time `json:"created"`
+	CanonicalName string         `json:"canonicalName"`
+	Pastes        *PasteCursor   `json:"pastes"`
+	Username      string         `json:"username"`
 }
 
 type UserWebhookInput struct {
@@ -106,7 +105,7 @@ type Version struct {
 	// If this API version is scheduled for deprecation, this is the date on which
 	// it will stop working; or null if this API version is not scheduled for
 	// deprecation.
-	DeprecationDate time.Time `json:"deprecationDate,omitempty"`
+	DeprecationDate gqlclient.Time `json:"deprecationDate,omitempty"`
 }
 
 type Visibility string
@@ -122,7 +121,7 @@ const (
 
 type WebhookDelivery struct {
 	Uuid         string               `json:"uuid"`
-	Date         time.Time            `json:"date"`
+	Date         gqlclient.Time       `json:"date"`
 	Event        WebhookEvent         `json:"event"`
 	Subscription *WebhookSubscription `json:"subscription"`
 	RequestBody  string               `json:"requestBody"`
@@ -154,9 +153,9 @@ const (
 )
 
 type WebhookPayload struct {
-	Uuid  string       `json:"uuid"`
-	Event WebhookEvent `json:"event"`
-	Date  time.Time    `json:"date"`
+	Uuid  string         `json:"uuid"`
+	Event WebhookEvent   `json:"event"`
+	Date  gqlclient.Time `json:"date"`
 }
 
 type WebhookSubscription struct {

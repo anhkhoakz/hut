@@ -5,7 +5,6 @@ package metasrht
 import (
 	"context"
 	gqlclient "git.sr.ht/~emersion/gqlclient"
-	"time"
 )
 
 type AccessKind string
@@ -36,30 +35,30 @@ type AuditLogCursor struct {
 }
 
 type AuditLogEntry struct {
-	Id        int32     `json:"id"`
-	Created   time.Time `json:"created"`
-	IpAddress string    `json:"ipAddress"`
-	EventType string    `json:"eventType"`
-	Details   *string   `json:"details,omitempty"`
+	Id        int32          `json:"id"`
+	Created   gqlclient.Time `json:"created"`
+	IpAddress string         `json:"ipAddress"`
+	EventType string         `json:"eventType"`
+	Details   *string        `json:"details,omitempty"`
 }
 
 type Cursor string
 
 type Entity struct {
-	Id      int32     `json:"id"`
-	Created time.Time `json:"created"`
-	Updated time.Time `json:"updated"`
+	Id      int32          `json:"id"`
+	Created gqlclient.Time `json:"created"`
+	Updated gqlclient.Time `json:"updated"`
 	// The canonical name of this entity. For users, this is their username
 	// prefixed with '~'. Additional entity types will be supported in the future.
 	CanonicalName string `json:"canonicalName"`
 }
 
 type Invoice struct {
-	Id        int32     `json:"id"`
-	Created   time.Time `json:"created"`
-	Cents     int32     `json:"cents"`
-	ValidThru time.Time `json:"validThru"`
-	Source    *string   `json:"source,omitempty"`
+	Id        int32          `json:"id"`
+	Created   gqlclient.Time `json:"created"`
+	Cents     int32          `json:"cents"`
+	ValidThru gqlclient.Time `json:"validThru"`
+	Source    *string        `json:"source,omitempty"`
 }
 
 // A cursor for enumerating a list of invoices
@@ -88,11 +87,11 @@ type OAuthClientRegistration struct {
 }
 
 type OAuthGrant struct {
-	Id        int32        `json:"id"`
-	Client    *OAuthClient `json:"client"`
-	Issued    time.Time    `json:"issued"`
-	Expires   time.Time    `json:"expires"`
-	TokenHash string       `json:"tokenHash"`
+	Id        int32          `json:"id"`
+	Client    *OAuthClient   `json:"client"`
+	Issued    gqlclient.Time `json:"issued"`
+	Expires   gqlclient.Time `json:"expires"`
+	TokenHash string         `json:"tokenHash"`
 }
 
 type OAuthGrantRegistration struct {
@@ -102,10 +101,10 @@ type OAuthGrantRegistration struct {
 }
 
 type OAuthPersonalToken struct {
-	Id      int32     `json:"id"`
-	Issued  time.Time `json:"issued"`
-	Expires time.Time `json:"expires"`
-	Comment *string   `json:"comment,omitempty"`
+	Id      int32          `json:"id"`
+	Issued  gqlclient.Time `json:"issued"`
+	Expires gqlclient.Time `json:"expires"`
+	Comment *string        `json:"comment,omitempty"`
 }
 
 type OAuthPersonalTokenRegistration struct {
@@ -114,11 +113,11 @@ type OAuthPersonalTokenRegistration struct {
 }
 
 type PGPKey struct {
-	Id          int32     `json:"id"`
-	Created     time.Time `json:"created"`
-	User        *User     `json:"user"`
-	Key         string    `json:"key"`
-	Fingerprint string    `json:"fingerprint"`
+	Id          int32          `json:"id"`
+	Created     gqlclient.Time `json:"created"`
+	User        *User          `json:"user"`
+	Key         string         `json:"key"`
+	Fingerprint string         `json:"fingerprint"`
 }
 
 // A cursor for enumerating a list of PGP keys
@@ -132,17 +131,17 @@ type PGPKeyCursor struct {
 }
 
 type PGPKeyEvent struct {
-	Uuid  string       `json:"uuid"`
-	Event WebhookEvent `json:"event"`
-	Date  time.Time    `json:"date"`
-	Key   *PGPKey      `json:"key"`
+	Uuid  string         `json:"uuid"`
+	Event WebhookEvent   `json:"event"`
+	Date  gqlclient.Time `json:"date"`
+	Key   *PGPKey        `json:"key"`
 }
 
 type ProfileUpdateEvent struct {
-	Uuid    string       `json:"uuid"`
-	Event   WebhookEvent `json:"event"`
-	Date    time.Time    `json:"date"`
-	Profile *User        `json:"profile"`
+	Uuid    string         `json:"uuid"`
+	Event   WebhookEvent   `json:"event"`
+	Date    gqlclient.Time `json:"date"`
+	Profile *User          `json:"profile"`
 }
 
 type ProfileWebhookInput struct {
@@ -162,13 +161,13 @@ type ProfileWebhookSubscription struct {
 }
 
 type SSHKey struct {
-	Id          int32     `json:"id"`
-	Created     time.Time `json:"created"`
-	LastUsed    time.Time `json:"lastUsed,omitempty"`
-	User        *User     `json:"user"`
-	Key         string    `json:"key"`
-	Fingerprint string    `json:"fingerprint"`
-	Comment     *string   `json:"comment,omitempty"`
+	Id          int32          `json:"id"`
+	Created     gqlclient.Time `json:"created"`
+	LastUsed    gqlclient.Time `json:"lastUsed,omitempty"`
+	User        *User          `json:"user"`
+	Key         string         `json:"key"`
+	Fingerprint string         `json:"fingerprint"`
+	Comment     *string        `json:"comment,omitempty"`
 }
 
 // A cursor for enumerating a list of SSH keys
@@ -182,26 +181,26 @@ type SSHKeyCursor struct {
 }
 
 type SSHKeyEvent struct {
-	Uuid  string       `json:"uuid"`
-	Event WebhookEvent `json:"event"`
-	Date  time.Time    `json:"date"`
-	Key   *SSHKey      `json:"key"`
+	Uuid  string         `json:"uuid"`
+	Event WebhookEvent   `json:"event"`
+	Date  gqlclient.Time `json:"date"`
+	Key   *SSHKey        `json:"key"`
 }
 
 type User struct {
-	Id               int32         `json:"id"`
-	Created          time.Time     `json:"created"`
-	Updated          time.Time     `json:"updated"`
-	CanonicalName    string        `json:"canonicalName"`
-	Username         string        `json:"username"`
-	Email            string        `json:"email"`
-	Url              *string       `json:"url,omitempty"`
-	Location         *string       `json:"location,omitempty"`
-	Bio              *string       `json:"bio,omitempty"`
-	UserType         UserType      `json:"userType"`
-	SuspensionNotice *string       `json:"suspensionNotice,omitempty"`
-	SshKeys          *SSHKeyCursor `json:"sshKeys"`
-	PgpKeys          *PGPKeyCursor `json:"pgpKeys"`
+	Id               int32          `json:"id"`
+	Created          gqlclient.Time `json:"created"`
+	Updated          gqlclient.Time `json:"updated"`
+	CanonicalName    string         `json:"canonicalName"`
+	Username         string         `json:"username"`
+	Email            string         `json:"email"`
+	Url              *string        `json:"url,omitempty"`
+	Location         *string        `json:"location,omitempty"`
+	Bio              *string        `json:"bio,omitempty"`
+	UserType         UserType       `json:"userType"`
+	SuspensionNotice *string        `json:"suspensionNotice,omitempty"`
+	SshKeys          *SSHKeyCursor  `json:"sshKeys"`
+	PgpKeys          *PGPKeyCursor  `json:"pgpKeys"`
 }
 
 // Omit these fields to leave them unchanged, or set them to null to clear
@@ -234,12 +233,12 @@ type Version struct {
 	// If this API version is scheduled for deprecation, this is the date on which
 	// it will stop working; or null if this API version is not scheduled for
 	// deprecation.
-	DeprecationDate time.Time `json:"deprecationDate,omitempty"`
+	DeprecationDate gqlclient.Time `json:"deprecationDate,omitempty"`
 }
 
 type WebhookDelivery struct {
 	Uuid         string               `json:"uuid"`
-	Date         time.Time            `json:"date"`
+	Date         gqlclient.Time       `json:"date"`
 	Event        WebhookEvent         `json:"event"`
 	Subscription *WebhookSubscription `json:"subscription"`
 	RequestBody  string               `json:"requestBody"`
@@ -274,9 +273,9 @@ const (
 )
 
 type WebhookPayload struct {
-	Uuid  string       `json:"uuid"`
-	Event WebhookEvent `json:"event"`
-	Date  time.Time    `json:"date"`
+	Uuid  string         `json:"uuid"`
+	Event WebhookEvent   `json:"event"`
+	Date  gqlclient.Time `json:"date"`
 }
 
 type WebhookSubscription struct {

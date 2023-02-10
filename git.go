@@ -388,7 +388,7 @@ func newGitACLListCommand() *cobra.Command {
 				mode = string(*acl.Mode)
 			}
 
-			created := termfmt.Dim.Sprintf("%s ago", timeDelta(acl.Created))
+			created := termfmt.Dim.Sprintf("%s ago", timeDelta(acl.Created.Time))
 			fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n", termfmt.DarkYellow.Sprintf("#%d", acl.Id),
 				acl.Entity.CanonicalName, mode, created)
 		}
@@ -547,7 +547,7 @@ func newGitShowCommand() *cobra.Command {
 					termfmt.Yellow.Sprintf("%s", commit.ShortId),
 					commit.Author.Name,
 					commit.Author.Email,
-					timeDelta(commit.Author.Time))
+					timeDelta(commit.Author.Time.Time))
 
 				commitLines := strings.Split(commit.Message, "\n")
 				fmt.Printf("      %s\n", commitLines[0])

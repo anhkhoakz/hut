@@ -5,7 +5,6 @@ package buildssrht
 import (
 	"context"
 	gqlclient "git.sr.ht/~emersion/gqlclient"
-	"time"
 )
 
 type AccessKind string
@@ -25,8 +24,8 @@ const (
 )
 
 type Artifact struct {
-	Id      int32     `json:"id"`
-	Created time.Time `json:"created"`
+	Id      int32          `json:"id"`
+	Created gqlclient.Time `json:"created"`
 	// Original path in the guest
 	Path string `json:"path"`
 	// Size in bytes
@@ -53,9 +52,9 @@ type EmailTriggerInput struct {
 }
 
 type Entity struct {
-	Id      int32     `json:"id"`
-	Created time.Time `json:"created"`
-	Updated time.Time `json:"updated"`
+	Id      int32          `json:"id"`
+	Created gqlclient.Time `json:"created"`
+	Updated gqlclient.Time `json:"updated"`
 	// The canonical name of this entity. For users, this is their username
 	// prefixed with '~'. Additional entity types will be supported in the future.
 	CanonicalName string `json:"canonicalName"`
@@ -64,13 +63,13 @@ type Entity struct {
 type File string
 
 type Job struct {
-	Id       int32     `json:"id"`
-	Created  time.Time `json:"created"`
-	Updated  time.Time `json:"updated"`
-	Status   JobStatus `json:"status"`
-	Manifest string    `json:"manifest"`
-	Note     *string   `json:"note,omitempty"`
-	Tags     []string  `json:"tags"`
+	Id       int32          `json:"id"`
+	Created  gqlclient.Time `json:"created"`
+	Updated  gqlclient.Time `json:"updated"`
+	Status   JobStatus      `json:"status"`
+	Manifest string         `json:"manifest"`
+	Note     *string        `json:"note,omitempty"`
+	Tags     []string       `json:"tags"`
 	// Name of the build image
 	Image string `json:"image"`
 	// Name of the build runner which picked up this job, or null if the job is
@@ -97,12 +96,12 @@ type JobCursor struct {
 }
 
 type JobGroup struct {
-	Id       int32     `json:"id"`
-	Created  time.Time `json:"created"`
-	Note     *string   `json:"note,omitempty"`
-	Owner    *Entity   `json:"owner"`
-	Jobs     []Job     `json:"jobs"`
-	Triggers []Trigger `json:"triggers"`
+	Id       int32          `json:"id"`
+	Created  gqlclient.Time `json:"created"`
+	Note     *string        `json:"note,omitempty"`
+	Owner    *Entity        `json:"owner"`
+	Jobs     []Job          `json:"jobs"`
+	Triggers []Trigger      `json:"triggers"`
 }
 
 type JobStatus string
@@ -126,26 +125,26 @@ type Log struct {
 }
 
 type PGPKey struct {
-	Id         int32     `json:"id"`
-	Created    time.Time `json:"created"`
-	Uuid       string    `json:"uuid"`
-	Name       *string   `json:"name,omitempty"`
-	PrivateKey Binary    `json:"privateKey"`
+	Id         int32          `json:"id"`
+	Created    gqlclient.Time `json:"created"`
+	Uuid       string         `json:"uuid"`
+	Name       *string        `json:"name,omitempty"`
+	PrivateKey Binary         `json:"privateKey"`
 }
 
 type SSHKey struct {
-	Id         int32     `json:"id"`
-	Created    time.Time `json:"created"`
-	Uuid       string    `json:"uuid"`
-	Name       *string   `json:"name,omitempty"`
-	PrivateKey Binary    `json:"privateKey"`
+	Id         int32          `json:"id"`
+	Created    gqlclient.Time `json:"created"`
+	Uuid       string         `json:"uuid"`
+	Name       *string        `json:"name,omitempty"`
+	PrivateKey Binary         `json:"privateKey"`
 }
 
 type Secret struct {
-	Id      int32     `json:"id"`
-	Created time.Time `json:"created"`
-	Uuid    string    `json:"uuid"`
-	Name    *string   `json:"name,omitempty"`
+	Id      int32          `json:"id"`
+	Created gqlclient.Time `json:"created"`
+	Uuid    string         `json:"uuid"`
+	Name    *string        `json:"name,omitempty"`
 }
 
 // A cursor for enumerating a list of secrets
@@ -159,13 +158,13 @@ type SecretCursor struct {
 }
 
 type SecretFile struct {
-	Id      int32     `json:"id"`
-	Created time.Time `json:"created"`
-	Uuid    string    `json:"uuid"`
-	Name    *string   `json:"name,omitempty"`
-	Path    string    `json:"path"`
-	Mode    int32     `json:"mode"`
-	Data    Binary    `json:"data"`
+	Id      int32          `json:"id"`
+	Created gqlclient.Time `json:"created"`
+	Uuid    string         `json:"uuid"`
+	Name    *string        `json:"name,omitempty"`
+	Path    string         `json:"path"`
+	Mode    int32          `json:"mode"`
+	Data    Binary         `json:"data"`
 }
 
 type Settings struct {
@@ -174,13 +173,13 @@ type Settings struct {
 }
 
 type Task struct {
-	Id      int32      `json:"id"`
-	Created time.Time  `json:"created"`
-	Updated time.Time  `json:"updated"`
-	Name    string     `json:"name"`
-	Status  TaskStatus `json:"status"`
-	Log     *Log       `json:"log,omitempty"`
-	Job     *Job       `json:"job"`
+	Id      int32          `json:"id"`
+	Created gqlclient.Time `json:"created"`
+	Updated gqlclient.Time `json:"updated"`
+	Name    string         `json:"name"`
+	Status  TaskStatus     `json:"status"`
+	Log     *Log           `json:"log,omitempty"`
+	Job     *Job           `json:"job"`
 }
 
 type TaskStatus string
@@ -223,15 +222,15 @@ const (
 )
 
 type User struct {
-	Id            int32     `json:"id"`
-	Created       time.Time `json:"created"`
-	Updated       time.Time `json:"updated"`
-	CanonicalName string    `json:"canonicalName"`
-	Username      string    `json:"username"`
-	Email         string    `json:"email"`
-	Url           *string   `json:"url,omitempty"`
-	Location      *string   `json:"location,omitempty"`
-	Bio           *string   `json:"bio,omitempty"`
+	Id            int32          `json:"id"`
+	Created       gqlclient.Time `json:"created"`
+	Updated       gqlclient.Time `json:"updated"`
+	CanonicalName string         `json:"canonicalName"`
+	Username      string         `json:"username"`
+	Email         string         `json:"email"`
+	Url           *string        `json:"url,omitempty"`
+	Location      *string        `json:"location,omitempty"`
+	Bio           *string        `json:"bio,omitempty"`
 	// Jobs submitted by this user.
 	Jobs *JobCursor `json:"jobs"`
 }
@@ -243,8 +242,8 @@ type Version struct {
 	// If this API version is scheduled for deprecation, this is the date on which
 	// it will stop working; or null if this API version is not scheduled for
 	// deprecation.
-	DeprecationDate time.Time `json:"deprecationDate,omitempty"`
-	Settings        *Settings `json:"settings"`
+	DeprecationDate gqlclient.Time `json:"deprecationDate,omitempty"`
+	Settings        *Settings      `json:"settings"`
 }
 
 type WebhookTrigger struct {

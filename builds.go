@@ -444,7 +444,7 @@ func newBuildsSecretsCommand() *cobra.Command {
 		defer tw.Flush()
 		for _, secret := range secrets.Results {
 			// TODO: Display secret type (and path, mode for files)
-			created := termfmt.Dim.Sprintf("%s ago", timeDelta(secret.Created))
+			created := termfmt.Dim.Sprintf("%s ago", timeDelta(secret.Created.Time))
 			s := fmt.Sprintf("%s\t%s\n", termfmt.DarkYellow.Sprint(secret.Uuid), created)
 			if secret.Name != nil {
 				s += fmt.Sprintf("%s\n", *secret.Name)
