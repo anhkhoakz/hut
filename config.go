@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -189,14 +188,26 @@ func createClientWithInstance(service string, cmd *cobra.Command, instanceName s
 
 func createClientWithToken(baseURL, token string) *Client {
 	gqlEndpoint := baseURL + "/query"
-	tokenSrc := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
-	httpClient := oauth2.NewClient(context.Background(), tokenSrc)
-	httpClient.Timeout = 30 * time.Second
+	httpTransport := &oauth2.Transport{
+		Source: oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token}),
+		Base:   userAgentHTTPTransport("hut"),
+	}
+	httpClient := &http.Client{
+		Transport: httpTransport,
+		Timeout:   30 * time.Second,
+	}
 	return &Client{
 		Client:  gqlclient.New(gqlEndpoint, httpClient),
 		BaseURL: baseURL,
 		HTTP:    httpClient,
 	}
+}
+
+type userAgentHTTPTransport string
+
+func (ua userAgentHTTPTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	req.Header.Set("User-Agent", string(ua))
+	return http.DefaultTransport.RoundTrip(req)
 }
 
 func instancesEqual(a, b string) bool {
