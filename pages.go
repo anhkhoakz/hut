@@ -1,7 +1,11 @@
 package main
 
 import (
+	"archive/tar"
+	"compress/gzip"
 	"fmt"
+	"io"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
@@ -49,18 +53,36 @@ func newPagesPublishCommand() *cobra.Command {
 		c := createClient("pages", cmd)
 		c.HTTP.Timeout = fileTransferTimeout
 
-		var upload gqlclient.Upload
+		var f *os.File
 		if filename == "" {
-			upload = gqlclient.Upload{Body: os.Stdin}
+			f = os.Stdin
 		} else {
-			f, err := os.Open(filename)
+			f, err = os.Open(filename)
 			if err != nil {
 				log.Fatalf("failed to open input file: %v", err)
 			}
-			defer f.Close()
+		}
+		defer f.Close()
 
+		fi, err := f.Stat()
+		if err != nil {
+			log.Fatalf("failed to stat input file: %v", err)
+		}
+
+		var upload gqlclient.Upload
+		if fi.IsDir() {
+			pr, pw := io.Pipe()
+			defer pr.Close()
+
+			go func() {
+				pw.CloseWithError(writeSiteArchive(pw, filename))
+			}()
+
+			upload = gqlclient.Upload{Body: pr}
+		} else {
 			upload = gqlclient.Upload{Body: f, Filename: filepath.Base(filename)}
 		}
+
 		upload.MIMEType = "application/gzip"
 
 		site, err := pagessrht.Publish(c.Client, ctx, domain, upload, pagesProtocol, subdirectory, siteConfig)
@@ -72,7 +94,7 @@ func newPagesPublishCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:   "publish [archive]",
+		Use:   "publish [file]",
 		Short: "Publish a website",
 		Args:  cobra.MaximumNArgs(1),
 		Run:   run,
@@ -86,6 +108,68 @@ func newPagesPublishCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&subdirectory, "subdirectory", "s", "/", "subdirectory")
 	cmd.Flags().StringVar(&notFound, "not-found", "", "path to serve for page not found responses")
 	return cmd
+}
+
+func writeSiteArchive(w io.Writer, dir string) error {
+	gzipWriter := gzip.NewWriter(w)
+	defer gzipWriter.Close()
+
+	tarWriter := tar.NewWriter(gzipWriter)
+	defer tarWriter.Close()
+
+	err := filepath.WalkDir(dir, func(path string, de fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if de.IsDir() {
+			return nil
+		}
+		if t := de.Type(); t != 0 {
+			// Symlink, pipe, socket, device, etc
+			return fmt.Errorf("unsupported file %q type (%v)", path, t)
+		}
+
+		fi, err := de.Info()
+		if err != nil {
+			return err
+		}
+
+		rel, err := filepath.Rel(dir, path)
+		if err != nil {
+			return err
+		}
+
+		f, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		header := tar.Header{
+			Typeflag: tar.TypeReg,
+			Name:     filepath.ToSlash(rel),
+			ModTime:  fi.ModTime(),
+			Mode:     0600,
+			Size:     fi.Size(),
+		}
+		if err := tarWriter.WriteHeader(&header); err != nil {
+			return err
+		}
+		_, err = io.Copy(tarWriter, f)
+		return err
+	})
+	if err != nil {
+		return fmt.Errorf("failed to walk directory: %v", err)
+	}
+
+	if err := tarWriter.Close(); err != nil {
+		return fmt.Errorf("failed to close tar writer: %v", err)
+	}
+	if err := gzipWriter.Close(); err != nil {
+		return fmt.Errorf("failed to close gzip writer: %v", err)
+	}
+	return nil
 }
 
 func newPagesUnpublishCommand() *cobra.Command {

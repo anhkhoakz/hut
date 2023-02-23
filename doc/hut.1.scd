@@ -455,10 +455,11 @@ Options are:
 *list*
 	List registered sites.
 
-*publish* [tarball] [options...]
+*publish* [file] [options...]
 	Publish a website.
 
-	If _tarball_ is not specified, standard input is used.
+	The input _file_ can be either a gzip tarball or a directory. If _file_ is
+	not specified, standard input is used.
 
 	Options are:
 
