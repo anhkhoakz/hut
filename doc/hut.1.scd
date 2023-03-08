@@ -467,7 +467,8 @@ Options are:
 		Fully qualified domain name.
 
 	*--not-found* <string>
-		Path to serve for page not found responses
+		Path to serve for page not found responses. This flag is deprecated, use
+		*--site-config* instead to set the path.
 
 	*-p*, *--protocol* <string>
 		Protocol to use (either HTTPS or GEMINI; defaults to HTTPS)
