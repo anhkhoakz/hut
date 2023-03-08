@@ -472,6 +472,9 @@ Options are:
 	*-p*, *--protocol* <string>
 		Protocol to use (either HTTPS or GEMINI; defaults to HTTPS)
 
+	*--site-config* <string>
+		Path to site configuration file (for e.g. cache-control).
+
 	*-s*, *--subdirectory* <string>
 		If specified, only this subdirectory is updated, the rest of the site
 		is left untouched.

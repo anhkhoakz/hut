@@ -3,6 +3,7 @@ package main
 import (
 	"archive/tar"
 	"compress/gzip"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/fs"
@@ -31,7 +32,7 @@ func newPagesCommand() *cobra.Command {
 }
 
 func newPagesPublishCommand() *cobra.Command {
-	var domain, protocol, subdirectory, notFound string
+	var domain, protocol, subdirectory, notFound, siteConfigFile string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
@@ -46,6 +47,14 @@ func newPagesPublishCommand() *cobra.Command {
 		}
 
 		siteConfig := pagessrht.SiteConfig{}
+		if siteConfigFile != "" {
+			config, err := readSiteConfig(siteConfigFile)
+			if err != nil {
+				log.Fatalf("failed to read site-config: %v", err)
+			}
+			siteConfig = *config
+		}
+
 		if notFound != "" {
 			siteConfig.NotFound = &notFound
 		}
@@ -107,6 +116,8 @@ func newPagesPublishCommand() *cobra.Command {
 	cmd.RegisterFlagCompletionFunc("protocol", completeProtocol)
 	cmd.Flags().StringVarP(&subdirectory, "subdirectory", "s", "/", "subdirectory")
 	cmd.Flags().StringVar(&notFound, "not-found", "", "path to serve for page not found responses")
+	cmd.Flags().StringVar(&siteConfigFile, "site-config", "", "path to site configuration file (for e.g. cache-control)")
+	cmd.RegisterFlagCompletionFunc("site-config", cobra.FixedCompletions([]string{"json"}, cobra.ShellCompDirectiveFilterFileExt))
 	return cmd
 }
 
@@ -170,6 +181,23 @@ func writeSiteArchive(w io.Writer, dir string) error {
 		return fmt.Errorf("failed to close gzip writer: %v", err)
 	}
 	return nil
+}
+
+func readSiteConfig(filename string) (*pagessrht.SiteConfig, error) {
+	f, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	var config pagessrht.SiteConfig
+	dec := json.NewDecoder(f)
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(&config); err != nil {
+		return nil, err
+	}
+
+	return &config, nil
 }
 
 func newPagesUnpublishCommand() *cobra.Command {
