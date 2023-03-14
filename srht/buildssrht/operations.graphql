@@ -144,3 +144,13 @@ query runningJobs {
         }
     }
 }
+
+query artifacts($id: Int!) {
+    job(id: $id) {
+        artifacts {
+            path
+            size
+            url
+        }
+    }
+}

@@ -5,6 +5,7 @@ go 1.17
 require (
 	git.sr.ht/~emersion/go-scfg v0.0.0-20211215104734-c2c7a15d6c99
 	git.sr.ht/~emersion/gqlclient v0.0.0-20230210104152-ccaba8ecd3db
+	github.com/dustin/go-humanize v1.0.1
 	github.com/juju/ansiterm v1.0.0
 	github.com/spf13/cobra v1.6.1
 	golang.org/x/oauth2 v0.1.0

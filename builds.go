@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dustin/go-humanize"
 	"github.com/juju/ansiterm/tabwriter"
 	"github.com/spf13/cobra"
 
@@ -33,6 +34,7 @@ func newBuildsCommand() *cobra.Command {
 	cmd.AddCommand(newBuildsListCommand())
 	cmd.AddCommand(newBuildsSecretsCommand())
 	cmd.AddCommand(newBuildsSSHCommand())
+	cmd.AddCommand(newBuildsArtifactsCommand())
 	return cmd
 }
 
@@ -406,6 +408,53 @@ func newBuildsSSHCommand() *cobra.Command {
 		Short:             "SSH into job",
 		Args:              cobra.ExactArgs(1),
 		ValidArgsFunction: completeRunningJobs,
+		Run:               run,
+	}
+	return cmd
+}
+
+func newBuildsArtifactsCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		id, instance, err := parseBuildID(args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		c := createClientWithInstance("builds", cmd, instance)
+
+		job, err := buildssrht.Artifacts(c.Client, ctx, id)
+		if err != nil {
+			log.Fatal(err)
+		} else if job == nil {
+			log.Fatalf("no such job with ID %d", id)
+		}
+
+		if len(job.Artifacts) == 0 {
+			log.Println("No artifacts for this job.")
+			return
+		}
+
+		tw := tabwriter.NewWriter(os.Stdout, 0, 2, 2, ' ', 0)
+		defer tw.Flush()
+		for _, artifact := range job.Artifacts {
+			name := artifact.Path[strings.LastIndex(artifact.Path, "/")+1:]
+			s := fmt.Sprintf("%s\t%s\t", termfmt.Bold.String(name), humanize.Bytes(uint64(artifact.Size)))
+			if artifact.Url == nil {
+				s += termfmt.Dim.Sprint("(pruned after 90 days)")
+			} else {
+				s += *artifact.Url
+			}
+			fmt.Fprintln(tw, s)
+		}
+	}
+
+	cmd := &cobra.Command{
+		Use:               "artifacts <ID>",
+		Short:             "List artifacts",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: completeAnyJobs,
 		Run:               run,
 	}
 	return cmd

@@ -373,3 +373,13 @@ func RunningJobs(client *gqlclient.Client, ctx context.Context) (jobs *JobCursor
 	err = client.Execute(ctx, op, &respData)
 	return respData.Jobs, err
 }
+
+func Artifacts(client *gqlclient.Client, ctx context.Context, id int32) (job *Job, err error) {
+	op := gqlclient.NewOperation("query artifacts ($id: Int!) {\n\tjob(id: $id) {\n\t\tartifacts {\n\t\t\tpath\n\t\t\tsize\n\t\t\turl\n\t\t}\n\t}\n}\n")
+	op.Var("id", id)
+	var respData struct {
+		Job *Job
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Job, err
+}

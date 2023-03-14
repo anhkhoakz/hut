@@ -76,6 +76,9 @@ hut is a CLI companion utility to interact with sr.ht.
 
 ## builds
 
+*artifacts* <ID>
+	List artifacts.
+
 *cancel* <IDs...>
 	Cancel jobs.
 
