@@ -224,6 +224,7 @@ func newGitArtifactUploadCommand() *cobra.Command {
 		}
 
 		c := createClientWithInstance("git", cmd, instance)
+		c.HTTP.Timeout = fileTransferTimeout
 		repoID := getRepoID(c, ctx, repoName, owner)
 
 		if rev == "" {
