@@ -13,6 +13,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/dustin/go-humanize"
 	"github.com/juju/ansiterm/tabwriter"
 
 	"github.com/spf13/cobra"
@@ -425,7 +426,7 @@ func newListsPatchsetListCommand() *cobra.Command {
 				s += fmt.Sprintf(" v%d", patchset.Version)
 			}
 
-			created := termfmt.Dim.Sprintf("%s ago", timeDelta(patchset.Created.Time))
+			created := termfmt.Dim.String(humanize.Time(patchset.Created.Time))
 
 			if byUser {
 				s += fmt.Sprintf("\t%s/%s\t%s", patchset.List.Owner.CanonicalName,
@@ -615,7 +616,7 @@ func newListsACLListCommand() *cobra.Command {
 			s := fmt.Sprintf("%s browse  %s reply  %s post  %s moderate",
 				listssrht.PermissionIcon(acl.Browse), listssrht.PermissionIcon(acl.Reply),
 				listssrht.PermissionIcon(acl.Post), listssrht.PermissionIcon(acl.Moderate))
-			created := termfmt.Dim.Sprintf("%s ago", timeDelta(acl.Created.Time))
+			created := termfmt.Dim.String(humanize.Time(acl.Created.Time))
 			fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n", termfmt.DarkYellow.Sprintf("#%d", acl.Id),
 				acl.Entity.CanonicalName, s, created)
 		}

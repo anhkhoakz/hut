@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"git.sr.ht/~emersion/gqlclient"
+	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
 
 	"git.sr.ht/~emersion/hut/srht/pastesrht"
@@ -138,8 +139,8 @@ func newPasteListCommand() *cobra.Command {
 		}
 
 		for _, paste := range pastes.Results {
-			fmt.Printf("%s %s %s ago\n", termfmt.DarkYellow.Sprint(paste.Id),
-				paste.Visibility.TermString(), timeDelta(paste.Created.Time))
+			fmt.Printf("%s %s %s\n", termfmt.DarkYellow.Sprint(paste.Id),
+				paste.Visibility.TermString(), humanize.Time(paste.Created.Time))
 			for _, file := range paste.Files {
 				if file.Filename != nil && *file.Filename != "" {
 					fmt.Printf("  %s\n", *file.Filename)
@@ -177,8 +178,8 @@ func newPasteShowCommand() *cobra.Command {
 			log.Fatalf("Paste %q does not exist", id)
 		}
 
-		fmt.Printf("%s %s %s ago\n", termfmt.DarkYellow.Sprint(paste.Id),
-			paste.Visibility.TermString(), timeDelta(paste.Created.Time))
+		fmt.Printf("%s %s %s\n", termfmt.DarkYellow.Sprint(paste.Id),
+			paste.Visibility.TermString(), humanize.Time(paste.Created.Time))
 
 		for _, file := range paste.Files {
 			fmt.Print("\n■ ")

@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
 
 	"git.sr.ht/~emersion/hut/srht/metasrht"
@@ -91,7 +92,7 @@ func newMetaAuditLogCommand() *cobra.Command {
 			} else {
 				entry += fmt.Sprintf(" %s ", log.EventType)
 			}
-			entry += fmt.Sprintf("%s ago", timeDelta(log.Created.Time))
+			entry += humanize.Time(log.Created.Time)
 			fmt.Println(entry)
 		}
 	}

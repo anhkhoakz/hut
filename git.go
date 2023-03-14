@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"git.sr.ht/~emersion/gqlclient"
+	"github.com/dustin/go-humanize"
 	"github.com/juju/ansiterm/tabwriter"
 	"github.com/spf13/cobra"
 
@@ -388,7 +389,7 @@ func newGitACLListCommand() *cobra.Command {
 				mode = string(*acl.Mode)
 			}
 
-			created := termfmt.Dim.Sprintf("%s ago", timeDelta(acl.Created.Time))
+			created := termfmt.Dim.String(humanize.Time(acl.Created.Time))
 			fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n", termfmt.DarkYellow.Sprintf("#%d", acl.Id),
 				acl.Entity.CanonicalName, mode, created)
 		}
@@ -543,11 +544,11 @@ func newGitShowCommand() *cobra.Command {
 			fmt.Printf("  Recent log:\n")
 
 			for _, commit := range repo.Log.Results[:3] {
-				fmt.Printf("    %s %s <%s> (%s ago)\n",
+				fmt.Printf("    %s %s <%s> (%s)\n",
 					termfmt.Yellow.Sprintf("%s", commit.ShortId),
 					commit.Author.Name,
 					commit.Author.Email,
-					timeDelta(commit.Author.Time.Time))
+					humanize.Time(commit.Author.Time.Time))
 
 				commitLines := strings.Split(commit.Message, "\n")
 				fmt.Printf("      %s\n", commitLines[0])
