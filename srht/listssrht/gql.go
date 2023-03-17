@@ -810,3 +810,13 @@ func CreateMailingListWebhook(client *gqlclient.Client, ctx context.Context, lis
 	err = client.Execute(ctx, op, &respData)
 	return respData.CreateMailingListWebhook, err
 }
+
+func DeleteMailingListWebhook(client *gqlclient.Client, ctx context.Context, id int32) (deleteMailingListWebhook *WebhookSubscription, err error) {
+	op := gqlclient.NewOperation("mutation deleteMailingListWebhook ($id: Int!) {\n\tdeleteMailingListWebhook(id: $id) {\n\t\tid\n\t}\n}\n")
+	op.Var("id", id)
+	var respData struct {
+		DeleteMailingListWebhook *WebhookSubscription
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.DeleteMailingListWebhook, err
+}

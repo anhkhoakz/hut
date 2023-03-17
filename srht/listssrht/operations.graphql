@@ -325,3 +325,9 @@ mutation createMailingListWebhook(
         id
     }
 }
+
+mutation deleteMailingListWebhook($id: Int!) {
+    deleteMailingListWebhook(id: $id) {
+        id
+    }
+}

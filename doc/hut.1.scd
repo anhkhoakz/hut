@@ -400,6 +400,9 @@ Options are:
 	*-u*, *--url* <URL>
 		The payload URL which receives the _POST_ request. Required.
 
+*webhook delete* <ID>
+	Delete a tracker webhook.
+
 *webhook list* [list]
 	List mailing list webhooks.
 

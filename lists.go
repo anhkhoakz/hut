@@ -780,6 +780,7 @@ func newListsWebhookCommand() *cobra.Command {
 	}
 	cmd.AddCommand(newListsWebhookCreateCommand())
 	cmd.AddCommand(newListsWebhookListCommand())
+	cmd.AddCommand(newListsWebhookDeleteCommand())
 	return cmd
 }
 
@@ -887,6 +888,34 @@ func newListsWebhookListCommand() *cobra.Command {
 		Short:             "List mailing list webhooks",
 		Args:              cobra.MaximumNArgs(1),
 		ValidArgsFunction: completeList,
+		Run:               run,
+	}
+	return cmd
+}
+
+func newListsWebhookDeleteCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("lists", cmd)
+
+		id, err := parseInt32(args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		webhook, err := listssrht.DeleteMailingListWebhook(c.Client, ctx, id)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		log.Printf("Deleted webhook %d\n", webhook.Id)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "delete <ID>",
+		Short:             "Delete a mailing list webhook",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
 	return cmd
