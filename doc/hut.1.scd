@@ -385,6 +385,21 @@ Options are:
 *user-webhook list*
 	List user webhooks.
 
+*webhook create* [list] [options...]
+	Create a mailing list webhook.
+
+	Options are:
+
+	*-e*, *--events* <strings...>
+		List of events that should trigger the webhook (LIST_UPDATED,
+		LIST_DELETED, EMAIL_RECEIVED, PATCHSET_RECEIVED). Required.
+
+	*--stdin*
+		Read query from _stdin_.
+
+	*-u*, *--url* <URL>
+		The payload URL which receives the _POST_ request. Required.
+
 ## meta
 
 *audit-log*

@@ -115,3 +115,23 @@ func ParseUserEvents(events []string) ([]WebhookEvent, error) {
 
 	return whEvents, nil
 }
+
+func ParseMailingListWebhookEvents(events []string) ([]WebhookEvent, error) {
+	var whEvents []WebhookEvent
+	for _, event := range events {
+		switch strings.ToLower(event) {
+		case "list_updated":
+			whEvents = append(whEvents, WebhookEventListUpdated)
+		case "list_deleted":
+			whEvents = append(whEvents, WebhookEventListDeleted)
+		case "email_received":
+			whEvents = append(whEvents, WebhookEventEmailReceived)
+		case "patchset_received":
+			whEvents = append(whEvents, WebhookEventPatchsetReceived)
+		default:
+			return whEvents, fmt.Errorf("invalid event: %q", event)
+		}
+	}
+
+	return whEvents, nil
+}

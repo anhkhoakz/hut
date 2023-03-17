@@ -36,6 +36,7 @@ func newListsCommand() *cobra.Command {
 	cmd.AddCommand(newListsPatchsetCommand())
 	cmd.AddCommand(newListsACLCommand())
 	cmd.AddCommand(newListsUserWebhookCommand())
+	cmd.AddCommand(newListsWebhookCommand())
 	cmd.PersistentFlags().StringP("mailing-list", "l", "", "mailing list name")
 	cmd.RegisterFlagCompletionFunc("mailing-list", completeList)
 	return cmd
@@ -772,6 +773,71 @@ func newListsUserWebhookDeleteCommand() *cobra.Command {
 	return cmd
 }
 
+func newListsWebhookCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "webhook",
+		Short: "Manage mailing list webhooks",
+	}
+	cmd.AddCommand(newListsWebhookCreateCommand())
+	return cmd
+}
+
+func newListsWebhookCreateCommand() *cobra.Command {
+	var events []string
+	var stdin bool
+	var url string
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		var name, owner, instance string
+		if len(args) > 0 {
+			name, owner, instance = parseResourceName(args[0])
+		} else {
+			var err error
+			name, owner, instance, err = getMailingListName(ctx, cmd)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
+		c := createClientWithInstance("lists", cmd, instance)
+		id := getMailingListID(c, ctx, name, owner)
+
+		var config listssrht.MailingListWebhookInput
+		config.Url = url
+
+		whEvents, err := listssrht.ParseMailingListWebhookEvents(events)
+		if err != nil {
+			log.Fatal(err)
+		}
+		config.Events = whEvents
+		config.Query = readWebhookQuery(stdin)
+
+		webhook, err := listssrht.CreateMailingListWebhook(c.Client, ctx, id, config)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		log.Printf("Created mailing list webhook with ID %d\n", webhook.Id)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "create [list]",
+		Short:             "Create a mailing list webhook",
+		Args:              cobra.MaximumNArgs(1),
+		ValidArgsFunction: completeList,
+		Run:               run,
+	}
+	cmd.Flags().StringSliceVarP(&events, "events", "e", nil, "webhook events")
+	cmd.RegisterFlagCompletionFunc("events", completeMailingListWebhookEvents)
+	cmd.MarkFlagRequired("events")
+	cmd.Flags().BoolVar(&stdin, "stdin", false, "read webhook query from stdin")
+	cmd.Flags().StringVarP(&url, "url", "u", "", "payload url")
+	cmd.RegisterFlagCompletionFunc("url", cobra.NoFileCompletions)
+	cmd.MarkFlagRequired("url")
+	return cmd
+}
+
 func getMailingListID(c *Client, ctx context.Context, name, owner string) int32 {
 	var (
 		user     *listssrht.User
@@ -980,4 +1046,16 @@ func completeList(cmd *cobra.Command, args []string, toComplete string) ([]strin
 	}
 
 	return listsList, cobra.ShellCompDirectiveNoFileComp
+}
+
+func completeMailingListWebhookEvents(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	var eventList []string
+	events := [4]string{"list_updated", "list_deleted", "email_received", "patchset_received"}
+	set := strings.ToLower(cmd.Flag("events").Value.String())
+	for _, event := range events {
+		if !strings.Contains(set, event) {
+			eventList = append(eventList, event)
+		}
+	}
+	return eventList, cobra.ShellCompDirectiveNoFileComp
 }
