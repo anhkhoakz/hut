@@ -400,6 +400,9 @@ Options are:
 	*-u*, *--url* <URL>
 		The payload URL which receives the _POST_ request. Required.
 
+*webhook list* [list]
+	List mailing list webhooks.
+
 ## meta
 
 *audit-log*

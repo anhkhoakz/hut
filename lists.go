@@ -779,6 +779,7 @@ func newListsWebhookCommand() *cobra.Command {
 		Short: "Manage mailing list webhooks",
 	}
 	cmd.AddCommand(newListsWebhookCreateCommand())
+	cmd.AddCommand(newListsWebhookListCommand())
 	return cmd
 }
 
@@ -835,6 +836,59 @@ func newListsWebhookCreateCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&url, "url", "u", "", "payload url")
 	cmd.RegisterFlagCompletionFunc("url", cobra.NoFileCompletions)
 	cmd.MarkFlagRequired("url")
+	return cmd
+}
+
+func newListsWebhookListCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		var name, owner, instance string
+		if len(args) > 0 {
+			name, owner, instance = parseResourceName(args[0])
+		} else {
+			var err error
+			name, owner, instance, err = getMailingListName(ctx, cmd)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
+		c := createClientWithInstance("lists", cmd, instance)
+
+		var (
+			user     *listssrht.User
+			username string
+			err      error
+		)
+
+		if owner != "" {
+			username = strings.TrimLeft(owner, ownerPrefixes)
+			user, err = listssrht.MailingListWebhooksByUser(c.Client, ctx, username, name)
+		} else {
+			user, err = listssrht.MailingListWebhooks(c.Client, ctx, name)
+		}
+
+		if err != nil {
+			log.Fatal(err)
+		} else if user == nil {
+			log.Fatalf("no such user %q", username)
+		} else if user.List == nil {
+			log.Fatalf("no such tracker %q", name)
+		}
+
+		for _, webhook := range user.List.Webhooks.Results {
+			fmt.Printf("%s %s\n", termfmt.DarkYellow.Sprintf("#%d", webhook.Id), webhook.Url)
+		}
+	}
+
+	cmd := &cobra.Command{
+		Use:               "list [list]",
+		Short:             "List mailing list webhooks",
+		Args:              cobra.MaximumNArgs(1),
+		ValidArgsFunction: completeList,
+		Run:               run,
+	}
 	return cmd
 }
 

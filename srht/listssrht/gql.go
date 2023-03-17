@@ -706,6 +706,27 @@ func CompleteLists(client *gqlclient.Client, ctx context.Context) (me *User, err
 	return respData.Me, err
 }
 
+func MailingListWebhooks(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
+	op := gqlclient.NewOperation("query mailingListWebhooks ($name: String!) {\n\tme {\n\t\tlist(name: $name) {\n\t\t\t... mailingListWebhooks\n\t\t}\n\t}\n}\nfragment mailingListWebhooks on MailingList {\n\twebhooks {\n\t\tresults {\n\t\t\tid\n\t\t\turl\n\t\t}\n\t}\n}\n")
+	op.Var("name", name)
+	var respData struct {
+		Me *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Me, err
+}
+
+func MailingListWebhooksByUser(client *gqlclient.Client, ctx context.Context, username string, name string) (user *User, err error) {
+	op := gqlclient.NewOperation("query mailingListWebhooksByUser ($username: String!, $name: String!) {\n\tuser(username: $username) {\n\t\tlist(name: $name) {\n\t\t\t... mailingListWebhooks\n\t\t}\n\t}\n}\nfragment mailingListWebhooks on MailingList {\n\twebhooks {\n\t\tresults {\n\t\t\tid\n\t\t\turl\n\t\t}\n\t}\n}\n")
+	op.Var("username", username)
+	op.Var("name", name)
+	var respData struct {
+		User *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.User, err
+}
+
 func MailingListSubscribe(client *gqlclient.Client, ctx context.Context, listID int32) (mailingListSubscribe *MailingListSubscription, err error) {
 	op := gqlclient.NewOperation("mutation mailingListSubscribe ($listID: Int!) {\n\tmailingListSubscribe(listID: $listID) {\n\t\tlist {\n\t\t\tname\n\t\t\towner {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	op.Var("listID", listID)
