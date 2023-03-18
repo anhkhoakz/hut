@@ -468,6 +468,7 @@ func newBuildsUserWebhookCommand() *cobra.Command {
 	}
 	cmd.AddCommand(newBuildsUserWebhookCreateCommand())
 	cmd.AddCommand(newBuildsUserWebhookListCommand())
+	cmd.AddCommand(newBuildsUserWebhookDeleteCommand())
 	return cmd
 }
 
@@ -534,6 +535,34 @@ func newBuildsUserWebhookListCommand() *cobra.Command {
 		Short: "List user webhooks",
 		Args:  cobra.ExactArgs(0),
 		Run:   run,
+	}
+	return cmd
+}
+
+func newBuildsUserWebhookDeleteCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("builds", cmd)
+
+		id, err := parseInt32(args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		webhook, err := buildssrht.DeleteUserWebhook(c.Client, ctx, id)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		log.Printf("Deleted webhook %d\n", webhook.Id)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "delete <ID>",
+		Short:             "Delete a user webhook",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: completeBuildsUserWebhookID,
+		Run:               run,
 	}
 	return cmd
 }
@@ -863,6 +892,24 @@ func completeBuildsUserWebhookEvents(cmd *cobra.Command, args []string, toComple
 		}
 	}
 	return eventList, cobra.ShellCompDirectiveNoFileComp
+}
+
+func completeBuildsUserWebhookID(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	ctx := cmd.Context()
+	c := createClient("builds", cmd)
+	var webhookList []string
+
+	webhooks, err := buildssrht.UserWebhooks(c.Client, ctx)
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	for _, webhook := range webhooks.Results {
+		s := fmt.Sprintf("%d\t%s", webhook.Id, webhook.Url)
+		webhookList = append(webhookList, s)
+	}
+
+	return webhookList, cobra.ShellCompDirectiveNoFileComp
 }
 
 func (c *Client) offerSSHConnection(ctx context.Context, id int32) {

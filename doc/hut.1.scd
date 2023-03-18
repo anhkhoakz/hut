@@ -150,6 +150,9 @@ hut is a CLI companion utility to interact with sr.ht.
 	*-u*, *--url* <URL>
 		The payload URL which receives the _POST_ request. Required.
 
+*user-webhook delete* <ID>
+	Delete a user webhook.
+
 *user-webhook list*
 	List user webhooks.
 
