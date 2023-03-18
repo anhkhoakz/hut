@@ -95,6 +95,13 @@ type JobCursor struct {
 	Cursor  *Cursor `json:"cursor,omitempty"`
 }
 
+type JobEvent struct {
+	Uuid  string         `json:"uuid"`
+	Event WebhookEvent   `json:"event"`
+	Date  gqlclient.Time `json:"date"`
+	Job   *Job           `json:"job"`
+}
+
 type JobGroup struct {
 	Id       int32          `json:"id"`
 	Created  gqlclient.Time `json:"created"`
@@ -122,6 +129,10 @@ type Log struct {
 	// The URL at which the full build log can be downloaded with a GET request
 	// (text/plain).
 	FullURL string `json:"fullURL"`
+}
+
+type OAuthClient struct {
+	Uuid string `json:"uuid"`
 }
 
 type PGPKey struct {
@@ -235,6 +246,22 @@ type User struct {
 	Jobs *JobCursor `json:"jobs"`
 }
 
+type UserWebhookInput struct {
+	Url    string         `json:"url"`
+	Events []WebhookEvent `json:"events"`
+	Query  string         `json:"query"`
+}
+
+type UserWebhookSubscription struct {
+	Id         int32                  `json:"id"`
+	Events     []WebhookEvent         `json:"events"`
+	Query      string                 `json:"query"`
+	Url        string                 `json:"url"`
+	Client     *OAuthClient           `json:"client,omitempty"`
+	Deliveries *WebhookDeliveryCursor `json:"deliveries"`
+	Sample     string                 `json:"sample"`
+}
+
 type Version struct {
 	Major int32 `json:"major"`
 	Minor int32 `json:"minor"`
@@ -244,6 +271,67 @@ type Version struct {
 	// deprecation.
 	DeprecationDate gqlclient.Time `json:"deprecationDate,omitempty"`
 	Settings        *Settings      `json:"settings"`
+}
+
+type WebhookDelivery struct {
+	Uuid         string               `json:"uuid"`
+	Date         gqlclient.Time       `json:"date"`
+	Event        WebhookEvent         `json:"event"`
+	Subscription *WebhookSubscription `json:"subscription"`
+	RequestBody  string               `json:"requestBody"`
+	// These details are provided only after a response is received from the
+	// remote server. If a response is sent whose Content-Type is not text/*, or
+	// cannot be decoded as UTF-8, the response body will be null. It will be
+	// truncated after 64 KiB.
+	ResponseBody    *string `json:"responseBody,omitempty"`
+	ResponseHeaders *string `json:"responseHeaders,omitempty"`
+	ResponseStatus  *int32  `json:"responseStatus,omitempty"`
+}
+
+// A cursor for enumerating a list of webhook deliveries
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
+type WebhookDeliveryCursor struct {
+	Results []WebhookDelivery `json:"results"`
+	Cursor  *Cursor           `json:"cursor,omitempty"`
+}
+
+type WebhookEvent string
+
+const (
+	WebhookEventJobCreated WebhookEvent = "JOB_CREATED"
+)
+
+type WebhookPayload struct {
+	Uuid  string         `json:"uuid"`
+	Event WebhookEvent   `json:"event"`
+	Date  gqlclient.Time `json:"date"`
+}
+
+type WebhookSubscription struct {
+	Id     int32          `json:"id"`
+	Events []WebhookEvent `json:"events"`
+	Query  string         `json:"query"`
+	Url    string         `json:"url"`
+	// If this webhook was registered by an authorized OAuth 2.0 client, this
+	// field is non-null.
+	Client *OAuthClient `json:"client,omitempty"`
+	// All deliveries which have been sent to this webhook.
+	Deliveries *WebhookDeliveryCursor `json:"deliveries"`
+	// Returns a sample payload for this subscription, for testing purposes
+	Sample string `json:"sample"`
+}
+
+// A cursor for enumerating a list of webhook subscriptions
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
+type WebhookSubscriptionCursor struct {
+	Results []WebhookSubscription `json:"results"`
+	Cursor  *Cursor               `json:"cursor,omitempty"`
 }
 
 type WebhookTrigger struct {
