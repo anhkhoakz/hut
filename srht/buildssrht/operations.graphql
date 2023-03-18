@@ -160,3 +160,12 @@ query artifacts($id: Int!) {
         }
     }
 }
+
+query userWebhooks {
+    userWebhooks {
+        results {
+            id
+            url
+        }
+    }
+}
