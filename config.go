@@ -28,6 +28,23 @@ type InstanceConfig struct {
 	Origins map[string]string
 }
 
+func (instance InstanceConfig) match(name string) bool {
+	if instancesEqual(name, instance.Name) {
+		return true
+	}
+
+	for _, origin := range instance.Origins {
+		if stripProtocol(origin) == name {
+			return true
+		}
+	}
+	return false
+}
+
+func instancesEqual(a, b string) bool {
+	return a == b || strings.HasSuffix(a, "."+b) || strings.HasSuffix(b, "."+a)
+}
+
 func loadConfig(filename string) (*Config, error) {
 	rootBlock, err := scfg.Load(filename)
 	if err != nil {
@@ -91,23 +108,6 @@ func loadConfig(filename string) (*Config, error) {
 	}
 
 	return cfg, nil
-}
-
-func instancesEqual(a, b string) bool {
-	return a == b || strings.HasSuffix(a, "."+b) || strings.HasSuffix(b, "."+a)
-}
-
-func (instance InstanceConfig) match(name string) bool {
-	if instancesEqual(name, instance.Name) {
-		return true
-	}
-
-	for _, origin := range instance.Origins {
-		if stripProtocol(origin) == name {
-			return true
-		}
-	}
-	return false
 }
 
 func defaultConfigFilename() string {
