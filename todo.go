@@ -804,8 +804,6 @@ func newTodoTicketWebhookCreateCommand() *cobra.Command {
 		webhook, err := todosrht.CreateTicketWebhook(c.Client, ctx, trackerID, ticketID, config)
 		if err != nil {
 			log.Fatal(err)
-		} else if webhook == nil {
-			log.Fatal("failed to create webhook")
 		}
 
 		fmt.Printf("Created ticket webhook with ID %d\n", webhook.Id)
@@ -886,8 +884,6 @@ func newTodoTicketWebhookDeleteCommand() *cobra.Command {
 		webhook, err := todosrht.DeleteTicketWebhook(c.Client, ctx, id)
 		if err != nil {
 			log.Fatal(err)
-		} else if webhook == nil {
-			log.Fatal("failed to delete webhook")
 		}
 
 		fmt.Printf("Deleted webhook %d\n", webhook.Id)
@@ -1307,8 +1303,6 @@ func newTodoUserWebhookCreateCommand() *cobra.Command {
 		webhook, err := todosrht.CreateUserWebhook(c.Client, ctx, config)
 		if err != nil {
 			log.Fatal(err)
-		} else if webhook == nil {
-			log.Fatal("failed to create webhook")
 		}
 
 		fmt.Printf("Created user webhook with ID %d\n", webhook.Id)
@@ -1368,8 +1362,6 @@ func newTodoUserWebhookDeleteCommand() *cobra.Command {
 		webhook, err := todosrht.DeleteUserWebhook(c.Client, ctx, id)
 		if err != nil {
 			log.Fatal(err)
-		} else if webhook == nil {
-			log.Fatal("failed to delete webhook")
 		}
 
 		fmt.Printf("Deleted webhook %d\n", webhook.Id)

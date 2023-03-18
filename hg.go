@@ -177,8 +177,6 @@ func newHgUserWebhookCreateCommand() *cobra.Command {
 		webhook, err := hgsrht.CreateUserWebhook(c.Client, ctx, config)
 		if err != nil {
 			log.Fatal(err)
-		} else if webhook == nil {
-			log.Fatal("failed to create webhook")
 		}
 
 		fmt.Printf("Created user webhook with ID %d\n", webhook.Id)
@@ -238,8 +236,6 @@ func newHgUserWebhookDeleteCommand() *cobra.Command {
 		webhook, err := hgsrht.DeleteUserWebhook(c.Client, ctx, id)
 		if err != nil {
 			log.Fatal(err)
-		} else if webhook == nil {
-			log.Fatal("failed to delete webhook")
 		}
 
 		fmt.Printf("Deleted webhook %d\n", webhook.Id)

@@ -600,8 +600,6 @@ func newGitUserWebhookCreateCommand() *cobra.Command {
 		webhook, err := gitsrht.CreateUserWebhook(c.Client, ctx, config)
 		if err != nil {
 			log.Fatal(err)
-		} else if webhook == nil {
-			log.Fatal("failed to create webhook")
 		}
 
 		fmt.Printf("Created user webhook with ID %d\n", webhook.Id)
@@ -661,8 +659,6 @@ func newGitUserWebhookDeleteCommand() *cobra.Command {
 		webhook, err := gitsrht.DeleteUserWebhook(c.Client, ctx, id)
 		if err != nil {
 			log.Fatal(err)
-		} else if webhook == nil {
-			log.Fatal("failed to delete webhook")
 		}
 
 		fmt.Printf("Deleted webhook %d\n", webhook.Id)

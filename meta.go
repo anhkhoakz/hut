@@ -473,8 +473,6 @@ func newMetaUserWebhookCreateCommand() *cobra.Command {
 		webhook, err := metasrht.CreateUserWebhook(c.Client, ctx, config)
 		if err != nil {
 			log.Fatal(err)
-		} else if webhook == nil {
-			log.Fatal("failed to create webhook")
 		}
 
 		fmt.Printf("Created user webhook with ID %d\n", webhook.Id)

@@ -695,8 +695,6 @@ func newListsUserWebhookCreateCommand() *cobra.Command {
 		webhook, err := listssrht.CreateUserWebhook(c.Client, ctx, config)
 		if err != nil {
 			log.Fatal(err)
-		} else if webhook == nil {
-			log.Fatal("failed to create webhook")
 		}
 
 		fmt.Printf("Created user webhook with ID %d\n", webhook.Id)
@@ -756,8 +754,6 @@ func newListsUserWebhookDeleteCommand() *cobra.Command {
 		webhook, err := listssrht.DeleteUserWebhook(c.Client, ctx, id)
 		if err != nil {
 			log.Fatal(err)
-		} else if webhook == nil {
-			log.Fatal("failed to delete webhook")
 		}
 
 		fmt.Printf("Deleted webhook %d\n", webhook.Id)
