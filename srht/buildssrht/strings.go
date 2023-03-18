@@ -2,6 +2,7 @@ package buildssrht
 
 import (
 	"fmt"
+	"strings"
 
 	"git.sr.ht/~emersion/hut/termfmt"
 )
@@ -78,4 +79,18 @@ func (status TaskStatus) TermStyle() termfmt.Style {
 
 func (status TaskStatus) TermIcon() string {
 	return status.TermStyle().String(status.Icon())
+}
+
+func ParseUserEvents(events []string) ([]WebhookEvent, error) {
+	var whEvents []WebhookEvent
+	for _, event := range events {
+		switch strings.ToLower(event) {
+		case "job_created":
+			whEvents = append(whEvents, WebhookEventJobCreated)
+		default:
+			return whEvents, fmt.Errorf("invalid event: %q", event)
+		}
+	}
+
+	return whEvents, nil
 }

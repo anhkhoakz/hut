@@ -365,6 +365,16 @@ func Cancel(client *gqlclient.Client, ctx context.Context, jobId int32) (cancel 
 	return respData.Cancel, err
 }
 
+func CreateUserWebhook(client *gqlclient.Client, ctx context.Context, config UserWebhookInput) (createUserWebhook *WebhookSubscription, err error) {
+	op := gqlclient.NewOperation("mutation createUserWebhook ($config: UserWebhookInput!) {\n\tcreateUserWebhook(config: $config) {\n\t\tid\n\t}\n}\n")
+	op.Var("config", config)
+	var respData struct {
+		CreateUserWebhook *WebhookSubscription
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.CreateUserWebhook, err
+}
+
 func Monitor(client *gqlclient.Client, ctx context.Context, id int32) (job *Job, err error) {
 	op := gqlclient.NewOperation("query monitor ($id: Int!) {\n\tjob(id: $id) {\n\t\tstatus\n\t\tlog {\n\t\t\tfullURL\n\t\t}\n\t\ttasks {\n\t\t\tname\n\t\t\tstatus\n\t\t\tlog {\n\t\t\t\tfullURL\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	op.Var("id", id)

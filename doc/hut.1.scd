@@ -135,6 +135,21 @@ hut is a CLI companion utility to interact with sr.ht.
 	*-n*, *--note* <string>
 		Provide a short job description.
 
+*user-webhook create* [options...]
+	Create a user webhook. When this command is run from a terminal, the query will
+	be read from _$EDITOR_, otherwise it defaults to stdin.
+
+	Options are:
+
+	*-e*, *--events* <strings...>
+		List of events that should trigger the webhook (JOB_CREATED). Required.
+
+	*--stdin*
+		Read query from _stdin_.
+
+	*-u*, *--url* <URL>
+		The payload URL which receives the _POST_ request. Required.
+
 ## git
 
 Options are:

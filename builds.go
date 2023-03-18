@@ -35,6 +35,7 @@ func newBuildsCommand() *cobra.Command {
 	cmd.AddCommand(newBuildsSecretsCommand())
 	cmd.AddCommand(newBuildsSSHCommand())
 	cmd.AddCommand(newBuildsArtifactsCommand())
+	cmd.AddCommand(newBuildsUserWebhookCommand())
 	return cmd
 }
 
@@ -460,6 +461,58 @@ func newBuildsArtifactsCommand() *cobra.Command {
 	return cmd
 }
 
+func newBuildsUserWebhookCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "user-webhook",
+		Short: "Manage user webhooks",
+	}
+	cmd.AddCommand(newBuildsUserWebhookCreateCommand())
+	return cmd
+}
+
+func newBuildsUserWebhookCreateCommand() *cobra.Command {
+	var events []string
+	var stdin bool
+	var url string
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("builds", cmd)
+
+		var config buildssrht.UserWebhookInput
+		config.Url = url
+
+		whEvents, err := buildssrht.ParseUserEvents(events)
+		if err != nil {
+			log.Fatal(err)
+		}
+		config.Events = whEvents
+		config.Query = readWebhookQuery(stdin)
+
+		webhook, err := buildssrht.CreateUserWebhook(c.Client, ctx, config)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		log.Printf("Created user webhook with ID %d\n", webhook.Id)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "create",
+		Short:             "Create a user webhook",
+		Args:              cobra.ExactArgs(0),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	cmd.Flags().StringSliceVarP(&events, "events", "e", nil, "webhook events")
+	cmd.RegisterFlagCompletionFunc("events", completeBuildsUserWebhookEvents)
+	cmd.MarkFlagRequired("events")
+	cmd.Flags().BoolVar(&stdin, "stdin", false, "read webhook query from stdin")
+	cmd.Flags().StringVarP(&url, "url", "u", "", "payload url")
+	cmd.RegisterFlagCompletionFunc("url", cobra.NoFileCompletions)
+	cmd.MarkFlagRequired("url")
+	return cmd
+}
+
 func printJob(w io.Writer, job *buildssrht.Job) {
 	fmt.Fprint(w, termfmt.DarkYellow.Sprintf("#%d", job.Id))
 	if tagString := formatJobTags(job); tagString != "" {
@@ -773,6 +826,18 @@ func completeJobs(cmd *cobra.Command, onlyRunning bool) ([]string, cobra.ShellCo
 	}
 
 	return jobList, cobra.ShellCompDirectiveNoFileComp
+}
+
+func completeBuildsUserWebhookEvents(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	var eventList []string
+	events := [1]string{"job_created"}
+	set := strings.ToLower(cmd.Flag("events").Value.String())
+	for _, event := range events {
+		if !strings.Contains(set, event) {
+			eventList = append(eventList, event)
+		}
+	}
+	return eventList, cobra.ShellCompDirectiveNoFileComp
 }
 
 func (c *Client) offerSSHConnection(ctx context.Context, id int32) {

@@ -13,6 +13,12 @@ mutation cancel($jobId: Int!) {
     }
 }
 
+mutation createUserWebhook($config: UserWebhookInput!) {
+    createUserWebhook(config: $config) {
+        id
+    }
+}
+
 query monitor($id: Int!) {
 	job(id: $id) {
 		status
