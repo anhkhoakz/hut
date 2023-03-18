@@ -2,6 +2,8 @@ package main
 
 import (
 	"bufio"
+	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -45,7 +47,7 @@ func instancesEqual(a, b string) bool {
 	return a == b || strings.HasSuffix(a, "."+b) || strings.HasSuffix(b, "."+a)
 }
 
-func loadConfig(filename string) (*Config, error) {
+func loadConfigFile(filename string) (*Config, error) {
 	rootBlock, err := scfg.Load(filename)
 	if err != nil {
 		return nil, err
@@ -108,6 +110,40 @@ func loadConfig(filename string) (*Config, error) {
 	}
 
 	return cfg, nil
+}
+
+func loadConfig(cmd *cobra.Command) *Config {
+	type configContextKey struct{}
+	if v := cmd.Context().Value(configContextKey{}); v != nil {
+		return v.(*Config)
+	}
+
+	customConfigFile := true
+	configFile, err := cmd.Flags().GetString("config")
+	if err != nil {
+		log.Fatal(err)
+	} else if configFile == "" {
+		configFile = defaultConfigFilename()
+		customConfigFile = false
+	}
+
+	cfg, err := loadConfigFile(configFile)
+	if err != nil {
+		// This error message doesn't make sense if a config was
+		// provided with "--config". In that case, the normal log
+		// message is always desired.
+		if !customConfigFile && errors.Is(err, os.ErrNotExist) {
+			os.Stderr.WriteString("Looks like hut's config file hasn't been set up yet.\nRun `hut init` to configure it.\n")
+			os.Exit(1)
+		}
+		log.Fatalf("failed to load config file: %v", err)
+	}
+
+	ctx := cmd.Context()
+	ctx = context.WithValue(ctx, configContextKey{}, cfg)
+	cmd.SetContext(ctx)
+
+	return cfg
 }
 
 func defaultConfigFilename() string {
