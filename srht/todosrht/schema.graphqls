@@ -117,6 +117,7 @@ type Tracker {
 
   ticket(id: Int!): Ticket! @access(scope: TICKETS, kind: RO)
   tickets(cursor: Cursor): TicketCursor! @access(scope: TICKETS, kind: RO)
+  label(name: String!): Label
   labels(cursor: Cursor): LabelCursor!
 
   """
@@ -954,6 +955,9 @@ type Mutation {
   unlabelTicket(trackerId: Int!, ticketId: Int!,
     labelId: Int!): Event! @access(scope: TICKETS, kind: RW)
 
+  "Imports a gzipped JSON dump of tracker data"
+  importTrackerDump(trackerId: Int!, dump: Upload!): Boolean! @access(scope: TRACKERS, kind: RW)
+
   """
   Creates a new user webhook subscription. When an event from the
   provided list of events occurs, the 'query' parameter (a GraphQL query)
@@ -988,4 +992,9 @@ type Mutation {
 
   "Deletes a ticket webhook."
   deleteTicketWebhook(id: Int!): WebhookSubscription!
+
+  """
+  Deletes the authenticated user's account. Internal use only.
+  """
+  deleteUser: Int! @internal
 }

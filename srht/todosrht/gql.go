@@ -421,6 +421,7 @@ type Tracker struct {
 	Visibility  Visibility     `json:"visibility"`
 	Ticket      *Ticket        `json:"ticket"`
 	Tickets     *TicketCursor  `json:"tickets"`
+	Label       *Label         `json:"label,omitempty"`
 	Labels      *LabelCursor   `json:"labels"`
 	// If the authenticated user is subscribed to this tracker, this is that
 	// subscription.
