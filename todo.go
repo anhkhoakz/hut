@@ -275,6 +275,7 @@ func newTodoTicketCommand() *cobra.Command {
 	cmd.AddCommand(newTodoTicketShowCommand())
 	cmd.AddCommand(newTodoTicketWebhookCommand())
 	cmd.AddCommand(newTodoTicketCreateCommand())
+	cmd.AddCommand(newTodoTicketLabelCommand())
 	return cmd
 }
 
@@ -1454,6 +1455,45 @@ func newTodoTicketCreateCommand() *cobra.Command {
 		Run:   run,
 	}
 	cmd.Flags().BoolVar(&stdin, "stdin", false, "read ticket from stdin")
+	return cmd
+}
+
+func newTodoTicketLabelCommand() *cobra.Command {
+	var labelName string
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		ticketID, trackerName, owner, instance, err := parseTicketResource(ctx, cmd, args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		c := createClientWithInstance("todo", cmd, instance)
+		trackerID := getTrackerID(c, ctx, trackerName, owner)
+
+		labelID, err := getLabelID(c, ctx, trackerName, labelName, owner)
+		if err != nil {
+			log.Fatalf("failed to get label ID: %v", err)
+		}
+
+		event, err := todosrht.LabelTicket(c.Client, ctx, trackerID, ticketID, labelID)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		log.Printf("Added label to %q\n", event.Ticket.Subject)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "label <ID>",
+		Short:             "Add a label to a ticket",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: completeTicketID,
+		Run:               run,
+	}
+	cmd.Flags().StringVarP(&labelName, "label", "l", "", "label name")
+	cmd.MarkFlagRequired("label")
+	cmd.RegisterFlagCompletionFunc("label", cobra.NoFileCompletions)
 	return cmd
 }
 

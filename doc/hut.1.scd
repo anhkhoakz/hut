@@ -706,6 +706,14 @@ Options are:
 	*-y*, *--yes*
 		Confirm deletion without prompt.
 
+*ticket label* <ID> [options...]
+	Add a label to a ticket.
+
+	Options are:
+
+	*-l*, *--label* <name>
+		Name of the label (required).
+
 *ticket list*
 	List tickets.
 

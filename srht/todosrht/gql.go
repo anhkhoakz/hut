@@ -1169,3 +1169,15 @@ func SubmitTicket(client *gqlclient.Client, ctx context.Context, trackerId int32
 	err = client.Execute(ctx, op, &respData)
 	return respData.SubmitTicket, err
 }
+
+func LabelTicket(client *gqlclient.Client, ctx context.Context, trackerId int32, ticketId int32, labelId int32) (labelTicket *Event, err error) {
+	op := gqlclient.NewOperation("mutation labelTicket ($trackerId: Int!, $ticketId: Int!, $labelId: Int!) {\n\tlabelTicket(trackerId: $trackerId, ticketId: $ticketId, labelId: $labelId) {\n\t\tticket {\n\t\t\tsubject\n\t\t}\n\t}\n}\n")
+	op.Var("trackerId", trackerId)
+	op.Var("ticketId", ticketId)
+	op.Var("labelId", labelId)
+	var respData struct {
+		LabelTicket *Event
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.LabelTicket, err
+}

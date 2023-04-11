@@ -570,3 +570,11 @@ mutation submitTicket($trackerId: Int!, $input: SubmitTicketInput!) {
         id
     }
 }
+
+mutation labelTicket($trackerId: Int!, $ticketId: Int!, $labelId: Int!) {
+    labelTicket(trackerId: $trackerId, ticketId: $ticketId, labelId: $labelId) {
+        ticket {
+            subject
+        }
+    }
+}
