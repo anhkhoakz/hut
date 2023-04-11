@@ -1181,3 +1181,15 @@ func LabelTicket(client *gqlclient.Client, ctx context.Context, trackerId int32,
 	err = client.Execute(ctx, op, &respData)
 	return respData.LabelTicket, err
 }
+
+func UnlabelTicket(client *gqlclient.Client, ctx context.Context, trackerId int32, ticketId int32, labelId int32) (unlabelTicket *Event, err error) {
+	op := gqlclient.NewOperation("mutation unlabelTicket ($trackerId: Int!, $ticketId: Int!, $labelId: Int!) {\n\tunlabelTicket(trackerId: $trackerId, ticketId: $ticketId, labelId: $labelId) {\n\t\tticket {\n\t\t\tsubject\n\t\t}\n\t}\n}\n")
+	op.Var("trackerId", trackerId)
+	op.Var("ticketId", ticketId)
+	op.Var("labelId", labelId)
+	var respData struct {
+		UnlabelTicket *Event
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.UnlabelTicket, err
+}

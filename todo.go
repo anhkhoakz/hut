@@ -276,6 +276,7 @@ func newTodoTicketCommand() *cobra.Command {
 	cmd.AddCommand(newTodoTicketWebhookCommand())
 	cmd.AddCommand(newTodoTicketCreateCommand())
 	cmd.AddCommand(newTodoTicketLabelCommand())
+	cmd.AddCommand(newTodoTicketUnlabelCommand())
 	return cmd
 }
 
@@ -1487,6 +1488,45 @@ func newTodoTicketLabelCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:               "label <ID>",
 		Short:             "Add a label to a ticket",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: completeTicketID,
+		Run:               run,
+	}
+	cmd.Flags().StringVarP(&labelName, "label", "l", "", "label name")
+	cmd.MarkFlagRequired("label")
+	cmd.RegisterFlagCompletionFunc("label", cobra.NoFileCompletions)
+	return cmd
+}
+
+func newTodoTicketUnlabelCommand() *cobra.Command {
+	var labelName string
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		ticketID, trackerName, owner, instance, err := parseTicketResource(ctx, cmd, args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		c := createClientWithInstance("todo", cmd, instance)
+		trackerID := getTrackerID(c, ctx, trackerName, owner)
+
+		labelID, err := getLabelID(c, ctx, trackerName, labelName, owner)
+		if err != nil {
+			log.Fatalf("failed to get label ID: %v", err)
+		}
+
+		event, err := todosrht.UnlabelTicket(c.Client, ctx, trackerID, ticketID, labelID)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		log.Printf("Removed label from %q\n", event.Ticket.Subject)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "unlabel <ID>",
+		Short:             "Remove a label from a ticket",
 		Args:              cobra.ExactArgs(1),
 		ValidArgsFunction: completeTicketID,
 		Run:               run,

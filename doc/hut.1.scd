@@ -731,6 +731,14 @@ Options are:
 	*-u*, *--user*
 		Username of the assignee (required).
 
+*ticket unlabel* <ID> [options...]
+	Remove a label from a ticket.
+
+	Options are:
+
+	*-l*, *--label* <name>
+		Name of the label (required).
+
 *ticket unsubscribe* <ID>
 	Unsubscribe from a ticket.
 

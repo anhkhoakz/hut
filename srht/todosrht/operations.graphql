@@ -578,3 +578,15 @@ mutation labelTicket($trackerId: Int!, $ticketId: Int!, $labelId: Int!) {
         }
     }
 }
+
+mutation unlabelTicket($trackerId: Int!, $ticketId: Int!, $labelId: Int!) {
+    unlabelTicket(
+        trackerId: $trackerId
+        ticketId: $ticketId
+        labelId: $labelId
+    ) {
+        ticket {
+            subject
+        }
+    }
+}
