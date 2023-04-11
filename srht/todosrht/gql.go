@@ -722,7 +722,7 @@ func TicketsByUser(client *gqlclient.Client, ctx context.Context, username strin
 }
 
 func Labels(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
-	op := gqlclient.NewOperation("query labels ($name: String!) {\n\tme {\n\t\ttracker(name: $name) {\n\t\t\tlabels {\n\t\t\t\t... labels\n\t\t\t}\n\t\t}\n\t}\n}\nfragment labels on LabelCursor {\n\tresults {\n\t\tid\n\t\tname\n\t\tbackgroundColor\n\t\tforegroundColor\n\t}\n}\n")
+	op := gqlclient.NewOperation("query labels ($name: String!) {\n\tme {\n\t\ttracker(name: $name) {\n\t\t\tlabels {\n\t\t\t\t... labels\n\t\t\t}\n\t\t}\n\t}\n}\nfragment labels on LabelCursor {\n\tresults {\n\t\tname\n\t\tbackgroundColor\n\t\tforegroundColor\n\t}\n}\n")
 	op.Var("name", name)
 	var respData struct {
 		Me *User
@@ -732,7 +732,7 @@ func Labels(client *gqlclient.Client, ctx context.Context, name string) (me *Use
 }
 
 func LabelsByUser(client *gqlclient.Client, ctx context.Context, username string, name string) (user *User, err error) {
-	op := gqlclient.NewOperation("query labelsByUser ($username: String!, $name: String!) {\n\tuser(username: $username) {\n\t\ttracker(name: $name) {\n\t\t\tlabels {\n\t\t\t\t... labels\n\t\t\t}\n\t\t}\n\t}\n}\nfragment labels on LabelCursor {\n\tresults {\n\t\tid\n\t\tname\n\t\tbackgroundColor\n\t\tforegroundColor\n\t}\n}\n")
+	op := gqlclient.NewOperation("query labelsByUser ($username: String!, $name: String!) {\n\tuser(username: $username) {\n\t\ttracker(name: $name) {\n\t\t\tlabels {\n\t\t\t\t... labels\n\t\t\t}\n\t\t}\n\t}\n}\nfragment labels on LabelCursor {\n\tresults {\n\t\tname\n\t\tbackgroundColor\n\t\tforegroundColor\n\t}\n}\n")
 	op.Var("username", username)
 	op.Var("name", name)
 	var respData struct {

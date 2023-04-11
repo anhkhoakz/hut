@@ -940,7 +940,7 @@ func newTodoLabelListCommand() *cobra.Command {
 		}
 
 		for _, label := range user.Tracker.Labels.Results {
-			fmt.Printf("%s %s\n", termfmt.DarkYellow.Sprintf("#%d", label.Id), label.TermString())
+			fmt.Println(label.TermString())
 		}
 	}
 

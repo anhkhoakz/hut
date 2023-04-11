@@ -97,7 +97,6 @@ query labelsByUser($username: String!, $name: String!) {
 
 fragment labels on LabelCursor {
     results {
-        id
         name
         backgroundColor
         foregroundColor
