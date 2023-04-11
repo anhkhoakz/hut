@@ -11,6 +11,12 @@ access token, and are not available to clients using OAuth 2.0 access tokens.
 """
 directive @private on FIELD_DEFINITION
 
+"""
+This used to decorate fields which are for internal use, and are not
+available to normal API users.
+"""
+directive @internal on FIELD_DEFINITION
+
 enum AccessScope {
   PROFILE      @scopehelp(details: "profile information")
   REPOSITORIES @scopehelp(details: "repository metadata")
@@ -46,11 +52,19 @@ type Version {
 
   "Optional features"
   features: Features!
+
+  "Config settings"
+  settings: Settings!
 }
 
 "Describes the status of optional features"
 type Features {
   artifacts: Boolean!
+}
+
+"Instance specific settings"
+type Settings {
+  sshUser: String!
 }
 
 enum AccessMode {
@@ -117,12 +131,6 @@ type Repository {
   sanitize this for display on the web, if so desired.
   """
   readme: String
-
-  """
-  If this repository was cloned from another, this is set to the original
-  clone URL.
-  """
-  upstreamUrl: String
 
   "Whether or not this repository is a non-publishing repository."
   nonPublishing: Boolean!
@@ -420,7 +428,7 @@ type Mutation {
   may be used to access details of the event which trigged the webhook. The
   query may not make any mutations.
   """
-  createWebhook(config: UserWebhookInput!): WebhookSubscription!
+  createUserWebhook(config: UserWebhookInput!): WebhookSubscription!
 
   """
   Deletes a user webhook. Any events already queued may still be
@@ -430,5 +438,10 @@ type Mutation {
   Manually deleting a webhook configured by a third-party client may cause
   unexpected behavior with the third-party integration.
   """
-  deleteWebhook(id: Int!): WebhookSubscription!
+  deleteUserWebhook(id: Int!): WebhookSubscription!
+
+  """
+  Deletes the authenticated user's account. Internal use only.
+  """
+  deleteUser: Int! @internal
 }

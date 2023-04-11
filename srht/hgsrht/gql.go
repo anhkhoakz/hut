@@ -116,9 +116,6 @@ type Repository struct {
 	// NOTICE: This returns unsanitized HTML. It is the client's responsibility to
 	// sanitize this for display on the web, if so desired.
 	Readme *string `json:"readme,omitempty"`
-	// If this repository was cloned from another, this is set to the original
-	// clone URL.
-	UpstreamUrl *string `json:"upstreamUrl,omitempty"`
 	// Whether or not this repository is a non-publishing repository.
 	NonPublishing     bool       `json:"nonPublishing"`
 	AccessControlList *ACLCursor `json:"accessControlList"`
@@ -174,6 +171,11 @@ type RevisionCursor struct {
 	Cursor  *Cursor     `json:"cursor,omitempty"`
 }
 
+// Instance specific settings
+type Settings struct {
+	SshUser string `json:"sshUser"`
+}
+
 type Tag struct {
 	Name string `json:"name"`
 	Id   string `json:"id"`
@@ -219,6 +221,8 @@ type Version struct {
 	DeprecationDate gqlclient.Time `json:"deprecationDate,omitempty"`
 	// Optional features
 	Features *Features `json:"features"`
+	// Config settings
+	Settings *Settings `json:"settings"`
 }
 
 type Visibility string
@@ -368,22 +372,22 @@ func DeleteRepository(client *gqlclient.Client, ctx context.Context, id int32) (
 	return respData.DeleteRepository, err
 }
 
-func CreateUserWebhook(client *gqlclient.Client, ctx context.Context, config UserWebhookInput) (createWebhook *WebhookSubscription, err error) {
-	op := gqlclient.NewOperation("mutation createUserWebhook ($config: UserWebhookInput!) {\n\tcreateWebhook(config: $config) {\n\t\tid\n\t}\n}\n")
+func CreateUserWebhook(client *gqlclient.Client, ctx context.Context, config UserWebhookInput) (createUserWebhook *WebhookSubscription, err error) {
+	op := gqlclient.NewOperation("mutation createUserWebhook ($config: UserWebhookInput!) {\n\tcreateUserWebhook(config: $config) {\n\t\tid\n\t}\n}\n")
 	op.Var("config", config)
 	var respData struct {
-		CreateWebhook *WebhookSubscription
+		CreateUserWebhook *WebhookSubscription
 	}
 	err = client.Execute(ctx, op, &respData)
-	return respData.CreateWebhook, err
+	return respData.CreateUserWebhook, err
 }
 
-func DeleteUserWebhook(client *gqlclient.Client, ctx context.Context, id int32) (deleteWebhook *WebhookSubscription, err error) {
-	op := gqlclient.NewOperation("mutation deleteUserWebhook ($id: Int!) {\n\tdeleteWebhook(id: $id) {\n\t\tid\n\t}\n}\n")
+func DeleteUserWebhook(client *gqlclient.Client, ctx context.Context, id int32) (deleteUserWebhook *WebhookSubscription, err error) {
+	op := gqlclient.NewOperation("mutation deleteUserWebhook ($id: Int!) {\n\tdeleteUserWebhook(id: $id) {\n\t\tid\n\t}\n}\n")
 	op.Var("id", id)
 	var respData struct {
-		DeleteWebhook *WebhookSubscription
+		DeleteUserWebhook *WebhookSubscription
 	}
 	err = client.Execute(ctx, op, &respData)
-	return respData.DeleteWebhook, err
+	return respData.DeleteUserWebhook, err
 }

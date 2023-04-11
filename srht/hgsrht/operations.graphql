@@ -70,13 +70,13 @@ mutation deleteRepository($id: Int!) {
 }
 
 mutation createUserWebhook($config: UserWebhookInput!) {
-    createWebhook(config: $config) {
+    createUserWebhook(config: $config) {
         id
     }
 }
 
 mutation deleteUserWebhook($id: Int!) {
-    deleteWebhook(id: $id) {
+    deleteUserWebhook(id: $id) {
         id
     }
 }
