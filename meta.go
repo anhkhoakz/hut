@@ -532,8 +532,6 @@ func newMetaUserWebhookDeleteCommand() *cobra.Command {
 		webhook, err := metasrht.DeleteUserWebhook(c.Client, ctx, id)
 		if err != nil {
 			log.Fatal(err)
-		} else if webhook == nil {
-			log.Fatal("failed to delete webhook")
 		}
 
 		fmt.Printf("Deleted webhook %d\n", webhook.Id)

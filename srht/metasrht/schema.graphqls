@@ -208,7 +208,7 @@ type ProfileWebhookSubscription implements WebhookSubscription {
   url: String!
   client: OAuthClient @private
   deliveries(cursor: Cursor): WebhookDeliveryCursor!
-  sample(event: WebhookEvent): String!
+  sample(event: WebhookEvent!): String!
 }
 
 type WebhookDelivery {
@@ -339,7 +339,6 @@ type Query {
   me: User! @access(scope: PROFILE, kind: RO)
 
   "Returns a specific user"
-  userByID(id: Int!): User @access(scope: PROFILE, kind: RO)
   userByName(username: String!): User @access(scope: PROFILE, kind: RO)
   userByEmail(email: String!): User @access(scope: PROFILE, kind: RO)
 
@@ -374,18 +373,27 @@ type Query {
   """
   webhook: WebhookPayload!
 
+  "Returns the current OAuth grant in use, if any"
+  myOauthGrant: OAuthGrant
+
   "Returns OAuth grants issued for the authenticated user"
-  oauthGrants: [OAuthGrant]! @private
+  oauthGrants: [OAuthGrant!]! @private
 
   "List of OAuth clients this user administrates"
-  oauthClients: [OAuthClient]! @private
+  oauthClients: [OAuthClient!]! @private
 
   "Returns a list of personal OAuth tokens issued"
-  personalAccessTokens: [OAuthPersonalToken]! @private
+  personalAccessTokens: [OAuthPersonalToken!]! @private
 
   ###                                               ###
   ### The following resolvers are for internal use. ###
   ###                                               ###
+
+  "Returns a specific user by ID"
+  userByID(id: Int!): User @anoninternal
+
+  "Returns a specific user by username"
+  user(username: String!): User @anoninternal
 
   "Returns a specific OAuth client (by database ID)"
   oauthClientByID(id: Int!): OAuthClient @internal
@@ -458,7 +466,7 @@ type Mutation {
   Manually deleting a webhook configured by a third-party client may cause
   unexpected behavior with the third-party integration.
   """
-  deleteWebhook(id: Int!): WebhookSubscription
+  deleteWebhook(id: Int!): WebhookSubscription!
 
   ###                                               ###
   ### The following resolvers are for internal use. ###
@@ -468,8 +476,7 @@ type Mutation {
   registerAccount(email: String!,
     username: String!,
     password: String!,
-    pgpKey: String,
-    invite: String): User @anoninternal
+    pgpKey: String): User @anoninternal
 
   """
   Registers an OAuth client. Only OAuth 2.0 confidental clients are
@@ -508,5 +515,43 @@ type Mutation {
   specific OAuth client.
   """
   issueOAuthGrant(authorization: String!,
-    clientSecret: String!): OAuthGrantRegistration @internal
+    clientSecret: String!, redirectUri: String): OAuthGrantRegistration @internal
+
+  """
+  Send a notification email.
+
+  The 'address' parameter must be a single RFC 5322 address (e.g. "Barry Gibbs
+  <bg@example.com>", or "bg@example.com"). The 'message' parameter must be a
+  RFC 5322 compliant Internet message with the special requirement that it must
+  not contain any recipients (i.e. no 'To', 'Cc', or 'Bcc' header).
+
+  The message will be signed with the site key. If the address is that of a
+  registered user it will be encrypted according to the user's privacy
+  settings.
+  """
+  sendEmail(address: String!, message: String!): Boolean! @anoninternal
+
+  """
+  Sends a notification email to the given user.
+
+  The 'message' parameter must be a RFC 5322 compliant Internet message with
+  the special requirement that it must not contain any recipients (i.e. no
+  'To', 'Cc', or 'Bcc' header). It will be encrypted according to the user's
+  privacy settings and signed with the site key.
+  """
+  sendEmailNotification(username: String!, message: String!): Boolean! @anoninternal
+
+  """
+  Sends a notification email to an external address.
+
+  The 'message' parameter must be a RFC 5322 compliant Internet message with
+  the special requirement that it must not contain any recipients (i.e. no
+  'To', 'Cc', or 'Bcc' header). It will be signed with the site key.
+  """
+  sendEmailExternal(address: String!, message: String!): Boolean! @anoninternal
+
+  """
+  Deletes the authenticated user's account.
+  """
+  deleteUser(reserve: Boolean!): Int! @internal
 }
