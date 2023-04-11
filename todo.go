@@ -956,30 +956,27 @@ func newTodoLabelListCommand() *cobra.Command {
 func newTodoLabelDeleteCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		_, _, instance, err := getTrackerName(ctx, cmd)
+		trackerName, owner, instance, err := getTrackerName(ctx, cmd)
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		c := createClientWithInstance("todo", cmd, instance)
-
-		id, err := parseInt32(args[0])
+		id, err := getLabelID(c, ctx, trackerName, args[0], owner)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("failed to get label ID: %v", err)
 		}
 
 		label, err := todosrht.DeleteLabel(c.Client, ctx, id)
 		if err != nil {
 			log.Fatal(err)
-		} else if label == nil {
-			log.Fatal("failed to delete label")
 		}
 
 		fmt.Printf("Deleted label %s\n", label.Name)
 	}
 
 	cmd := &cobra.Command{
-		Use:               "delete <ID>",
+		Use:               "delete <name>",
 		Short:             "Delete a label",
 		Args:              cobra.ExactArgs(1),
 		ValidArgsFunction: cobra.NoFileCompletions,
@@ -1579,6 +1576,32 @@ func calcContrastRatio(l1, l2 float64) float64 {
 	}
 
 	return (l2 + 0.05) / (l1 + 0.05)
+}
+
+func getLabelID(c *Client, ctx context.Context, trackerName, labelName, owner string) (int32, error) {
+	var (
+		user     *todosrht.User
+		username string
+		err      error
+	)
+
+	if owner == "" {
+		user, err = todosrht.LabelIDByName(c.Client, ctx, trackerName, labelName)
+	} else {
+		username = strings.TrimLeft(owner, ownerPrefixes)
+		user, err = todosrht.LabelIDByUser(c.Client, ctx, username, trackerName, labelName)
+	}
+	if err != nil {
+		return 0, err
+	} else if user == nil {
+		return 0, fmt.Errorf("user %q does not exist", username)
+	} else if user.Tracker == nil {
+		return 0, fmt.Errorf("tracker %q does not exist", trackerName)
+	} else if user.Tracker.Label == nil {
+		return 0, fmt.Errorf("label %q does not exist", labelName)
+	}
+
+	return user.Tracker.Label.Id, nil
 }
 
 func completeTicketID(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

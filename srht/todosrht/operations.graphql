@@ -354,6 +354,30 @@ fragment ticket on Ticket {
     }
 }
 
+query labelIDByName($trackerName: String!, $labelName: String!) {
+    me {
+        tracker(name: $trackerName) {
+            label(name: $labelName) {
+                id
+            }
+        }
+    }
+}
+
+query labelIDByUser(
+    $username: String!
+    $trackerName: String!
+    $labelName: String!
+) {
+    user(username: $username) {
+        tracker(name: $trackerName) {
+            label(name: $labelName) {
+                id
+            }
+        }
+    }
+}
+
 mutation deleteTracker($id: Int!) {
     deleteTracker(id: $id) {
         name

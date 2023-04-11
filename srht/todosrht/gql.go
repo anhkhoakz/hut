@@ -917,6 +917,29 @@ func TicketByUser(client *gqlclient.Client, ctx context.Context, username string
 	return respData.User, err
 }
 
+func LabelIDByName(client *gqlclient.Client, ctx context.Context, trackerName string, labelName string) (me *User, err error) {
+	op := gqlclient.NewOperation("query labelIDByName ($trackerName: String!, $labelName: String!) {\n\tme {\n\t\ttracker(name: $trackerName) {\n\t\t\tlabel(name: $labelName) {\n\t\t\t\tid\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op.Var("trackerName", trackerName)
+	op.Var("labelName", labelName)
+	var respData struct {
+		Me *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Me, err
+}
+
+func LabelIDByUser(client *gqlclient.Client, ctx context.Context, username string, trackerName string, labelName string) (user *User, err error) {
+	op := gqlclient.NewOperation("query labelIDByUser ($username: String!, $trackerName: String!, $labelName: String!) {\n\tuser(username: $username) {\n\t\ttracker(name: $trackerName) {\n\t\t\tlabel(name: $labelName) {\n\t\t\t\tid\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op.Var("username", username)
+	op.Var("trackerName", trackerName)
+	op.Var("labelName", labelName)
+	var respData struct {
+		User *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.User, err
+}
+
 func DeleteTracker(client *gqlclient.Client, ctx context.Context, id int32) (deleteTracker *Tracker, err error) {
 	op := gqlclient.NewOperation("mutation deleteTracker ($id: Int!) {\n\tdeleteTracker(id: $id) {\n\t\tname\n\t}\n}\n")
 	op.Var("id", id)

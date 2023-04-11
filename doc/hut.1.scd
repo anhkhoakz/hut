@@ -654,7 +654,7 @@ Options are:
 		Foreground color in hex format. If omitted either black or white will be
 		selected for an optimized contrast.
 
-*label delete* <ID>
+*label delete* <name>
 	Delete a label.
 
 *label list*
