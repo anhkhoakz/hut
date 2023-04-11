@@ -981,7 +981,7 @@ func newTodoLabelDeleteCommand() *cobra.Command {
 		Use:               "delete <name>",
 		Short:             "Delete a label",
 		Args:              cobra.ExactArgs(1),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction: completeLabel,
 		Run:               run,
 	}
 	return cmd
@@ -1494,6 +1494,7 @@ func newTodoTicketLabelCommand() *cobra.Command {
 	}
 	cmd.Flags().StringVarP(&labelName, "label", "l", "", "label name")
 	cmd.MarkFlagRequired("label")
+	// TODO: complete unassigned labels
 	cmd.RegisterFlagCompletionFunc("label", cobra.NoFileCompletions)
 	return cmd
 }
@@ -1533,6 +1534,7 @@ func newTodoTicketUnlabelCommand() *cobra.Command {
 	}
 	cmd.Flags().StringVarP(&labelName, "label", "l", "", "label name")
 	cmd.MarkFlagRequired("label")
+	// TODO: complete assigned labels
 	cmd.RegisterFlagCompletionFunc("label", cobra.NoFileCompletions)
 	return cmd
 }
@@ -1916,4 +1918,33 @@ func completeTrackerWebhookEvents(cmd *cobra.Command, args []string, toComplete 
 		}
 	}
 	return eventList, cobra.ShellCompDirectiveNoFileComp
+}
+
+func completeLabel(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	ctx := cmd.Context()
+	var labelList []string
+
+	name, owner, instance, err := getTrackerName(ctx, cmd)
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	c := createClientWithInstance("todo", cmd, instance)
+	var user *todosrht.User
+
+	if owner != "" {
+		username := strings.TrimLeft(owner, ownerPrefixes)
+		user, err = todosrht.CompleteLabelByUser(c.Client, ctx, username, name)
+	} else {
+		user, err = todosrht.CompleteLabel(c.Client, ctx, name)
+	}
+	if err != nil || user == nil || user.Tracker == nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	for _, label := range user.Tracker.Labels.Results {
+		labelList = append(labelList, label.Name)
+	}
+
+	return labelList, cobra.ShellCompDirectiveNoFileComp
 }

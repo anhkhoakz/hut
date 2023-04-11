@@ -377,6 +377,30 @@ query labelIDByUser(
     }
 }
 
+query completeLabel($name: String!) {
+    me {
+        tracker(name: $name) {
+            labels {
+                results {
+                    name
+                }
+            }
+        }
+    }
+}
+
+query completeLabelByUser($username: String!, $name: String!) {
+    user(username: $username) {
+        tracker(name: $name) {
+            labels {
+                results {
+                    name
+                }
+            }
+        }
+    }
+}
+
 mutation deleteTracker($id: Int!) {
     deleteTracker(id: $id) {
         name

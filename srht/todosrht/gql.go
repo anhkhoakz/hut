@@ -940,6 +940,27 @@ func LabelIDByUser(client *gqlclient.Client, ctx context.Context, username strin
 	return respData.User, err
 }
 
+func CompleteLabel(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
+	op := gqlclient.NewOperation("query completeLabel ($name: String!) {\n\tme {\n\t\ttracker(name: $name) {\n\t\t\tlabels {\n\t\t\t\tresults {\n\t\t\t\t\tname\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op.Var("name", name)
+	var respData struct {
+		Me *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Me, err
+}
+
+func CompleteLabelByUser(client *gqlclient.Client, ctx context.Context, username string, name string) (user *User, err error) {
+	op := gqlclient.NewOperation("query completeLabelByUser ($username: String!, $name: String!) {\n\tuser(username: $username) {\n\t\ttracker(name: $name) {\n\t\t\tlabels {\n\t\t\t\tresults {\n\t\t\t\t\tname\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op.Var("username", username)
+	op.Var("name", name)
+	var respData struct {
+		User *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.User, err
+}
+
 func DeleteTracker(client *gqlclient.Client, ctx context.Context, id int32) (deleteTracker *Tracker, err error) {
 	op := gqlclient.NewOperation("mutation deleteTracker ($id: Int!) {\n\tdeleteTracker(id: $id) {\n\t\tname\n\t}\n}\n")
 	op.Var("id", id)
