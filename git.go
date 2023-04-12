@@ -764,7 +764,7 @@ func getRepoName(ctx context.Context, cmd *cobra.Command) (repoName, owner, inst
 		return repoName, owner, instance, nil
 	}
 
-	repoName, owner, instance, err = guessGitRepoName(ctx)
+	repoName, owner, instance, err = guessGitRepoName(ctx, cmd)
 	if err != nil {
 		return "", "", "", err
 	}
@@ -772,20 +772,40 @@ func getRepoName(ctx context.Context, cmd *cobra.Command) (repoName, owner, inst
 	return repoName, owner, instance, nil
 }
 
-func guessGitRepoName(ctx context.Context) (repoName, owner, instance string, err error) {
-	remoteURL, err := gitRemoteURL(ctx)
+func guessGitRepoName(ctx context.Context, cmd *cobra.Command) (repoName, owner, instance string, err error) {
+	remoteURLs, err := gitRemoteURLs(ctx)
 	if err != nil {
 		return "", "", "", err
 	}
 
-	parts := strings.Split(strings.Trim(remoteURL.Path, "/"), "/")
-	if len(parts) != 2 {
-		return "", "", "", fmt.Errorf("failed to parse Git URL %q: expected 2 path components", remoteURL)
-	}
-	owner, repoName = parts[0], parts[1]
+	cfg := loadConfig(cmd)
+	for _, remoteURL := range remoteURLs {
+		if remoteURL.Host == "" {
+			continue
+		}
 
-	// TODO: ignore port in host
-	return repoName, owner, remoteURL.Host, nil
+		match := false
+		for _, instance := range cfg.Instances {
+			if instance.match(remoteURL.Host) {
+				match = true
+				break
+			}
+		}
+		if !match {
+			continue
+		}
+
+		parts := strings.Split(strings.Trim(remoteURL.Path, "/"), "/")
+		if len(parts) != 2 {
+			return "", "", "", fmt.Errorf("failed to parse Git URL %q: expected 2 path components", remoteURL)
+		}
+		owner, repoName = parts[0], parts[1]
+
+		// TODO: ignore port in host
+		return repoName, owner, remoteURL.Host, nil
+	}
+
+	return "", "", "", fmt.Errorf("no sr.ht Git repository found in current directory")
 }
 
 func getRepoID(c *Client, ctx context.Context, name, owner string) int32 {
@@ -810,33 +830,43 @@ func getRepoID(c *Client, ctx context.Context, name, owner string) int32 {
 	return user.Repository.Id
 }
 
-func gitRemoteURL(ctx context.Context) (*url.URL, error) {
-	// TODO: iterate over all remotes, find one which matches the config file, etc
-	out, err := exec.CommandContext(ctx, "git", "remote", "get-url", "origin").Output()
+func gitRemoteURLs(ctx context.Context) ([]*url.URL, error) {
+	// TODO: iterate over all remotes
+	out, err := exec.CommandContext(ctx, "git", "remote", "get-url", "--all", "origin").Output()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get remote URL: %v", err)
 	}
 
-	raw := strings.TrimSpace(string(out))
-	switch {
-	case strings.Contains(raw, "://"):
-		return url.Parse(raw)
-	case strings.HasPrefix(raw, "/"):
-		return &url.URL{Scheme: "file", Path: raw}, nil
-	default:
-		i := strings.Index(raw, ":")
-		if i < 0 {
-			return nil, fmt.Errorf("invalid scp-like Git URL %q: missing colon", raw)
-		}
-		host, path := raw[:i], raw[i+1:]
+	var urls []*url.URL
+	l := strings.Split(strings.TrimSpace(string(out)), "\n")
+	for _, raw := range l {
+		var u *url.URL
+		switch {
+		case strings.Contains(raw, "://"):
+			u, err = url.Parse(raw)
+			if err != nil {
+				return nil, err
+			}
+		case strings.HasPrefix(raw, "/"):
+			u = &url.URL{Scheme: "file", Path: raw}
+		default:
+			i := strings.Index(raw, ":")
+			if i < 0 {
+				return nil, fmt.Errorf("invalid scp-like Git URL %q: missing colon", raw)
+			}
+			host, path := raw[:i], raw[i+1:]
 
-		// Strip optional user
-		if i := strings.Index(host, "@"); i >= 0 {
-			host = host[i+1:]
-		}
+			// Strip optional user
+			if i := strings.Index(host, "@"); i >= 0 {
+				host = host[i+1:]
+			}
 
-		return &url.URL{Scheme: "ssh", Host: host, Path: path}, nil
+			u = &url.URL{Scheme: "ssh", Host: host, Path: path}
+		}
+		urls = append(urls, u)
 	}
+
+	return urls, nil
 }
 
 func guessRev() (string, error) {

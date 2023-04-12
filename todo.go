@@ -1573,7 +1573,7 @@ func getTrackerName(ctx context.Context, cmd *cobra.Command) (name, owner, insta
 	}
 
 	// TODO: Use hub.sr.ht API to determine trackers
-	name, owner, instance, err = guessGitRepoName(ctx)
+	name, owner, instance, err = guessGitRepoName(ctx, cmd)
 	if err != nil {
 		return "", "", "", err
 	}
