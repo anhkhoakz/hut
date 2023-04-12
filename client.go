@@ -11,7 +11,6 @@ import (
 
 	"git.sr.ht/~emersion/gqlclient"
 	"github.com/spf13/cobra"
-	"golang.org/x/oauth2"
 )
 
 type Client struct {
@@ -82,12 +81,8 @@ func createClientWithInstance(service string, cmd *cobra.Command, instanceName s
 
 func createClientWithToken(baseURL, token string) *Client {
 	gqlEndpoint := baseURL + "/query"
-	httpTransport := &oauth2.Transport{
-		Source: oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token}),
-		Base:   userAgentHTTPTransport("hut"),
-	}
 	httpClient := &http.Client{
-		Transport: httpTransport,
+		Transport: &httpTransport{accessToken: token},
 		Timeout:   30 * time.Second,
 	}
 	return &Client{
@@ -97,9 +92,12 @@ func createClientWithToken(baseURL, token string) *Client {
 	}
 }
 
-type userAgentHTTPTransport string
+type httpTransport struct {
+	accessToken string
+}
 
-func (ua userAgentHTTPTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	req.Header.Set("User-Agent", string(ua))
+func (tr *httpTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	req.Header.Set("User-Agent", "hut")
+	req.Header.Set("Authorization", "Bearer "+tr.accessToken)
 	return http.DefaultTransport.RoundTrip(req)
 }
