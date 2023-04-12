@@ -763,13 +763,7 @@ func getRepoName(ctx context.Context, cmd *cobra.Command) (repoName, owner, inst
 		repoName, owner, instance = parseResourceName(repoName)
 		return repoName, owner, instance, nil
 	}
-
-	repoName, owner, instance, err = guessGitRepoName(ctx, cmd)
-	if err != nil {
-		return "", "", "", err
-	}
-
-	return repoName, owner, instance, nil
+	return guessGitRepoName(ctx, cmd)
 }
 
 func guessGitRepoName(ctx context.Context, cmd *cobra.Command) (repoName, owner, instance string, err error) {
