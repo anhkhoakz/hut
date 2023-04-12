@@ -58,7 +58,7 @@ func newBuildsSubmitCommand() *cobra.Command {
 			if _, err := os.Stat(".build.yml"); err == nil {
 				filenames = append(filenames, ".build.yml")
 			}
-			if matches, err := filepath.Glob(".build/*.yml"); err == nil {
+			if matches, err := filepath.Glob(".builds/*.yml"); err == nil {
 				filenames = append(filenames, matches...)
 			}
 		}
