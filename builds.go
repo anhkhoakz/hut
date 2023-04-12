@@ -63,7 +63,7 @@ func newBuildsSubmitCommand() *cobra.Command {
 			}
 		}
 
-		if len(filenames) == 0 {
+		if len(filenames) == 0 && !edit {
 			log.Fatal("no build manifest found")
 		}
 		if len(filenames) > 1 && follow {
