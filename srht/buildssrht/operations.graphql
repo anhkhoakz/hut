@@ -1,5 +1,15 @@
-mutation submit($manifest: String!, $tags: [String!], $note: String) {
-    submit(manifest: $manifest, tags: $tags, note: $note) {
+mutation submit(
+    $manifest: String!
+    $tags: [String!]
+    $note: String
+    $visibility: Visibility
+) {
+    submit(
+        manifest: $manifest
+        tags: $tags
+        note: $note
+        visibility: $visibility
+    ) {
         id
         owner {
             canonicalName

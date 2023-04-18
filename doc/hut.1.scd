@@ -136,6 +136,9 @@ hut is a CLI companion utility to interact with sr.ht.
 	*-n*, *--note* <string>
 		Provide a short job description.
 
+	*-v*, *--visibility* <string>
+		Visibility to use (public, unlisted, private). Defaults to unlisted.
+
 *user-webhook create* [options...]
 	Create a user webhook. When this command is run from a terminal, the query will
 	be read from _$EDITOR_, otherwise it defaults to stdin.

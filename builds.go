@@ -48,10 +48,15 @@ const buildsSubmitPrefill = `
 
 func newBuildsSubmitCommand() *cobra.Command {
 	var follow, edit bool
-	var note, tagString string
+	var note, tagString, visibility string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("builds", cmd)
+
+		buildsVisibility, err := buildssrht.ParseVisibility(visibility)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		filenames := args
 		if len(args) == 0 {
@@ -103,7 +108,7 @@ func newBuildsSubmitCommand() *cobra.Command {
 		}
 
 		for _, manifest := range manifests {
-			job, err := buildssrht.Submit(c.Client, ctx, manifest, tags, &note)
+			job, err := buildssrht.Submit(c.Client, ctx, manifest, tags, &note, &buildsVisibility)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -139,6 +144,8 @@ func newBuildsSubmitCommand() *cobra.Command {
 	cmd.RegisterFlagCompletionFunc("note", cobra.NoFileCompletions)
 	cmd.Flags().StringVarP(&tagString, "tags", "t", "", "job tags (slash separated)")
 	cmd.RegisterFlagCompletionFunc("tags", cobra.NoFileCompletions)
+	cmd.Flags().StringVarP(&visibility, "visibility", "v", "unlisted", "builds visibility")
+	cmd.RegisterFlagCompletionFunc("visibility", completeVisibility)
 	return cmd
 }
 
