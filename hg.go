@@ -95,7 +95,7 @@ func newHgCreateCommand() *cobra.Command {
 			log.Fatal("failed to create repository")
 		}
 
-		fmt.Printf("Created repository %s\n", repo.Name)
+		log.Printf("Created repository %s\n", repo.Name)
 	}
 
 	cmd := &cobra.Command{
@@ -123,7 +123,7 @@ func newHgDeleteCommand() *cobra.Command {
 		id := getHgRepoID(c, ctx, name, owner)
 
 		if !autoConfirm && !getConfirmation(fmt.Sprintf("Do you really want to delete the repo %s", name)) {
-			fmt.Println("Aborted")
+			log.Println("Aborted")
 			return
 		}
 		repo, err := hgsrht.DeleteRepository(c.Client, ctx, id)
@@ -131,7 +131,7 @@ func newHgDeleteCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Deleted repository %s\n", repo.Name)
+		log.Printf("Deleted repository %s\n", repo.Name)
 	}
 
 	cmd := &cobra.Command{
@@ -179,7 +179,7 @@ func newHgUserWebhookCreateCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Created user webhook with ID %d\n", webhook.Id)
+		log.Printf("Created user webhook with ID %d\n", webhook.Id)
 	}
 
 	cmd := &cobra.Command{
@@ -238,7 +238,7 @@ func newHgUserWebhookDeleteCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Deleted webhook %d\n", webhook.Id)
+		log.Printf("Deleted webhook %d\n", webhook.Id)
 	}
 
 	cmd := &cobra.Command{

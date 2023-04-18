@@ -218,7 +218,7 @@ func newInitCommand() *cobra.Command {
 			log.Fatalf("failed to close config file: %v", err)
 		}
 
-		fmt.Printf("hut initialized for user %v\n", termfmt.Bold.String(user.CanonicalName))
+		log.Printf("hut initialized for user %v\n", termfmt.Bold.String(user.CanonicalName))
 	}
 	return cmd
 }

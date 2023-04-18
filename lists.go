@@ -61,7 +61,7 @@ func newListsDeleteCommand() *cobra.Command {
 		id := getMailingListID(c, ctx, name, owner)
 
 		if !autoConfirm && !getConfirmation(fmt.Sprintf("Do you really want to delete the list %s", name)) {
-			fmt.Println("Aborted")
+			log.Println("Aborted")
 			return
 		}
 
@@ -72,7 +72,7 @@ func newListsDeleteCommand() *cobra.Command {
 			log.Fatalf("failed to delete list with ID %d", id)
 		}
 
-		fmt.Printf("Deleted mailing list %s\n", list.Name)
+		log.Printf("Deleted mailing list %s\n", list.Name)
 	}
 
 	cmd := &cobra.Command{
@@ -160,7 +160,7 @@ func newListsSubscribeCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Subscribed to %s/%s/%s\n", c.BaseURL, subscription.List.Owner.CanonicalName, subscription.List.Name)
+		log.Printf("Subscribed to %s/%s/%s\n", c.BaseURL, subscription.List.Owner.CanonicalName, subscription.List.Name)
 	}
 
 	cmd := &cobra.Command{
@@ -197,7 +197,7 @@ func newListsUnsubscribeCommand() *cobra.Command {
 			log.Fatalf("you were not subscribed to %s/%s/%s", c.BaseURL, owner, name)
 		}
 
-		fmt.Printf("Unsubscribed from %s/%s/%s\n", c.BaseURL, subscription.List.Owner.CanonicalName, subscription.List.Name)
+		log.Printf("Unsubscribed from %s/%s/%s\n", c.BaseURL, subscription.List.Owner.CanonicalName, subscription.List.Name)
 	}
 
 	cmd := &cobra.Command{
@@ -254,7 +254,7 @@ func newListsCreateCommand() *cobra.Command {
 			log.Fatal("failed to create mailing list")
 		}
 
-		fmt.Printf("Created mailing list %q\n", tracker.Name)
+		log.Printf("Created mailing list %q\n", tracker.Name)
 	}
 	cmd := &cobra.Command{
 		Use:               "create <name>",
@@ -473,7 +473,7 @@ func newListsPatchsetUpdateCommand() *cobra.Command {
 			log.Fatalf("failed to update patchset with ID %d", id)
 		}
 
-		fmt.Printf("Updated patchset %q by %s\n", patch.Subject, patch.Submitter.CanonicalName)
+		log.Printf("Updated patchset %q by %s\n", patch.Subject, patch.Submitter.CanonicalName)
 	}
 
 	cmd := &cobra.Command{
@@ -650,7 +650,7 @@ func newListsACLDeleteCommand() *cobra.Command {
 			log.Fatalf("failed to delete ACL entry with ID %d", id)
 		}
 
-		fmt.Printf("Deleted ACL entry for %q in mailing list %q\n", acl.Entity.CanonicalName, acl.List.Name)
+		log.Printf("Deleted ACL entry for %q in mailing list %q\n", acl.Entity.CanonicalName, acl.List.Name)
 	}
 
 	cmd := &cobra.Command{
@@ -697,7 +697,7 @@ func newListsUserWebhookCreateCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Created user webhook with ID %d\n", webhook.Id)
+		log.Printf("Created user webhook with ID %d\n", webhook.Id)
 	}
 
 	cmd := &cobra.Command{
@@ -756,7 +756,7 @@ func newListsUserWebhookDeleteCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Deleted webhook %d\n", webhook.Id)
+		log.Printf("Deleted webhook %d\n", webhook.Id)
 	}
 
 	cmd := &cobra.Command{

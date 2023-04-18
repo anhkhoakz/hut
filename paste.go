@@ -83,7 +83,11 @@ func newPasteCreateCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("%v/%v/%v\n", c.BaseURL, paste.User.CanonicalName, paste.Id)
+		if termfmt.IsTerminal() {
+			log.Printf("Created paste %v/%v/%v", c.BaseURL, paste.User.CanonicalName, paste.Id)
+		} else {
+			fmt.Printf("%v/%v/%v\n", c.BaseURL, paste.User.CanonicalName, paste.Id)
+		}
 	}
 
 	cmd := &cobra.Command{
@@ -111,9 +115,9 @@ func newPasteDeleteCommand() *cobra.Command {
 			}
 
 			if paste == nil {
-				fmt.Printf("Paste %s does not exist\n", id)
+				log.Printf("Paste %s does not exist\n", id)
 			} else {
-				fmt.Printf("Deleted paste %s\n", paste.Id)
+				log.Printf("Deleted paste %s\n", paste.Id)
 			}
 		}
 	}
@@ -233,7 +237,7 @@ func newPasteUpdateCommand() *cobra.Command {
 			log.Fatalf("Paste %s does not exist\n", args[0])
 		}
 
-		fmt.Printf("Updated paste %s visibility to %s\n", paste.Id, pasteVisibility)
+		log.Printf("Updated paste %s visibility to %s\n", paste.Id, pasteVisibility)
 	}
 
 	cmd := &cobra.Command{
@@ -283,7 +287,7 @@ func newPasteUserWebhookCreateCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Created user webhook with ID %d\n", webhook.Id)
+		log.Printf("Created user webhook with ID %d\n", webhook.Id)
 	}
 
 	cmd := &cobra.Command{
@@ -342,7 +346,7 @@ func newPasteUserWebhookDeleteCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Deleted webhook %d\n", webhook.Id)
+		log.Printf("Deleted webhook %d\n", webhook.Id)
 	}
 
 	cmd := &cobra.Command{

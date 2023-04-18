@@ -99,7 +99,7 @@ func newPagesPublishCommand() *cobra.Command {
 			log.Fatalf("failed to publish site: %v", err)
 		}
 
-		fmt.Printf("Published site at %s\n", site.Domain)
+		log.Printf("Published site at %s\n", site.Domain)
 	}
 
 	cmd := &cobra.Command{
@@ -218,7 +218,7 @@ func newPagesUnpublishCommand() *cobra.Command {
 			log.Fatalf("failed to unpublish site: %v", err)
 		}
 
-		fmt.Printf("Unpublished site at %s\n", site.Domain)
+		log.Printf("Unpublished site at %s\n", site.Domain)
 	}
 
 	cmd := &cobra.Command{
@@ -293,7 +293,7 @@ func newPagesUserWebhookCreateCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Created user webhook with ID %d\n", webhook.Id)
+		log.Printf("Created user webhook with ID %d\n", webhook.Id)
 	}
 
 	cmd := &cobra.Command{
@@ -352,7 +352,7 @@ func newPagesUserWebhookDeleteCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Deleted webhook %d\n", webhook.Id)
+		log.Printf("Deleted webhook %d\n", webhook.Id)
 	}
 
 	cmd := &cobra.Command{

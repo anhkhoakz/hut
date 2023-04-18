@@ -148,11 +148,11 @@ func newMetaSSHKeyCreateCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Uploaded SSH public key %v", key.Fingerprint)
+		log.Printf("Uploaded SSH public key %v", key.Fingerprint)
 		if key.Comment != nil {
-			fmt.Printf(" (%v)", *key.Comment)
+			log.Printf(" (%v)", *key.Comment)
 		}
-		fmt.Println()
+		log.Println()
 	}
 
 	cmd := &cobra.Command{
@@ -204,7 +204,7 @@ func newMetaSSHKeyDeleteCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Deleted SSH key %s\n", key.Fingerprint)
+		log.Printf("Deleted SSH key %s\n", key.Fingerprint)
 	}
 
 	cmd := &cobra.Command{
@@ -313,7 +313,7 @@ func newMetaPGPKeyCreateCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Uploaded PGP public key %v\n", key.Fingerprint)
+		log.Printf("Uploaded PGP public key %v\n", key.Fingerprint)
 	}
 
 	return &cobra.Command{
@@ -373,7 +373,7 @@ func newMetaPGPKeyDeleteCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Deleted PGP key %s\n", key.Fingerprint)
+		log.Printf("Deleted PGP key %s\n", key.Fingerprint)
 	}
 
 	cmd := &cobra.Command{
@@ -475,7 +475,7 @@ func newMetaUserWebhookCreateCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Created user webhook with ID %d\n", webhook.Id)
+		log.Printf("Created user webhook with ID %d\n", webhook.Id)
 	}
 
 	cmd := &cobra.Command{
@@ -534,7 +534,7 @@ func newMetaUserWebhookDeleteCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Deleted webhook %d\n", webhook.Id)
+		log.Printf("Deleted webhook %d\n", webhook.Id)
 	}
 
 	cmd := &cobra.Command{

@@ -61,7 +61,7 @@ func newGitCreateCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Created repository %s\n", repo.Name)
+		log.Printf("Created repository %s\n", repo.Name)
 
 		if clone {
 			ver, err := gitsrht.SshSettings(c.Client, ctx)
@@ -181,7 +181,7 @@ func newGitDeleteCommand() *cobra.Command {
 		id := getRepoID(c, ctx, name, owner)
 
 		if !autoConfirm && !getConfirmation(fmt.Sprintf("Do you really want to delete the repo %s", name)) {
-			fmt.Println("Aborted")
+			log.Println("Aborted")
 			return
 		}
 		repo, err := gitsrht.DeleteRepository(c.Client, ctx, id)
@@ -189,7 +189,7 @@ func newGitDeleteCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Deleted repository %s\n", repo.Name)
+		log.Printf("Deleted repository %s\n", repo.Name)
 	}
 
 	cmd := &cobra.Command{
@@ -248,7 +248,7 @@ func newGitArtifactUploadCommand() *cobra.Command {
 				log.Fatal(err)
 			}
 
-			fmt.Printf("Uploaded %s\n", artifact.Filename)
+			log.Printf("Uploaded %s\n", artifact.Filename)
 		}
 	}
 
@@ -332,7 +332,7 @@ func newGitArtifactDeleteCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Deleted artifact %s\n", artifact.Filename)
+		log.Printf("Deleted artifact %s\n", artifact.Filename)
 	}
 
 	cmd := &cobra.Command{
@@ -433,7 +433,7 @@ func newGitACLUpdateCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Updated access rights for %s\n", acl.Entity.CanonicalName)
+		log.Printf("Updated access rights for %s\n", acl.Entity.CanonicalName)
 	}
 
 	cmd := &cobra.Command{
@@ -466,7 +466,7 @@ func newGitACLDeleteCommand() *cobra.Command {
 			log.Fatalf("failed to delete ACL entry with ID %d", id)
 		}
 
-		fmt.Printf("Deleted ACL entry for %s in repository %s\n", acl.Entity.CanonicalName, acl.Repository.Name)
+		log.Printf("Deleted ACL entry for %s in repository %s\n", acl.Entity.CanonicalName, acl.Repository.Name)
 	}
 
 	cmd := &cobra.Command{
@@ -602,7 +602,7 @@ func newGitUserWebhookCreateCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Created user webhook with ID %d\n", webhook.Id)
+		log.Printf("Created user webhook with ID %d\n", webhook.Id)
 	}
 
 	cmd := &cobra.Command{
@@ -661,7 +661,7 @@ func newGitUserWebhookDeleteCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Deleted webhook %d\n", webhook.Id)
+		log.Printf("Deleted webhook %d\n", webhook.Id)
 	}
 
 	cmd := &cobra.Command{
@@ -736,7 +736,7 @@ func newGitUpdateCommand() *cobra.Command {
 			log.Fatalf("failed to update repository %q", name)
 		}
 
-		fmt.Printf("Successfully updated repository %q\n", repo.Name)
+		log.Printf("Successfully updated repository %q\n", repo.Name)
 	}
 	cmd := &cobra.Command{
 		Use:               "update [repo]",

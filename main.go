@@ -220,7 +220,7 @@ func readWebhookQuery(stdin bool) string {
 	}
 
 	if query == "" {
-		fmt.Println("Aborting due to empty query.")
+		log.Println("Aborting due to empty query.")
 		os.Exit(1)
 	}
 	return query

@@ -101,7 +101,7 @@ func newTodoDeleteCommand() *cobra.Command {
 		id := getTrackerID(c, ctx, name, owner)
 
 		if !autoConfirm && !getConfirmation(fmt.Sprintf("Do you really want to delete the tracker %s", name)) {
-			fmt.Println("Aborted")
+			log.Println("Aborted")
 			return
 		}
 
@@ -112,7 +112,7 @@ func newTodoDeleteCommand() *cobra.Command {
 			log.Fatalf("failed to delete tracker %q", name)
 		}
 
-		fmt.Printf("Deleted tracker %s\n", tracker.Name)
+		log.Printf("Deleted tracker %s\n", tracker.Name)
 	}
 
 	cmd := &cobra.Command{
@@ -150,7 +150,7 @@ func newTodoSubscribeCommand() *cobra.Command {
 			log.Fatalf("failed to subscribe to tracker %q", name)
 		}
 
-		fmt.Printf("Subscribed to %s/%s/%s\n", c.BaseURL, subscription.Tracker.Owner.CanonicalName, subscription.Tracker.Name)
+		log.Printf("Subscribed to %s/%s/%s\n", c.BaseURL, subscription.Tracker.Owner.CanonicalName, subscription.Tracker.Name)
 	}
 
 	cmd := &cobra.Command{
@@ -187,7 +187,7 @@ func newTodoUnsubscribeCommand() *cobra.Command {
 			log.Fatalf("you were not subscribed to %s/%s/%s", c.BaseURL, owner, name)
 		}
 
-		fmt.Printf("Unsubscribed from %s/%s/%s\n", c.BaseURL, subscription.Tracker.Owner.CanonicalName, subscription.Tracker.Name)
+		log.Printf("Unsubscribed from %s/%s/%s\n", c.BaseURL, subscription.Tracker.Owner.CanonicalName, subscription.Tracker.Name)
 	}
 
 	cmd := &cobra.Command{
@@ -244,7 +244,7 @@ func newTodoCreateCommand() *cobra.Command {
 			log.Fatal("failed to create tracker")
 		}
 
-		fmt.Printf("Created tracker %q\n", tracker.Name)
+		log.Printf("Created tracker %q\n", tracker.Name)
 	}
 	cmd := &cobra.Command{
 		Use:               "create <name>",
@@ -402,7 +402,7 @@ func newTodoTicketCommentCommand() *cobra.Command {
 		}
 
 		if strings.TrimSpace(input.Text) == "" {
-			fmt.Println("Aborted writing empty comment")
+			log.Println("Aborted writing empty comment")
 			return
 		}
 
@@ -413,7 +413,7 @@ func newTodoTicketCommentCommand() *cobra.Command {
 			log.Fatalf("failed to comment on ticket with ID %d", ticketID)
 		}
 
-		fmt.Printf("Commented on %s\n", event.Ticket.Subject)
+		log.Printf("Commented on %s\n", event.Ticket.Subject)
 	}
 
 	cmd := &cobra.Command{
@@ -479,7 +479,7 @@ func newTodoTicketStatusCommand() *cobra.Command {
 			log.Fatalf("failed to update status of ticket with ID %d", ticketID)
 		}
 
-		fmt.Printf("Updated status of %s\n", event.Ticket.Subject)
+		log.Printf("Updated status of %s\n", event.Ticket.Subject)
 	}
 
 	cmd := &cobra.Command{
@@ -515,7 +515,7 @@ func newTodoTicketSubscribeCommand() *cobra.Command {
 			log.Fatalf("failed to subscribe to ticket %d", ticketID)
 		}
 
-		fmt.Printf("Subscribed to %s/%s/%s/%d\n", c.BaseURL, owner, name, subscription.Ticket.Id)
+		log.Printf("Subscribed to %s/%s/%s/%d\n", c.BaseURL, owner, name, subscription.Ticket.Id)
 	}
 
 	cmd := &cobra.Command{
@@ -547,7 +547,7 @@ func newTodoTicketUnsubscribeCommand() *cobra.Command {
 			log.Fatalf("you were not subscribed to ticket with ID %d", ticketID)
 		}
 
-		fmt.Printf("Unsubscribed from %s/%s/%s/%d\n", c.BaseURL, owner, name, subscription.Ticket.Id)
+		log.Printf("Unsubscribed from %s/%s/%s/%d\n", c.BaseURL, owner, name, subscription.Ticket.Id)
 	}
 
 	cmd := &cobra.Command{
@@ -587,7 +587,7 @@ func newTodoTicketAssignCommand() *cobra.Command {
 			log.Fatal("failed to assign user")
 		}
 
-		fmt.Printf("Assigned %q to %q\n", userName, event.Ticket.Subject)
+		log.Printf("Assigned %q to %q\n", userName, event.Ticket.Subject)
 	}
 
 	cmd := &cobra.Command{
@@ -630,7 +630,7 @@ func newTodoTicketUnassignCommand() *cobra.Command {
 			log.Fatal("failed to unassign user")
 		}
 
-		fmt.Printf("Unassigned %q from %q\n", userName, event.Ticket.Subject)
+		log.Printf("Unassigned %q from %q\n", userName, event.Ticket.Subject)
 	}
 
 	cmd := &cobra.Command{
@@ -660,7 +660,7 @@ func newTodoTicketDeleteCommand() *cobra.Command {
 		trackerID := getTrackerID(c, ctx, name, owner)
 
 		if !autoConfirm && !getConfirmation(fmt.Sprintf("Do you really want to delete the ticket with ID %d", ticketID)) {
-			fmt.Println("Aborted")
+			log.Println("Aborted")
 			return
 		}
 
@@ -671,7 +671,7 @@ func newTodoTicketDeleteCommand() *cobra.Command {
 			log.Fatalf("failed to delete ticket %d", ticketID)
 		}
 
-		fmt.Printf("Deleted ticket %q\n", ticket.Subject)
+		log.Printf("Deleted ticket %q\n", ticket.Subject)
 	}
 
 	cmd := &cobra.Command{
@@ -808,7 +808,7 @@ func newTodoTicketWebhookCreateCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Created ticket webhook with ID %d\n", webhook.Id)
+		log.Printf("Created ticket webhook with ID %d\n", webhook.Id)
 	}
 
 	cmd := &cobra.Command{
@@ -888,7 +888,7 @@ func newTodoTicketWebhookDeleteCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Deleted webhook %d\n", webhook.Id)
+		log.Printf("Deleted webhook %d\n", webhook.Id)
 	}
 
 	cmd := &cobra.Command{
@@ -974,7 +974,7 @@ func newTodoLabelDeleteCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Deleted label %s\n", label.Name)
+		log.Printf("Deleted label %s\n", label.Name)
 	}
 
 	cmd := &cobra.Command{
@@ -1010,7 +1010,7 @@ func newTodoLabelCreateCommand() *cobra.Command {
 			log.Fatal("failed to create label")
 		}
 
-		fmt.Printf("Created label %s\n", label.TermString())
+		log.Printf("Created label %s\n", label.TermString())
 	}
 
 	cmd := &cobra.Command{
@@ -1109,7 +1109,7 @@ func newTodoACLDeleteCommand() *cobra.Command {
 			log.Fatalf("failed to delete ACL entry with ID %d", id)
 		}
 
-		fmt.Printf("Deleted ACL entry for %q in tracker %q\n", acl.Entity.CanonicalName, acl.Tracker.Name)
+		log.Printf("Deleted ACL entry for %q in tracker %q\n", acl.Entity.CanonicalName, acl.Tracker.Name)
 	}
 
 	cmd := &cobra.Command{
@@ -1169,7 +1169,7 @@ func newTodoWebhookCreateCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Created tracker webhook with ID %d\n", webhook.Id)
+		log.Printf("Created tracker webhook with ID %d\n", webhook.Id)
 	}
 
 	cmd := &cobra.Command{
@@ -1257,7 +1257,7 @@ func newTodoWebhookDeleteCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Deleted webhook %d\n", webhook.Id)
+		log.Printf("Deleted webhook %d\n", webhook.Id)
 	}
 
 	cmd := &cobra.Command{
@@ -1304,7 +1304,7 @@ func newTodoUserWebhookCreateCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Created user webhook with ID %d\n", webhook.Id)
+		log.Printf("Created user webhook with ID %d\n", webhook.Id)
 	}
 
 	cmd := &cobra.Command{
@@ -1363,7 +1363,7 @@ func newTodoUserWebhookDeleteCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Deleted webhook %d\n", webhook.Id)
+		log.Printf("Deleted webhook %d\n", webhook.Id)
 	}
 
 	cmd := &cobra.Command{
@@ -1435,7 +1435,7 @@ func newTodoTicketCreateCommand() *cobra.Command {
 		}
 
 		if input.Subject == "" {
-			fmt.Println("Aborting due to empty subject.")
+			log.Println("Aborting due to empty subject.")
 			os.Exit(1)
 		}
 
@@ -1446,7 +1446,7 @@ func newTodoTicketCreateCommand() *cobra.Command {
 			log.Fatal("failed to create ticket")
 		}
 
-		fmt.Printf("Created new ticket %v\n", termfmt.DarkYellow.Sprintf("#%v", ticket.Id))
+		log.Printf("Created new ticket %v\n", termfmt.DarkYellow.Sprintf("#%v", ticket.Id))
 	}
 
 	cmd := &cobra.Command{

@@ -108,7 +108,11 @@ func newBuildsSubmitCommand() *cobra.Command {
 				log.Fatal(err)
 			}
 
-			fmt.Printf("%v/%v/job/%v\n", c.BaseURL, job.Owner.CanonicalName, job.Id)
+			if termfmt.IsTerminal() {
+				log.Printf("Started build %v/%v/job/%v", c.BaseURL, job.Owner.CanonicalName, job.Id)
+			} else {
+				fmt.Printf("%v/%v/job/%v\n", c.BaseURL, job.Owner.CanonicalName, job.Id)
+			}
 
 			if follow {
 				id := job.Id
@@ -180,7 +184,11 @@ func newBuildsResubmitCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("%v/%v/job/%v\n", c.BaseURL, job.Owner.CanonicalName, job.Id)
+		if termfmt.IsTerminal() {
+			log.Printf("Started build %v/%v/job/%v", c.BaseURL, job.Owner.CanonicalName, job.Id)
+		} else {
+			fmt.Printf("%v/%v/job/%v\n", c.BaseURL, job.Owner.CanonicalName, job.Id)
+		}
 
 		if follow {
 			id := job.Id
@@ -225,7 +233,7 @@ func newBuildsCancelCommand() *cobra.Command {
 				log.Fatalf("failed to cancel job %d: %v", id, err)
 			}
 
-			fmt.Printf("%d is cancelled\n", job.Id)
+			log.Printf("%d is cancelled\n", job.Id)
 		}
 	}
 
