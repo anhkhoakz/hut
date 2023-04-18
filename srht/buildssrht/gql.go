@@ -580,7 +580,7 @@ func Monitor(client *gqlclient.Client, ctx context.Context, id int32) (job *Job,
 }
 
 func Manifest(client *gqlclient.Client, ctx context.Context, id int32) (job *Job, err error) {
-	op := gqlclient.NewOperation("query manifest ($id: Int!) {\n\tjob(id: $id) {\n\t\tmanifest\n\t\towner {\n\t\t\tcanonicalName\n\t\t}\n\t}\n}\n")
+	op := gqlclient.NewOperation("query manifest ($id: Int!) {\n\tjob(id: $id) {\n\t\tmanifest\n\t\towner {\n\t\t\tcanonicalName\n\t\t}\n\t\tvisibility\n\t}\n}\n")
 	op.Var("id", id)
 	var respData struct {
 		Job *Job

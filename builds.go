@@ -151,7 +151,7 @@ func newBuildsSubmitCommand() *cobra.Command {
 
 func newBuildsResubmitCommand() *cobra.Command {
 	var follow, edit bool
-	var note string
+	var note, visibility string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
@@ -167,6 +167,17 @@ func newBuildsResubmitCommand() *cobra.Command {
 			log.Fatalf("failed to get build manifest: %v", err)
 		} else if oldJob == nil {
 			log.Fatal("failed to get build manifest: invalid job ID")
+		}
+
+		var buildsVisibility buildssrht.Visibility
+		if visibility != "" {
+			var err error
+			buildsVisibility, err = buildssrht.ParseVisibility(visibility)
+			if err != nil {
+				log.Fatal(err)
+			}
+		} else {
+			buildsVisibility = oldJob.Visibility
 		}
 
 		if edit {
@@ -186,7 +197,7 @@ func newBuildsResubmitCommand() *cobra.Command {
 			}
 		}
 
-		job, err := buildssrht.Submit(c.Client, ctx, oldJob.Manifest, nil, &note)
+		job, err := buildssrht.Submit(c.Client, ctx, oldJob.Manifest, nil, &note, &buildsVisibility)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -220,6 +231,8 @@ func newBuildsResubmitCommand() *cobra.Command {
 	cmd.Flags().BoolVarP(&edit, "edit", "e", false, "edit manifest")
 	cmd.Flags().StringVarP(&note, "note", "n", "", "short job description")
 	cmd.RegisterFlagCompletionFunc("note", cobra.NoFileCompletions)
+	cmd.Flags().StringVarP(&visibility, "visibility", "v", "", "builds visibility")
+	cmd.RegisterFlagCompletionFunc("visibility", completeVisibility)
 	return cmd
 }
 

@@ -103,6 +103,10 @@ hut is a CLI companion utility to interact with sr.ht.
 	*-t*, *--tags* <string>
 		Slash separated tags (e.g. "hut/test").
 
+	*-v*, *--visibility* <string>
+		Visibility to use (public, unlisted, private). Defaults to the same
+		visibility used by the original build job.
+
 *secrets*
 	List secrets.
 
