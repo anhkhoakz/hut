@@ -63,13 +63,14 @@ type Entity struct {
 type File string
 
 type Job struct {
-	Id       int32          `json:"id"`
-	Created  gqlclient.Time `json:"created"`
-	Updated  gqlclient.Time `json:"updated"`
-	Status   JobStatus      `json:"status"`
-	Manifest string         `json:"manifest"`
-	Note     *string        `json:"note,omitempty"`
-	Tags     []string       `json:"tags"`
+	Id         int32          `json:"id"`
+	Created    gqlclient.Time `json:"created"`
+	Updated    gqlclient.Time `json:"updated"`
+	Status     JobStatus      `json:"status"`
+	Manifest   string         `json:"manifest"`
+	Note       *string        `json:"note,omitempty"`
+	Tags       []string       `json:"tags"`
+	Visibility Visibility     `json:"visibility"`
 	// Name of the build image
 	Image string `json:"image"`
 	// Name of the build runner which picked up this job, or null if the job is
@@ -272,6 +273,14 @@ type Version struct {
 	DeprecationDate gqlclient.Time `json:"deprecationDate,omitempty"`
 	Settings        *Settings      `json:"settings"`
 }
+
+type Visibility string
+
+const (
+	VisibilityPublic   Visibility = "PUBLIC"
+	VisibilityUnlisted Visibility = "UNLISTED"
+	VisibilityPrivate  Visibility = "PRIVATE"
+)
 
 type WebhookDelivery struct {
 	Uuid         string               `json:"uuid"`
