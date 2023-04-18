@@ -100,9 +100,6 @@ hut is a CLI companion utility to interact with sr.ht.
 	*-n*, *--note* <string>
 		Provide a short job description.
 
-	*-t*, *--tags* <string>
-		Slash separated tags (e.g. "hut/test").
-
 	*-v*, *--visibility* <string>
 		Visibility to use (public, unlisted, private). Defaults to the same
 		visibility used by the original build job.
@@ -139,6 +136,9 @@ hut is a CLI companion utility to interact with sr.ht.
 
 	*-n*, *--note* <string>
 		Provide a short job description.
+
+	*-t*, *--tags* <string>
+		Slash separated tags (e.g. "hut/test").
 
 	*-v*, *--visibility* <string>
 		Visibility to use (public, unlisted, private). Defaults to unlisted.
