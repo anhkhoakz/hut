@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	git.sr.ht/~emersion/go-scfg v0.0.0-20211215104734-c2c7a15d6c99
-	git.sr.ht/~emersion/gqlclient v0.0.0-20230210104152-ccaba8ecd3db
+	git.sr.ht/~emersion/gqlclient v0.0.0-20230419170751-23b9305960d9
 	github.com/dustin/go-humanize v1.0.1
 	github.com/juju/ansiterm v1.0.0
 	github.com/spf13/cobra v1.7.0
@@ -13,7 +13,7 @@ require (
 
 require (
 	github.com/agnivade/levenshtein v1.1.1 // indirect
-	github.com/dave/jennifer v1.6.0 // indirect
+	github.com/dave/jennifer v1.6.1 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/lunixbochs/vtclean v1.0.0 // indirect
