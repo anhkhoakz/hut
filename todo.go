@@ -754,8 +754,21 @@ func newTodoTicketShowCommand() *cobra.Command {
 			fmt.Println(*ticket.Body)
 		}
 
-		// TODO: handle events
-		// Depends on https://todo.sr.ht/~emersion/gqlclient/3
+		for i := len(ticket.Events.Results) - 1; i >= 0; i-- {
+			event := ticket.Events.Results[i]
+			for _, change := range event.Changes {
+				comment, ok := change.Value.(*todosrht.Comment)
+				if !ok {
+					continue
+				}
+				author := termfmt.Bold.String(comment.Author.CanonicalName)
+				created := termfmt.Dim.String("(" + humanize.Time(event.Created.Time) + ")")
+				fmt.Println()
+				fmt.Printf("%v %v\n", author, created)
+				fmt.Print(indent(comment.Text, "  "))
+				fmt.Println()
+			}
+		}
 	}
 	cmd := &cobra.Command{
 		Use:               "show <ID>",

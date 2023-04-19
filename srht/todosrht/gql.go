@@ -1153,7 +1153,7 @@ func TrackerWebhooksByUser(client *gqlclient.Client, ctx context.Context, userna
 }
 
 func TicketByName(client *gqlclient.Client, ctx context.Context, name string, id int32) (me *User, err error) {
-	op := gqlclient.NewOperation("query ticketByName ($name: String!, $id: Int!) {\n\tme {\n\t\ttracker(name: $name) {\n\t\t\tticket(id: $id) {\n\t\t\t\t... ticket\n\t\t\t}\n\t\t}\n\t}\n}\nfragment ticket on Ticket {\n\tcreated\n\tupdated\n\tsubmitter {\n\t\tcanonicalName\n\t}\n\tsubject\n\tbody\n\tstatus\n\tresolution\n\tlabels {\n\t\tname\n\t\tbackgroundColor\n\t\tforegroundColor\n\t}\n\tassignees {\n\t\tcanonicalName\n\t}\n}\n")
+	op := gqlclient.NewOperation("query ticketByName ($name: String!, $id: Int!) {\n\tme {\n\t\ttracker(name: $name) {\n\t\t\tticket(id: $id) {\n\t\t\t\t... ticket\n\t\t\t}\n\t\t}\n\t}\n}\nfragment ticket on Ticket {\n\tcreated\n\tupdated\n\tsubmitter {\n\t\tcanonicalName\n\t}\n\tsubject\n\tbody\n\tstatus\n\tresolution\n\tlabels {\n\t\tname\n\t\tbackgroundColor\n\t\tforegroundColor\n\t}\n\tassignees {\n\t\tcanonicalName\n\t}\n\tevents {\n\t\tresults {\n\t\t\tcreated\n\t\t\tchanges {\n\t\t\t\t__typename\n\t\t\t\t... on Comment {\n\t\t\t\t\tauthor {\n\t\t\t\t\t\tcanonicalName\n\t\t\t\t\t}\n\t\t\t\t\ttext\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	op.Var("name", name)
 	op.Var("id", id)
 	var respData struct {
@@ -1164,7 +1164,7 @@ func TicketByName(client *gqlclient.Client, ctx context.Context, name string, id
 }
 
 func TicketByUser(client *gqlclient.Client, ctx context.Context, username string, tracker string, id int32) (user *User, err error) {
-	op := gqlclient.NewOperation("query ticketByUser ($username: String!, $tracker: String!, $id: Int!) {\n\tuser(username: $username) {\n\t\ttracker(name: $tracker) {\n\t\t\tticket(id: $id) {\n\t\t\t\t... ticket\n\t\t\t}\n\t\t}\n\t}\n}\nfragment ticket on Ticket {\n\tcreated\n\tupdated\n\tsubmitter {\n\t\tcanonicalName\n\t}\n\tsubject\n\tbody\n\tstatus\n\tresolution\n\tlabels {\n\t\tname\n\t\tbackgroundColor\n\t\tforegroundColor\n\t}\n\tassignees {\n\t\tcanonicalName\n\t}\n}\n")
+	op := gqlclient.NewOperation("query ticketByUser ($username: String!, $tracker: String!, $id: Int!) {\n\tuser(username: $username) {\n\t\ttracker(name: $tracker) {\n\t\t\tticket(id: $id) {\n\t\t\t\t... ticket\n\t\t\t}\n\t\t}\n\t}\n}\nfragment ticket on Ticket {\n\tcreated\n\tupdated\n\tsubmitter {\n\t\tcanonicalName\n\t}\n\tsubject\n\tbody\n\tstatus\n\tresolution\n\tlabels {\n\t\tname\n\t\tbackgroundColor\n\t\tforegroundColor\n\t}\n\tassignees {\n\t\tcanonicalName\n\t}\n\tevents {\n\t\tresults {\n\t\t\tcreated\n\t\t\tchanges {\n\t\t\t\t__typename\n\t\t\t\t... on Comment {\n\t\t\t\t\tauthor {\n\t\t\t\t\t\tcanonicalName\n\t\t\t\t\t}\n\t\t\t\t\ttext\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	op.Var("username", username)
 	op.Var("tracker", tracker)
 	op.Var("id", id)

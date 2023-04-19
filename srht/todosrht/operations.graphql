@@ -351,6 +351,20 @@ fragment ticket on Ticket {
     assignees {
         canonicalName
     }
+    events {
+        results {
+            created
+            changes {
+                __typename
+                ... on Comment {
+                    author {
+                        canonicalName
+                    }
+                    text
+                }
+            }
+        }
+    }
 }
 
 query labelIDByName($trackerName: String!, $labelName: String!) {
