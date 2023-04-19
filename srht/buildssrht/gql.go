@@ -4,6 +4,8 @@ package buildssrht
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	gqlclient "git.sr.ht/~emersion/gqlclient"
 )
 
@@ -45,6 +47,8 @@ type EmailTrigger struct {
 	InReplyTo *string          `json:"inReplyTo,omitempty"`
 }
 
+func (*EmailTrigger) isTrigger() {}
+
 type EmailTriggerInput struct {
 	To        string  `json:"to"`
 	Cc        *string `json:"cc,omitempty"`
@@ -58,6 +62,36 @@ type Entity struct {
 	// The canonical name of this entity. For users, this is their username
 	// prefixed with '~'. Additional entity types will be supported in the future.
 	CanonicalName string `json:"canonicalName"`
+
+	// Underlying value of the GraphQL interface
+	Value EntityValue `json:"-"`
+}
+
+func (base *Entity) UnmarshalJSON(b []byte) error {
+	type Raw Entity
+	var data struct {
+		*Raw
+		TypeName string `json:"__typename"`
+	}
+	data.Raw = (*Raw)(base)
+	err := json.Unmarshal(b, &data)
+	if err != nil {
+		return err
+	}
+	switch data.TypeName {
+	case "User":
+		base.Value = new(User)
+	case "":
+		return nil
+	default:
+		return fmt.Errorf("gqlclient: interface Entity: unknown __typename %q", data.TypeName)
+	}
+	return json.Unmarshal(b, base.Value)
+}
+
+// EntityValue is one of: User
+type EntityValue interface {
+	isEntity()
 }
 
 type File string
@@ -103,6 +137,8 @@ type JobEvent struct {
 	Job   *Job           `json:"job"`
 }
 
+func (*JobEvent) isWebhookPayload() {}
+
 type JobGroup struct {
 	Id       int32          `json:"id"`
 	Created  gqlclient.Time `json:"created"`
@@ -144,6 +180,8 @@ type PGPKey struct {
 	PrivateKey Binary         `json:"privateKey"`
 }
 
+func (*PGPKey) isSecret() {}
+
 type SSHKey struct {
 	Id         int32          `json:"id"`
 	Created    gqlclient.Time `json:"created"`
@@ -152,11 +190,47 @@ type SSHKey struct {
 	PrivateKey Binary         `json:"privateKey"`
 }
 
+func (*SSHKey) isSecret() {}
+
 type Secret struct {
 	Id      int32          `json:"id"`
 	Created gqlclient.Time `json:"created"`
 	Uuid    string         `json:"uuid"`
 	Name    *string        `json:"name,omitempty"`
+
+	// Underlying value of the GraphQL interface
+	Value SecretValue `json:"-"`
+}
+
+func (base *Secret) UnmarshalJSON(b []byte) error {
+	type Raw Secret
+	var data struct {
+		*Raw
+		TypeName string `json:"__typename"`
+	}
+	data.Raw = (*Raw)(base)
+	err := json.Unmarshal(b, &data)
+	if err != nil {
+		return err
+	}
+	switch data.TypeName {
+	case "SSHKey":
+		base.Value = new(SSHKey)
+	case "PGPKey":
+		base.Value = new(PGPKey)
+	case "SecretFile":
+		base.Value = new(SecretFile)
+	case "":
+		return nil
+	default:
+		return fmt.Errorf("gqlclient: interface Secret: unknown __typename %q", data.TypeName)
+	}
+	return json.Unmarshal(b, base.Value)
+}
+
+// SecretValue is one of: SSHKey | PGPKey | SecretFile
+type SecretValue interface {
+	isSecret()
 }
 
 // A cursor for enumerating a list of secrets
@@ -178,6 +252,8 @@ type SecretFile struct {
 	Mode    int32          `json:"mode"`
 	Data    Binary         `json:"data"`
 }
+
+func (*SecretFile) isSecret() {}
 
 type Settings struct {
 	SshUser      string `json:"sshUser"`
@@ -209,6 +285,38 @@ const (
 // build manifest, but are similar in functionality.
 type Trigger struct {
 	Condition TriggerCondition `json:"condition"`
+
+	// Underlying value of the GraphQL interface
+	Value TriggerValue `json:"-"`
+}
+
+func (base *Trigger) UnmarshalJSON(b []byte) error {
+	type Raw Trigger
+	var data struct {
+		*Raw
+		TypeName string `json:"__typename"`
+	}
+	data.Raw = (*Raw)(base)
+	err := json.Unmarshal(b, &data)
+	if err != nil {
+		return err
+	}
+	switch data.TypeName {
+	case "EmailTrigger":
+		base.Value = new(EmailTrigger)
+	case "WebhookTrigger":
+		base.Value = new(WebhookTrigger)
+	case "":
+		return nil
+	default:
+		return fmt.Errorf("gqlclient: interface Trigger: unknown __typename %q", data.TypeName)
+	}
+	return json.Unmarshal(b, base.Value)
+}
+
+// TriggerValue is one of: EmailTrigger | WebhookTrigger
+type TriggerValue interface {
+	isTrigger()
 }
 
 type TriggerCondition string
@@ -247,6 +355,8 @@ type User struct {
 	Jobs *JobCursor `json:"jobs"`
 }
 
+func (*User) isEntity() {}
+
 type UserWebhookInput struct {
 	Url    string         `json:"url"`
 	Events []WebhookEvent `json:"events"`
@@ -262,6 +372,8 @@ type UserWebhookSubscription struct {
 	Deliveries *WebhookDeliveryCursor `json:"deliveries"`
 	Sample     string                 `json:"sample"`
 }
+
+func (*UserWebhookSubscription) isWebhookSubscription() {}
 
 type Version struct {
 	Major int32 `json:"major"`
@@ -317,6 +429,36 @@ type WebhookPayload struct {
 	Uuid  string         `json:"uuid"`
 	Event WebhookEvent   `json:"event"`
 	Date  gqlclient.Time `json:"date"`
+
+	// Underlying value of the GraphQL interface
+	Value WebhookPayloadValue `json:"-"`
+}
+
+func (base *WebhookPayload) UnmarshalJSON(b []byte) error {
+	type Raw WebhookPayload
+	var data struct {
+		*Raw
+		TypeName string `json:"__typename"`
+	}
+	data.Raw = (*Raw)(base)
+	err := json.Unmarshal(b, &data)
+	if err != nil {
+		return err
+	}
+	switch data.TypeName {
+	case "JobEvent":
+		base.Value = new(JobEvent)
+	case "":
+		return nil
+	default:
+		return fmt.Errorf("gqlclient: interface WebhookPayload: unknown __typename %q", data.TypeName)
+	}
+	return json.Unmarshal(b, base.Value)
+}
+
+// WebhookPayloadValue is one of: JobEvent
+type WebhookPayloadValue interface {
+	isWebhookPayload()
 }
 
 type WebhookSubscription struct {
@@ -331,6 +473,36 @@ type WebhookSubscription struct {
 	Deliveries *WebhookDeliveryCursor `json:"deliveries"`
 	// Returns a sample payload for this subscription, for testing purposes
 	Sample string `json:"sample"`
+
+	// Underlying value of the GraphQL interface
+	Value WebhookSubscriptionValue `json:"-"`
+}
+
+func (base *WebhookSubscription) UnmarshalJSON(b []byte) error {
+	type Raw WebhookSubscription
+	var data struct {
+		*Raw
+		TypeName string `json:"__typename"`
+	}
+	data.Raw = (*Raw)(base)
+	err := json.Unmarshal(b, &data)
+	if err != nil {
+		return err
+	}
+	switch data.TypeName {
+	case "UserWebhookSubscription":
+		base.Value = new(UserWebhookSubscription)
+	case "":
+		return nil
+	default:
+		return fmt.Errorf("gqlclient: interface WebhookSubscription: unknown __typename %q", data.TypeName)
+	}
+	return json.Unmarshal(b, base.Value)
+}
+
+// WebhookSubscriptionValue is one of: UserWebhookSubscription
+type WebhookSubscriptionValue interface {
+	isWebhookSubscription()
 }
 
 // A cursor for enumerating a list of webhook subscriptions
@@ -347,6 +519,8 @@ type WebhookTrigger struct {
 	Condition TriggerCondition `json:"condition"`
 	Url       string           `json:"url"`
 }
+
+func (*WebhookTrigger) isTrigger() {}
 
 type WebhookTriggerInput struct {
 	Url string `json:"url"`

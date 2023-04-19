@@ -4,6 +4,8 @@ package listssrht
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	gqlclient "git.sr.ht/~emersion/gqlclient"
 )
 
@@ -16,6 +18,38 @@ type ACL struct {
 	Post bool `json:"post"`
 	// Permission to moderate the list
 	Moderate bool `json:"moderate"`
+
+	// Underlying value of the GraphQL interface
+	Value ACLValue `json:"-"`
+}
+
+func (base *ACL) UnmarshalJSON(b []byte) error {
+	type Raw ACL
+	var data struct {
+		*Raw
+		TypeName string `json:"__typename"`
+	}
+	data.Raw = (*Raw)(base)
+	err := json.Unmarshal(b, &data)
+	if err != nil {
+		return err
+	}
+	switch data.TypeName {
+	case "MailingListACL":
+		base.Value = new(MailingListACL)
+	case "GeneralACL":
+		base.Value = new(GeneralACL)
+	case "":
+		return nil
+	default:
+		return fmt.Errorf("gqlclient: interface ACL: unknown __typename %q", data.TypeName)
+	}
+	return json.Unmarshal(b, base.Value)
+}
+
+// ACLValue is one of: MailingListACL | GeneralACL
+type ACLValue interface {
+	isACL()
 }
 
 type ACLInput struct {
@@ -46,6 +80,36 @@ const (
 type ActivitySubscription struct {
 	Id      int32          `json:"id"`
 	Created gqlclient.Time `json:"created"`
+
+	// Underlying value of the GraphQL interface
+	Value ActivitySubscriptionValue `json:"-"`
+}
+
+func (base *ActivitySubscription) UnmarshalJSON(b []byte) error {
+	type Raw ActivitySubscription
+	var data struct {
+		*Raw
+		TypeName string `json:"__typename"`
+	}
+	data.Raw = (*Raw)(base)
+	err := json.Unmarshal(b, &data)
+	if err != nil {
+		return err
+	}
+	switch data.TypeName {
+	case "MailingListSubscription":
+		base.Value = new(MailingListSubscription)
+	case "":
+		return nil
+	default:
+		return fmt.Errorf("gqlclient: interface ActivitySubscription: unknown __typename %q", data.TypeName)
+	}
+	return json.Unmarshal(b, base.Value)
+}
+
+// ActivitySubscriptionValue is one of: MailingListSubscription
+type ActivitySubscriptionValue interface {
+	isActivitySubscription()
 }
 
 // A cursor for enumerating subscriptions
@@ -118,8 +182,42 @@ type EmailEvent struct {
 	Email *Email         `json:"email"`
 }
 
+func (*EmailEvent) isWebhookPayload() {}
+
 type Entity struct {
 	CanonicalName string `json:"canonicalName"`
+
+	// Underlying value of the GraphQL interface
+	Value EntityValue `json:"-"`
+}
+
+func (base *Entity) UnmarshalJSON(b []byte) error {
+	type Raw Entity
+	var data struct {
+		*Raw
+		TypeName string `json:"__typename"`
+	}
+	data.Raw = (*Raw)(base)
+	err := json.Unmarshal(b, &data)
+	if err != nil {
+		return err
+	}
+	switch data.TypeName {
+	case "User":
+		base.Value = new(User)
+	case "Mailbox":
+		base.Value = new(Mailbox)
+	case "":
+		return nil
+	default:
+		return fmt.Errorf("gqlclient: interface Entity: unknown __typename %q", data.TypeName)
+	}
+	return json.Unmarshal(b, base.Value)
+}
+
+// EntityValue is one of: User | Mailbox
+type EntityValue interface {
+	isEntity()
 }
 
 // An ACL entry that applies "generally", for example the rights which apply to
@@ -131,12 +229,16 @@ type GeneralACL struct {
 	Moderate bool `json:"moderate"`
 }
 
+func (*GeneralACL) isACL() {}
+
 // A mailbox not associated with a registered user
 type Mailbox struct {
 	CanonicalName string `json:"canonicalName"`
 	Name          string `json:"name"`
 	Address       string `json:"address"`
 }
+
+func (*Mailbox) isEntity() {}
 
 type MailingList struct {
 	Id          int32          `json:"id"`
@@ -191,6 +293,8 @@ type MailingListACL struct {
 	Moderate bool           `json:"moderate"`
 }
 
+func (*MailingListACL) isACL() {}
+
 // A cursor for enumerating ACL entries
 //
 // If there are additional results available, the cursor object may be passed
@@ -218,6 +322,8 @@ type MailingListEvent struct {
 	List  *MailingList   `json:"list"`
 }
 
+func (*MailingListEvent) isWebhookPayload() {}
+
 type MailingListInput struct {
 	Description *string     `json:"description,omitempty"`
 	Visibility  *Visibility `json:"visibility,omitempty"`
@@ -232,6 +338,8 @@ type MailingListSubscription struct {
 	Created gqlclient.Time `json:"created"`
 	List    *MailingList   `json:"list"`
 }
+
+func (*MailingListSubscription) isActivitySubscription() {}
 
 type MailingListWebhookInput struct {
 	Url    string         `json:"url"`
@@ -250,21 +358,23 @@ type MailingListWebhookSubscription struct {
 	List       *MailingList           `json:"list"`
 }
 
+func (*MailingListWebhookSubscription) isWebhookSubscription() {}
+
 type OAuthClient struct {
 	Uuid string `json:"uuid"`
 }
 
 // Information parsed from the subject line of a patch, such that the following:
 //
-//	[PATCH myproject v2 3/4] Add foo to bar
+//     [PATCH myproject v2 3/4] Add foo to bar
 //
 // Will produce:
 //
-//	index: 3
-//	count: 4
-//	version: 2
-//	prefix: "myproject"
-//	subject: "Add foo to bar"
+//     index: 3
+//     count: 4
+//     version: 2
+//     prefix: "myproject"
+//     subject: "Add foo to bar"
 type Patch struct {
 	Index   *int32  `json:"index,omitempty"`
 	Count   *int32  `json:"count,omitempty"`
@@ -308,6 +418,8 @@ type PatchsetEvent struct {
 	Date     gqlclient.Time `json:"date"`
 	Patchset *Patchset      `json:"patchset"`
 }
+
+func (*PatchsetEvent) isWebhookPayload() {}
 
 type PatchsetStatus string
 
@@ -426,6 +538,8 @@ type User struct {
 	Patches       *PatchsetCursor    `json:"patches,omitempty"`
 }
 
+func (*User) isEntity() {}
+
 type UserWebhookInput struct {
 	Url    string         `json:"url"`
 	Events []WebhookEvent `json:"events"`
@@ -441,6 +555,8 @@ type UserWebhookSubscription struct {
 	Deliveries *WebhookDeliveryCursor `json:"deliveries"`
 	Sample     string                 `json:"sample"`
 }
+
+func (*UserWebhookSubscription) isWebhookSubscription() {}
 
 type Version struct {
 	Major int32 `json:"major"`
@@ -499,6 +615,40 @@ type WebhookPayload struct {
 	Uuid  string         `json:"uuid"`
 	Event WebhookEvent   `json:"event"`
 	Date  gqlclient.Time `json:"date"`
+
+	// Underlying value of the GraphQL interface
+	Value WebhookPayloadValue `json:"-"`
+}
+
+func (base *WebhookPayload) UnmarshalJSON(b []byte) error {
+	type Raw WebhookPayload
+	var data struct {
+		*Raw
+		TypeName string `json:"__typename"`
+	}
+	data.Raw = (*Raw)(base)
+	err := json.Unmarshal(b, &data)
+	if err != nil {
+		return err
+	}
+	switch data.TypeName {
+	case "MailingListEvent":
+		base.Value = new(MailingListEvent)
+	case "EmailEvent":
+		base.Value = new(EmailEvent)
+	case "PatchsetEvent":
+		base.Value = new(PatchsetEvent)
+	case "":
+		return nil
+	default:
+		return fmt.Errorf("gqlclient: interface WebhookPayload: unknown __typename %q", data.TypeName)
+	}
+	return json.Unmarshal(b, base.Value)
+}
+
+// WebhookPayloadValue is one of: MailingListEvent | EmailEvent | PatchsetEvent
+type WebhookPayloadValue interface {
+	isWebhookPayload()
 }
 
 type WebhookSubscription struct {
@@ -513,6 +663,38 @@ type WebhookSubscription struct {
 	Deliveries *WebhookDeliveryCursor `json:"deliveries"`
 	// Returns a sample payload for this subscription, for testing purposes
 	Sample string `json:"sample"`
+
+	// Underlying value of the GraphQL interface
+	Value WebhookSubscriptionValue `json:"-"`
+}
+
+func (base *WebhookSubscription) UnmarshalJSON(b []byte) error {
+	type Raw WebhookSubscription
+	var data struct {
+		*Raw
+		TypeName string `json:"__typename"`
+	}
+	data.Raw = (*Raw)(base)
+	err := json.Unmarshal(b, &data)
+	if err != nil {
+		return err
+	}
+	switch data.TypeName {
+	case "UserWebhookSubscription":
+		base.Value = new(UserWebhookSubscription)
+	case "MailingListWebhookSubscription":
+		base.Value = new(MailingListWebhookSubscription)
+	case "":
+		return nil
+	default:
+		return fmt.Errorf("gqlclient: interface WebhookSubscription: unknown __typename %q", data.TypeName)
+	}
+	return json.Unmarshal(b, base.Value)
+}
+
+// WebhookSubscriptionValue is one of: UserWebhookSubscription | MailingListWebhookSubscription
+type WebhookSubscriptionValue interface {
+	isWebhookSubscription()
 }
 
 // A cursor for enumerating a list of webhook subscriptions

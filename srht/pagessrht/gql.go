@@ -4,6 +4,8 @@ package pagessrht
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	gqlclient "git.sr.ht/~emersion/gqlclient"
 )
 
@@ -31,6 +33,36 @@ type Entity struct {
 	// The canonical name of this entity. For users, this is their username
 	// prefixed with '~'. Additional entity types will be supported in the future.
 	CanonicalName string `json:"canonicalName"`
+
+	// Underlying value of the GraphQL interface
+	Value EntityValue `json:"-"`
+}
+
+func (base *Entity) UnmarshalJSON(b []byte) error {
+	type Raw Entity
+	var data struct {
+		*Raw
+		TypeName string `json:"__typename"`
+	}
+	data.Raw = (*Raw)(base)
+	err := json.Unmarshal(b, &data)
+	if err != nil {
+		return err
+	}
+	switch data.TypeName {
+	case "User":
+		base.Value = new(User)
+	case "":
+		return nil
+	default:
+		return fmt.Errorf("gqlclient: interface Entity: unknown __typename %q", data.TypeName)
+	}
+	return json.Unmarshal(b, base.Value)
+}
+
+// EntityValue is one of: User
+type EntityValue interface {
+	isEntity()
 }
 
 // Provides a way to configure options for a set of files matching the glob
@@ -95,6 +127,8 @@ type SiteEvent struct {
 	Site  *Site          `json:"site"`
 }
 
+func (*SiteEvent) isWebhookPayload() {}
+
 type User struct {
 	Id            int32          `json:"id"`
 	Created       gqlclient.Time `json:"created"`
@@ -106,6 +140,8 @@ type User struct {
 	Location      *string        `json:"location,omitempty"`
 	Bio           *string        `json:"bio,omitempty"`
 }
+
+func (*User) isEntity() {}
 
 type UserWebhookInput struct {
 	Url    string         `json:"url"`
@@ -122,6 +158,8 @@ type UserWebhookSubscription struct {
 	Deliveries *WebhookDeliveryCursor `json:"deliveries"`
 	Sample     string                 `json:"sample"`
 }
+
+func (*UserWebhookSubscription) isWebhookSubscription() {}
 
 type Version struct {
 	Major int32 `json:"major"`
@@ -169,6 +207,36 @@ type WebhookPayload struct {
 	Uuid  string         `json:"uuid"`
 	Event WebhookEvent   `json:"event"`
 	Date  gqlclient.Time `json:"date"`
+
+	// Underlying value of the GraphQL interface
+	Value WebhookPayloadValue `json:"-"`
+}
+
+func (base *WebhookPayload) UnmarshalJSON(b []byte) error {
+	type Raw WebhookPayload
+	var data struct {
+		*Raw
+		TypeName string `json:"__typename"`
+	}
+	data.Raw = (*Raw)(base)
+	err := json.Unmarshal(b, &data)
+	if err != nil {
+		return err
+	}
+	switch data.TypeName {
+	case "SiteEvent":
+		base.Value = new(SiteEvent)
+	case "":
+		return nil
+	default:
+		return fmt.Errorf("gqlclient: interface WebhookPayload: unknown __typename %q", data.TypeName)
+	}
+	return json.Unmarshal(b, base.Value)
+}
+
+// WebhookPayloadValue is one of: SiteEvent
+type WebhookPayloadValue interface {
+	isWebhookPayload()
 }
 
 type WebhookSubscription struct {
@@ -183,6 +251,36 @@ type WebhookSubscription struct {
 	Deliveries *WebhookDeliveryCursor `json:"deliveries"`
 	// Returns a sample payload for this subscription, for testing purposes
 	Sample string `json:"sample"`
+
+	// Underlying value of the GraphQL interface
+	Value WebhookSubscriptionValue `json:"-"`
+}
+
+func (base *WebhookSubscription) UnmarshalJSON(b []byte) error {
+	type Raw WebhookSubscription
+	var data struct {
+		*Raw
+		TypeName string `json:"__typename"`
+	}
+	data.Raw = (*Raw)(base)
+	err := json.Unmarshal(b, &data)
+	if err != nil {
+		return err
+	}
+	switch data.TypeName {
+	case "UserWebhookSubscription":
+		base.Value = new(UserWebhookSubscription)
+	case "":
+		return nil
+	default:
+		return fmt.Errorf("gqlclient: interface WebhookSubscription: unknown __typename %q", data.TypeName)
+	}
+	return json.Unmarshal(b, base.Value)
+}
+
+// WebhookSubscriptionValue is one of: UserWebhookSubscription
+type WebhookSubscriptionValue interface {
+	isWebhookSubscription()
 }
 
 // A cursor for enumerating a list of webhook subscriptions

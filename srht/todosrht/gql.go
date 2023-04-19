@@ -4,6 +4,8 @@ package todosrht
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	gqlclient "git.sr.ht/~emersion/gqlclient"
 )
 
@@ -18,6 +20,38 @@ type ACL struct {
 	Edit bool `json:"edit"`
 	// Permission to resolve, re-open, transfer, or label tickets
 	Triage bool `json:"triage"`
+
+	// Underlying value of the GraphQL interface
+	Value ACLValue `json:"-"`
+}
+
+func (base *ACL) UnmarshalJSON(b []byte) error {
+	type Raw ACL
+	var data struct {
+		*Raw
+		TypeName string `json:"__typename"`
+	}
+	data.Raw = (*Raw)(base)
+	err := json.Unmarshal(b, &data)
+	if err != nil {
+		return err
+	}
+	switch data.TypeName {
+	case "TrackerACL":
+		base.Value = new(TrackerACL)
+	case "DefaultACL":
+		base.Value = new(DefaultACL)
+	case "":
+		return nil
+	default:
+		return fmt.Errorf("gqlclient: interface ACL: unknown __typename %q", data.TypeName)
+	}
+	return json.Unmarshal(b, base.Value)
+}
+
+// ACLValue is one of: TrackerACL | DefaultACL
+type ACLValue interface {
+	isACL()
 }
 
 // A cursor for enumerating access control list entries
@@ -64,6 +98,38 @@ const (
 type ActivitySubscription struct {
 	Id      int32          `json:"id"`
 	Created gqlclient.Time `json:"created"`
+
+	// Underlying value of the GraphQL interface
+	Value ActivitySubscriptionValue `json:"-"`
+}
+
+func (base *ActivitySubscription) UnmarshalJSON(b []byte) error {
+	type Raw ActivitySubscription
+	var data struct {
+		*Raw
+		TypeName string `json:"__typename"`
+	}
+	data.Raw = (*Raw)(base)
+	err := json.Unmarshal(b, &data)
+	if err != nil {
+		return err
+	}
+	switch data.TypeName {
+	case "TrackerSubscription":
+		base.Value = new(TrackerSubscription)
+	case "TicketSubscription":
+		base.Value = new(TicketSubscription)
+	case "":
+		return nil
+	default:
+		return fmt.Errorf("gqlclient: interface ActivitySubscription: unknown __typename %q", data.TypeName)
+	}
+	return json.Unmarshal(b, base.Value)
+}
+
+// ActivitySubscriptionValue is one of: TrackerSubscription | TicketSubscription
+type ActivitySubscriptionValue interface {
+	isActivitySubscription()
 }
 
 // A cursor for enumerating subscriptions
@@ -82,6 +148,8 @@ type Assignment struct {
 	Assigner  *Entity   `json:"assigner"`
 	Assignee  *Entity   `json:"assignee"`
 }
+
+func (*Assignment) isEventDetail() {}
 
 type Authenticity string
 
@@ -107,11 +175,15 @@ type Comment struct {
 	SupersededBy *Comment `json:"supersededBy,omitempty"`
 }
 
+func (*Comment) isEventDetail() {}
+
 type Created struct {
 	EventType EventType `json:"eventType"`
 	Ticket    *Ticket   `json:"ticket"`
 	Author    *Entity   `json:"author"`
 }
+
+func (*Created) isEventDetail() {}
 
 type Cursor string
 
@@ -125,6 +197,8 @@ type DefaultACL struct {
 	Triage  bool `json:"triage"`
 }
 
+func (*DefaultACL) isACL() {}
+
 type EmailAddress struct {
 	CanonicalName string `json:"canonicalName"`
 	// "jdoe@example.org" of "Jane Doe <jdoe@example.org>"
@@ -132,6 +206,8 @@ type EmailAddress struct {
 	// "Jane Doe" of "Jane Doe <jdoe@example.org>"
 	Name *string `json:"name,omitempty"`
 }
+
+func (*EmailAddress) isEntity() {}
 
 type EmailCmd string
 
@@ -144,6 +220,40 @@ const (
 
 type Entity struct {
 	CanonicalName string `json:"canonicalName"`
+
+	// Underlying value of the GraphQL interface
+	Value EntityValue `json:"-"`
+}
+
+func (base *Entity) UnmarshalJSON(b []byte) error {
+	type Raw Entity
+	var data struct {
+		*Raw
+		TypeName string `json:"__typename"`
+	}
+	data.Raw = (*Raw)(base)
+	err := json.Unmarshal(b, &data)
+	if err != nil {
+		return err
+	}
+	switch data.TypeName {
+	case "User":
+		base.Value = new(User)
+	case "EmailAddress":
+		base.Value = new(EmailAddress)
+	case "ExternalUser":
+		base.Value = new(ExternalUser)
+	case "":
+		return nil
+	default:
+		return fmt.Errorf("gqlclient: interface Entity: unknown __typename %q", data.TypeName)
+	}
+	return json.Unmarshal(b, base.Value)
+}
+
+// EntityValue is one of: User | EmailAddress | ExternalUser
+type EntityValue interface {
+	isEntity()
 }
 
 // Represents an event which affects a ticket. Multiple changes can occur in a
@@ -162,6 +272,8 @@ type EventCreated struct {
 	NewEvent *Event         `json:"newEvent"`
 }
 
+func (*EventCreated) isWebhookPayload() {}
+
 // A cursor for enumerating events
 //
 // If there are additional results available, the cursor object may be passed
@@ -175,6 +287,48 @@ type EventCursor struct {
 type EventDetail struct {
 	EventType EventType `json:"eventType"`
 	Ticket    *Ticket   `json:"ticket"`
+
+	// Underlying value of the GraphQL interface
+	Value EventDetailValue `json:"-"`
+}
+
+func (base *EventDetail) UnmarshalJSON(b []byte) error {
+	type Raw EventDetail
+	var data struct {
+		*Raw
+		TypeName string `json:"__typename"`
+	}
+	data.Raw = (*Raw)(base)
+	err := json.Unmarshal(b, &data)
+	if err != nil {
+		return err
+	}
+	switch data.TypeName {
+	case "Created":
+		base.Value = new(Created)
+	case "Assignment":
+		base.Value = new(Assignment)
+	case "Comment":
+		base.Value = new(Comment)
+	case "LabelUpdate":
+		base.Value = new(LabelUpdate)
+	case "StatusChange":
+		base.Value = new(StatusChange)
+	case "UserMention":
+		base.Value = new(UserMention)
+	case "TicketMention":
+		base.Value = new(TicketMention)
+	case "":
+		return nil
+	default:
+		return fmt.Errorf("gqlclient: interface EventDetail: unknown __typename %q", data.TypeName)
+	}
+	return json.Unmarshal(b, base.Value)
+}
+
+// EventDetailValue is one of: Created | Assignment | Comment | LabelUpdate | StatusChange | UserMention | TicketMention
+type EventDetailValue interface {
+	isEventDetail()
 }
 
 type EventType string
@@ -199,6 +353,8 @@ type ExternalUser struct {
 	// The canonical external URL for this user, e.g. https://github.com/ddevault
 	ExternalUrl *string `json:"externalUrl,omitempty"`
 }
+
+func (*ExternalUser) isEntity() {}
 
 // This is used for importing tickets from third-party services, and may only be
 // used by the tracker owner. It causes a ticket submission, update, or comment
@@ -242,12 +398,16 @@ type LabelEvent struct {
 	Label *Label         `json:"label"`
 }
 
+func (*LabelEvent) isWebhookPayload() {}
+
 type LabelUpdate struct {
 	EventType EventType `json:"eventType"`
 	Ticket    *Ticket   `json:"ticket"`
 	Labeler   *Entity   `json:"labeler"`
 	Label     *Label    `json:"label"`
 }
+
+func (*LabelUpdate) isEventDetail() {}
 
 type OAuthClient struct {
 	Uuid string `json:"uuid"`
@@ -262,6 +422,8 @@ type StatusChange struct {
 	OldResolution TicketResolution `json:"oldResolution"`
 	NewResolution TicketResolution `json:"newResolution"`
 }
+
+func (*StatusChange) isEventDetail() {}
 
 type SubmitCommentEmailInput struct {
 	Text       string            `json:"text"`
@@ -348,6 +510,8 @@ type TicketDeletedEvent struct {
 	TicketId  int32          `json:"ticketId"`
 }
 
+func (*TicketDeletedEvent) isWebhookPayload() {}
+
 type TicketEvent struct {
 	Uuid   string         `json:"uuid"`
 	Event  WebhookEvent   `json:"event"`
@@ -355,12 +519,16 @@ type TicketEvent struct {
 	Ticket *Ticket        `json:"ticket"`
 }
 
+func (*TicketEvent) isWebhookPayload() {}
+
 type TicketMention struct {
 	EventType EventType `json:"eventType"`
 	Ticket    *Ticket   `json:"ticket"`
 	Author    *Entity   `json:"author"`
 	Mentioned *Ticket   `json:"mentioned"`
 }
+
+func (*TicketMention) isEventDetail() {}
 
 type TicketResolution string
 
@@ -394,6 +562,8 @@ type TicketSubscription struct {
 	Ticket  *Ticket        `json:"ticket"`
 }
 
+func (*TicketSubscription) isActivitySubscription() {}
+
 type TicketWebhookInput struct {
 	Url    string         `json:"url"`
 	Events []WebhookEvent `json:"events"`
@@ -410,6 +580,8 @@ type TicketWebhookSubscription struct {
 	Sample     string                 `json:"sample"`
 	Ticket     *Ticket                `json:"ticket"`
 }
+
+func (*TicketWebhookSubscription) isWebhookSubscription() {}
 
 type Tracker struct {
 	Id          int32          `json:"id"`
@@ -458,6 +630,8 @@ type TrackerACL struct {
 	Triage  bool           `json:"triage"`
 }
 
+func (*TrackerACL) isACL() {}
+
 // A cursor for enumerating trackers
 //
 // If there are additional results available, the cursor object may be passed
@@ -475,6 +649,8 @@ type TrackerEvent struct {
 	Tracker *Tracker       `json:"tracker"`
 }
 
+func (*TrackerEvent) isWebhookPayload() {}
+
 // You may omit any fields to leave them unchanged.
 type TrackerInput struct {
 	Description *string     `json:"description,omitempty"`
@@ -488,6 +664,8 @@ type TrackerSubscription struct {
 	Created gqlclient.Time `json:"created"`
 	Tracker *Tracker       `json:"tracker"`
 }
+
+func (*TrackerSubscription) isActivitySubscription() {}
 
 type TrackerWebhookInput struct {
 	Url    string         `json:"url"`
@@ -505,6 +683,8 @@ type TrackerWebhookSubscription struct {
 	Sample     string                 `json:"sample"`
 	Tracker    *Tracker               `json:"tracker"`
 }
+
+func (*TrackerWebhookSubscription) isWebhookSubscription() {}
 
 type URL string
 
@@ -547,12 +727,16 @@ type User struct {
 	Trackers *TrackerCursor `json:"trackers"`
 }
 
+func (*User) isEntity() {}
+
 type UserMention struct {
 	EventType EventType `json:"eventType"`
 	Ticket    *Ticket   `json:"ticket"`
 	Author    *Entity   `json:"author"`
 	Mentioned *Entity   `json:"mentioned"`
 }
+
+func (*UserMention) isEventDetail() {}
 
 type UserWebhookInput struct {
 	Url    string         `json:"url"`
@@ -569,6 +753,8 @@ type UserWebhookSubscription struct {
 	Deliveries *WebhookDeliveryCursor `json:"deliveries"`
 	Sample     string                 `json:"sample"`
 }
+
+func (*UserWebhookSubscription) isWebhookSubscription() {}
 
 type Version struct {
 	Major int32 `json:"major"`
@@ -632,6 +818,44 @@ type WebhookPayload struct {
 	Uuid  string         `json:"uuid"`
 	Event WebhookEvent   `json:"event"`
 	Date  gqlclient.Time `json:"date"`
+
+	// Underlying value of the GraphQL interface
+	Value WebhookPayloadValue `json:"-"`
+}
+
+func (base *WebhookPayload) UnmarshalJSON(b []byte) error {
+	type Raw WebhookPayload
+	var data struct {
+		*Raw
+		TypeName string `json:"__typename"`
+	}
+	data.Raw = (*Raw)(base)
+	err := json.Unmarshal(b, &data)
+	if err != nil {
+		return err
+	}
+	switch data.TypeName {
+	case "TrackerEvent":
+		base.Value = new(TrackerEvent)
+	case "TicketEvent":
+		base.Value = new(TicketEvent)
+	case "TicketDeletedEvent":
+		base.Value = new(TicketDeletedEvent)
+	case "EventCreated":
+		base.Value = new(EventCreated)
+	case "LabelEvent":
+		base.Value = new(LabelEvent)
+	case "":
+		return nil
+	default:
+		return fmt.Errorf("gqlclient: interface WebhookPayload: unknown __typename %q", data.TypeName)
+	}
+	return json.Unmarshal(b, base.Value)
+}
+
+// WebhookPayloadValue is one of: TrackerEvent | TicketEvent | TicketDeletedEvent | EventCreated | LabelEvent
+type WebhookPayloadValue interface {
+	isWebhookPayload()
 }
 
 type WebhookSubscription struct {
@@ -646,6 +870,40 @@ type WebhookSubscription struct {
 	Deliveries *WebhookDeliveryCursor `json:"deliveries"`
 	// Returns a sample payload for this subscription, for testing purposes
 	Sample string `json:"sample"`
+
+	// Underlying value of the GraphQL interface
+	Value WebhookSubscriptionValue `json:"-"`
+}
+
+func (base *WebhookSubscription) UnmarshalJSON(b []byte) error {
+	type Raw WebhookSubscription
+	var data struct {
+		*Raw
+		TypeName string `json:"__typename"`
+	}
+	data.Raw = (*Raw)(base)
+	err := json.Unmarshal(b, &data)
+	if err != nil {
+		return err
+	}
+	switch data.TypeName {
+	case "UserWebhookSubscription":
+		base.Value = new(UserWebhookSubscription)
+	case "TrackerWebhookSubscription":
+		base.Value = new(TrackerWebhookSubscription)
+	case "TicketWebhookSubscription":
+		base.Value = new(TicketWebhookSubscription)
+	case "":
+		return nil
+	default:
+		return fmt.Errorf("gqlclient: interface WebhookSubscription: unknown __typename %q", data.TypeName)
+	}
+	return json.Unmarshal(b, base.Value)
+}
+
+// WebhookSubscriptionValue is one of: UserWebhookSubscription | TrackerWebhookSubscription | TicketWebhookSubscription
+type WebhookSubscriptionValue interface {
+	isWebhookSubscription()
 }
 
 // A cursor for enumerating a list of webhook subscriptions
