@@ -378,7 +378,7 @@ func completePasteID(cmd *cobra.Command, args []string, toComplete string) ([]st
 		var files string
 
 		for i, file := range paste.Files {
-			if *file.Filename != "" {
+			if file.Filename != nil && *file.Filename != "" {
 				if i != 0 {
 					files += ", "
 				}
