@@ -140,6 +140,11 @@ query secrets {
             created
             uuid
             name
+            __typename
+            ... on SecretFile {
+                path
+                mode
+            }
         }
     }
 }

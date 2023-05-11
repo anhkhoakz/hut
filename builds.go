@@ -624,17 +624,28 @@ func newBuildsSecretsCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		tw := tabwriter.NewWriter(os.Stdout, 0, 2, 2, ' ', 0)
-		defer tw.Flush()
-		for _, secret := range secrets.Results {
-			// TODO: Display secret type (and path, mode for files)
+		var s string
+		for i, secret := range secrets.Results {
+			if i != 0 {
+				s += "\n"
+			}
+
 			created := termfmt.Dim.String(humanize.Time(secret.Created.Time))
-			s := fmt.Sprintf("%s\t%s\n", termfmt.DarkYellow.Sprint(secret.Uuid), created)
-			if secret.Name != nil {
+			s += fmt.Sprintf("%s\t%s\n", termfmt.DarkYellow.Sprint(secret.Uuid), created)
+			if secret.Name != nil && *secret.Name != "" {
 				s += fmt.Sprintf("%s\n", *secret.Name)
 			}
-			fmt.Fprintln(tw, s)
+
+			switch v := secret.Value.(type) {
+			case *buildssrht.SecretFile:
+				s += fmt.Sprintf("File: %s %o\n", v.Path, v.Mode)
+			case *buildssrht.SSHKey:
+				s += "SSH Key\n"
+			case *buildssrht.PGPKey:
+				s += "PGP Key\n"
+			}
 		}
+		fmt.Print(s)
 	}
 
 	cmd := &cobra.Command{
