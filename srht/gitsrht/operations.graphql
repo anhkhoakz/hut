@@ -189,7 +189,7 @@ mutation deleteArtifact($id: Int!) {
 mutation createRepository(
     $name: String!
     $visibility: Visibility!
-    $description: String!
+    $description: String
     $cloneUrl: String
 ) {
     createRepository(

@@ -55,8 +55,13 @@ func newGitCreateCommand() *cobra.Command {
 			importURLPtr = &importURL
 		}
 
+		var description *string
+		if desc != "" {
+			description = &desc
+		}
+
 		repo, err := gitsrht.CreateRepository(c.Client, ctx, args[0],
-			gitVisibility, desc, importURLPtr)
+			gitVisibility, description, importURLPtr)
 		if err != nil {
 			log.Fatal(err)
 		}
