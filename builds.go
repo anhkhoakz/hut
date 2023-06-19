@@ -121,12 +121,12 @@ func newBuildsSubmitCommand() *cobra.Command {
 
 			if follow {
 				id := job.Id
-				job, err := c.followJob(ctx, job.Id)
+				job, err := followJob(ctx, c, job.Id)
 				if err != nil {
 					log.Fatal(err)
 				}
 				if job.Status != buildssrht.JobStatusSuccess {
-					c.offerSSHConnection(ctx, id)
+					offerSSHConnection(ctx, c, id)
 				}
 			}
 		}
@@ -210,12 +210,12 @@ func newBuildsResubmitCommand() *cobra.Command {
 
 		if follow {
 			id := job.Id
-			job, err := c.followJob(ctx, job.Id)
+			job, err := followJob(ctx, c, job.Id)
 			if err != nil {
 				log.Fatal(err)
 			}
 			if job.Status != buildssrht.JobStatusSuccess {
-				c.offerSSHConnection(ctx, id)
+				offerSSHConnection(ctx, c, id)
 			}
 		}
 	}
@@ -305,7 +305,7 @@ func newBuildsShowCommand() *cobra.Command {
 		)
 
 		if follow {
-			job, err = c.followJobShow(ctx, id)
+			job, err = followJobShow(ctx, c, id)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -662,7 +662,7 @@ type buildLog struct {
 	done   bool
 }
 
-func (c *Client) followJob(ctx context.Context, id int32) (*buildssrht.Job, error) {
+func followJob(ctx context.Context, c *Client, id int32) (*buildssrht.Job, error) {
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 
@@ -841,7 +841,7 @@ func sshConnection(job *buildssrht.Job, user string) error {
 	return cmd.Run()
 }
 
-func (c *Client) followJobShow(ctx context.Context, id int32) (*buildssrht.Job, error) {
+func followJobShow(ctx context.Context, c *Client, id int32) (*buildssrht.Job, error) {
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 
@@ -951,7 +951,7 @@ func completeBuildsUserWebhookID(cmd *cobra.Command, args []string, toComplete s
 	return webhookList, cobra.ShellCompDirectiveNoFileComp
 }
 
-func (c *Client) offerSSHConnection(ctx context.Context, id int32) {
+func offerSSHConnection(ctx context.Context, c *Client, id int32) {
 	if !termfmt.IsTerminal() {
 		os.Exit(1)
 	}
