@@ -607,7 +607,7 @@ func printJob(w io.Writer, job *buildssrht.Job) {
 	}
 	fmt.Fprintln(w)
 
-	if job.Note != nil {
+	if job.Note != nil && *job.Note != "" {
 		fmt.Fprintln(w, "\n"+indent(strings.TrimSpace(*job.Note), "  "))
 	}
 
