@@ -14,7 +14,7 @@ tasks:
       go test ./...
   - gofmt: |
       cd hut
-      test -z $(gofmt -l .)
+      test -z $(gofmt -l . | grep -v '^srht/.*/gql.go$')
   - build-bmake: |
       cd hut
       make clean
