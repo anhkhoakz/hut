@@ -331,13 +331,13 @@ func newBuildsShowCommand() *cobra.Command {
 		if job.Status == buildssrht.JobStatusFailed {
 			if failedTask == -1 {
 				fmt.Printf("\nSetup log:\n")
-				if err := fetchJobLogs(ctx, new(buildLog), job); err != nil {
+				if err := fetchJobLogs(ctx, c, new(buildLog), job); err != nil {
 					log.Fatalf("failed to fetch job logs: %v", err)
 				}
 			} else {
 				name := job.Tasks[failedTask].Name
 				fmt.Printf("\n%s log:\n", name)
-				if err := fetchTaskLogs(ctx, new(buildLog), job.Tasks[failedTask]); err != nil {
+				if err := fetchTaskLogs(ctx, c, new(buildLog), job.Tasks[failedTask]); err != nil {
 					log.Fatalf("failed to fetch task logs: %v", err)
 				}
 			}
@@ -682,11 +682,11 @@ func followJob(ctx context.Context, c *Client, id int32) (*buildssrht.Job, error
 			}
 		}
 
-		if err := fetchJobLogs(ctx, logs[""], job); err != nil {
+		if err := fetchJobLogs(ctx, c, logs[""], job); err != nil {
 			return nil, fmt.Errorf("failed to fetch job logs: %v", err)
 		}
 		for _, task := range job.Tasks {
-			if err := fetchTaskLogs(ctx, logs[task.Name], task); err != nil {
+			if err := fetchTaskLogs(ctx, c, logs[task.Name], task); err != nil {
 				return nil, fmt.Errorf("failed to fetch task %q logs: %v", task.Name, err)
 			}
 		}
@@ -705,13 +705,13 @@ func followJob(ctx context.Context, c *Client, id int32) (*buildssrht.Job, error
 	}
 }
 
-func fetchJobLogs(ctx context.Context, l *buildLog, job *buildssrht.Job) error {
+func fetchJobLogs(ctx context.Context, c *Client, l *buildLog, job *buildssrht.Job) error {
 	switch job.Status {
 	case buildssrht.JobStatusPending, buildssrht.JobStatusQueued:
 		return nil
 	}
 
-	if err := fetchBuildLogs(ctx, l, job.Log.FullURL); err != nil {
+	if err := fetchBuildLogs(ctx, c, l, job.Log.FullURL); err != nil {
 		return err
 	}
 
@@ -719,13 +719,13 @@ func fetchJobLogs(ctx context.Context, l *buildLog, job *buildssrht.Job) error {
 	return nil
 }
 
-func fetchTaskLogs(ctx context.Context, l *buildLog, task buildssrht.Task) error {
+func fetchTaskLogs(ctx context.Context, c *Client, l *buildLog, task buildssrht.Task) error {
 	switch task.Status {
 	case buildssrht.TaskStatusPending, buildssrht.TaskStatusSkipped:
 		return nil
 	}
 
-	if err := fetchBuildLogs(ctx, l, task.Log.FullURL); err != nil {
+	if err := fetchBuildLogs(ctx, c, l, task.Log.FullURL); err != nil {
 		return err
 	}
 
@@ -738,7 +738,7 @@ func fetchTaskLogs(ctx context.Context, l *buildLog, task buildssrht.Task) error
 	return nil
 }
 
-func fetchBuildLogs(ctx context.Context, l *buildLog, url string) error {
+func fetchBuildLogs(ctx context.Context, c *Client, l *buildLog, url string) error {
 	if l.done {
 		return nil
 	}
@@ -750,7 +750,7 @@ func fetchBuildLogs(ctx context.Context, l *buildLog, url string) error {
 
 	req.Header.Set("Range", fmt.Sprintf("bytes=%v-", l.offset))
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := c.HTTP.Do(req)
 	if err != nil {
 		return fmt.Errorf("HTTP request failed: %v", err)
 	}
