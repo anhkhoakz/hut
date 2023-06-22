@@ -109,11 +109,11 @@ func newMetaAuditLogCommand() *cobra.Command {
 func printAuditLog(w io.Writer, log *metasrht.AuditLogEntry) {
 	s := log.IpAddress
 	if log.Details != nil {
-		s += fmt.Sprintf(" %s ", *log.Details)
+		s += fmt.Sprintf("\t%s\t", *log.Details)
 	} else {
-		s += fmt.Sprintf(" %s ", log.EventType)
+		s += fmt.Sprintf("\t%s\t", log.EventType)
 	}
-	s += humanize.Time(log.Created.Time)
+	s += termfmt.Dim.String(humanize.Time(log.Created.Time))
 
 	fmt.Fprintln(w, s)
 }
