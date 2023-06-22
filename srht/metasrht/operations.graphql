@@ -113,12 +113,13 @@ query auditLog($cursor: Cursor) {
     }
 }
 
-query userWebhooks {
-    profileWebhooks {
+query userWebhooks($cursor: Cursor) {
+    profileWebhooks(cursor: $cursor) {
         results {
             id
             url
         }
+        cursor
     }
 }
 
