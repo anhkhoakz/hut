@@ -12,9 +12,9 @@ query mailingLists($cursor: Cursor) {
     }
 }
 
-query exportMailingLists {
+query exportMailingLists($cursor: Cursor) {
     me {
-        lists {
+        lists(cursor: $cursor) {
             results {
                 name
                 description
@@ -22,6 +22,7 @@ query exportMailingLists {
                 rejectMime
                 archive
             }
+            cursor
         }
     }
 }

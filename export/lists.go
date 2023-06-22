@@ -58,26 +58,34 @@ type MailingListInfo struct {
 
 func (ex *ListsExporter) Export(ctx context.Context, dir string) error {
 	log.Println("lists.sr.ht")
-
-	user, err := listssrht.ExportMailingLists(ex.client, ctx)
-	if err != nil {
-		return err
-	}
-
+	var cursor *listssrht.Cursor
 	var ret error
-	for _, list := range user.Lists.Results {
-		base := path.Join(dir, list.Name)
-		if err := os.MkdirAll(base, 0o755); err != nil {
+
+	for {
+		user, err := listssrht.ExportMailingLists(ex.client, ctx, cursor)
+		if err != nil {
 			return err
 		}
 
-		if err := ex.exportList(ctx, list, base); err != nil {
-			var pe partialError
-			if errors.As(err, &pe) {
-				ret = err
-				continue
+		for _, list := range user.Lists.Results {
+			base := path.Join(dir, list.Name)
+			if err := os.MkdirAll(base, 0o755); err != nil {
+				return err
 			}
-			return err
+
+			if err := ex.exportList(ctx, list, base); err != nil {
+				var pe partialError
+				if errors.As(err, &pe) {
+					ret = err
+					continue
+				}
+				return err
+			}
+		}
+
+		cursor = user.Lists.Cursor
+		if cursor == nil {
+			break
 		}
 	}
 
