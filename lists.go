@@ -49,7 +49,7 @@ func newListsDeleteCommand() *cobra.Command {
 
 		var name, owner, instance string
 		if len(args) > 0 {
-			name, owner, instance = parseResourceName(args[0])
+			name, owner, instance = parseMailingListName(args[0])
 		} else {
 			var err error
 			name, owner, instance, err = getMailingListName(ctx, cmd)
@@ -144,7 +144,7 @@ func newListsSubscribeCommand() *cobra.Command {
 
 		var name, owner, instance string
 		if len(args) > 0 {
-			name, owner, instance = parseResourceName(args[0])
+			name, owner, instance = parseMailingListName(args[0])
 		} else {
 			var err error
 			name, owner, instance, err = getMailingListName(ctx, cmd)
@@ -179,7 +179,7 @@ func newListsUnsubscribeCommand() *cobra.Command {
 
 		var name, owner, instance string
 		if len(args) > 0 {
-			name, owner, instance = parseResourceName(args[0])
+			name, owner, instance = parseMailingListName(args[0])
 		} else {
 			var err error
 			name, owner, instance, err = getMailingListName(ctx, cmd)
@@ -276,7 +276,7 @@ func newListsArchiveCommand() *cobra.Command {
 
 		var name, owner, instance string
 		if len(args) > 0 {
-			name, owner, instance = parseResourceName(args[0])
+			name, owner, instance = parseMailingListName(args[0])
 		} else {
 			var err error
 			name, owner, instance, err = getMailingListName(ctx, cmd)
@@ -362,7 +362,7 @@ func newListsPatchsetListCommand() *cobra.Command {
 
 		var name, owner, instance string
 		if len(args) > 0 {
-			name, owner, instance = parseResourceName(args[0])
+			name, owner, instance = parseMailingListName(args[0])
 		} else {
 			var err error
 			name, owner, instance, err = getMailingListName(ctx, cmd)
@@ -586,7 +586,7 @@ func newListsACLListCommand() *cobra.Command {
 		var name, instance string
 		if len(args) > 0 {
 			// TODO: handle owner
-			name, _, instance = parseResourceName(args[0])
+			name, _, instance = parseMailingListName(args[0])
 		} else {
 			var err error
 			name, _, instance, err = getMailingListName(ctx, cmd)
@@ -789,7 +789,7 @@ func newListsWebhookCreateCommand() *cobra.Command {
 
 		var name, owner, instance string
 		if len(args) > 0 {
-			name, owner, instance = parseResourceName(args[0])
+			name, owner, instance = parseMailingListName(args[0])
 		} else {
 			var err error
 			name, owner, instance, err = getMailingListName(ctx, cmd)
@@ -842,7 +842,7 @@ func newListsWebhookListCommand() *cobra.Command {
 
 		var name, owner, instance string
 		if len(args) > 0 {
-			name, owner, instance = parseResourceName(args[0])
+			name, owner, instance = parseMailingListName(args[0])
 		} else {
 			var err error
 			name, owner, instance, err = getMailingListName(ctx, cmd)
@@ -917,6 +917,21 @@ func newListsWebhookDeleteCommand() *cobra.Command {
 	return cmd
 }
 
+// parseMailingListName parses a mailing list name, following either the
+// generic resource name syntax, or "<owner>/<name>@<instance>".
+func parseMailingListName(s string) (name, owner, instance string) {
+	slash := strings.Index(s, "/")
+	at := strings.Index(s, "@")
+	if strings.Count(s, "/") != 1 || strings.Count(s, "@") != 1 || at < slash {
+		return parseResourceName(s)
+	}
+
+	owner = s[:slash]
+	name = s[slash+1 : at]
+	instance = s[at+1:]
+	return name, owner, instance
+}
+
 func getMailingListID(c *Client, ctx context.Context, name, owner string) int32 {
 	var (
 		user     *listssrht.User
@@ -948,7 +963,7 @@ func getMailingListName(ctx context.Context, cmd *cobra.Command) (name, owner, i
 	if err != nil {
 		return "", "", "", err
 	} else if s != "" {
-		name, owner, instance = parseResourceName(s)
+		name, owner, instance = parseMailingListName(s)
 		return name, owner, instance, nil
 	}
 
@@ -968,13 +983,7 @@ func guessMailingListName(ctx context.Context) (name, owner, instance string, er
 		return "", "", "", errors.New("no mailing list specified and no mailing list configured for current Git repository")
 	}
 
-	parts := strings.SplitN(addr.Address, "@", 2)
-	if len(parts) != 2 {
-		return "", "", "", fmt.Errorf("invalid email address %q", addr.Address)
-	}
-
-	name, owner, _ = parseResourceName(parts[0])
-	instance = parts[1]
+	name, owner, instance = parseMailingListName(addr.Address)
 	return name, owner, instance, nil
 }
 
