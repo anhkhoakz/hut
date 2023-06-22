@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -79,22 +80,21 @@ func newMetaAuditLogCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("meta", cmd)
+		var cursor *metasrht.Cursor
 
-		logs, err := metasrht.AuditLog(c.Client, ctx)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		for _, log := range logs.Results {
-			entry := log.IpAddress
-			if log.Details != nil {
-				entry += fmt.Sprintf(" %s ", *log.Details)
-			} else {
-				entry += fmt.Sprintf(" %s ", log.EventType)
+		pagerify(func(p pager) bool {
+			logs, err := metasrht.AuditLog(c.Client, ctx, cursor)
+			if err != nil {
+				log.Fatal(err)
 			}
-			entry += humanize.Time(log.Created.Time)
-			fmt.Println(entry)
-		}
+
+			for _, log := range logs.Results {
+				printAuditLog(p, &log)
+			}
+
+			cursor = logs.Cursor
+			return cursor == nil
+		})
 	}
 
 	cmd := &cobra.Command{
@@ -104,6 +104,18 @@ func newMetaAuditLogCommand() *cobra.Command {
 		Run:   run,
 	}
 	return cmd
+}
+
+func printAuditLog(w io.Writer, log *metasrht.AuditLogEntry) {
+	s := log.IpAddress
+	if log.Details != nil {
+		s += fmt.Sprintf(" %s ", *log.Details)
+	} else {
+		s += fmt.Sprintf(" %s ", log.EventType)
+	}
+	s += humanize.Time(log.Created.Time)
+
+	fmt.Fprintln(w, s)
 }
 
 func newMetaSSHKeyCommand() *cobra.Command {

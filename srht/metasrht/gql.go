@@ -503,8 +503,9 @@ func ListRawPGPKeysByUser(client *gqlclient.Client, ctx context.Context, usernam
 	return respData.UserByName, err
 }
 
-func AuditLog(client *gqlclient.Client, ctx context.Context) (auditLog *AuditLogCursor, err error) {
-	op := gqlclient.NewOperation("query auditLog {\n\tauditLog {\n\t\tresults {\n\t\t\tcreated\n\t\t\tipAddress\n\t\t\teventType\n\t\t\tdetails\n\t\t}\n\t}\n}\n")
+func AuditLog(client *gqlclient.Client, ctx context.Context, cursor *Cursor) (auditLog *AuditLogCursor, err error) {
+	op := gqlclient.NewOperation("query auditLog ($cursor: Cursor) {\n\tauditLog(cursor: $cursor) {\n\t\tresults {\n\t\t\tcreated\n\t\t\tipAddress\n\t\t\teventType\n\t\t\tdetails\n\t\t}\n\t\tcursor\n\t}\n}\n")
+	op.Var("cursor", cursor)
 	var respData struct {
 		AuditLog *AuditLogCursor
 	}

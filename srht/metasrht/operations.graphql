@@ -101,14 +101,15 @@ fragment pgpKeysRaw on User {
     }
 }
 
-query auditLog {
-    auditLog {
+query auditLog($cursor: Cursor) {
+    auditLog(cursor: $cursor) {
         results {
             created
             ipAddress
             eventType
             details
         }
+        cursor
     }
 }
 
