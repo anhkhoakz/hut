@@ -20,11 +20,18 @@ import (
 
 type BuildsExporter struct {
 	client  *gqlclient.Client
+	http    *http.Client
 	baseURL string
 }
 
-func NewBuildsExporter(client *gqlclient.Client, baseURL string) *BuildsExporter {
-	return &BuildsExporter{client, baseURL}
+func NewBuildsExporter(client *gqlclient.Client, baseURL string, http *http.Client) *BuildsExporter {
+	newHttp := *http
+	newHttp.Timeout = 10 * time.Minute // XXX: Sane default?
+	return &BuildsExporter{
+		client:  client,
+		baseURL: baseURL,
+		http:    &newHttp,
+	}
 }
 
 func (ex *BuildsExporter) Name() string {
@@ -83,16 +90,12 @@ func (ex *BuildsExporter) exportJob(ctx context.Context, job *buildssrht.Job, ba
 
 	log.Printf("\tJob #%d", job.Id)
 
-	// TODO: Authentication will be needed when build visibility is done
-	client := &http.Client{
-		Timeout: 10 * time.Minute, // XXX: Sane default?
-	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet,
 		job.Log.FullURL, nil)
 	if err != nil {
 		return err
 	}
-	resp, err := client.Do(req)
+	resp, err := ex.http.Do(req)
 	if err != nil {
 		return err
 	}
@@ -113,7 +116,7 @@ func (ex *BuildsExporter) exportJob(ctx context.Context, job *buildssrht.Job, ba
 
 	var ret error
 	for _, task := range job.Tasks {
-		if err := ex.exportTask(ctx, client, job, &task, base); err != nil {
+		if err := ex.exportTask(ctx, ex.http, job, &task, base); err != nil {
 			ret = err
 		}
 	}
