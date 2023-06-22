@@ -40,23 +40,24 @@ fragment sshKeys on User {
     }
 }
 
-query listRawSSHKeys {
+query listRawSSHKeys($cursor: Cursor) {
     me {
         ...sshKeysRaw
     }
 }
 
-query listRawSSHKeysByUser($username: String!) {
+query listRawSSHKeysByUser($username: String!, $cursor: Cursor) {
     userByName(username: $username) {
         ...sshKeysRaw
     }
 }
 
 fragment sshKeysRaw on User {
-    sshKeys {
+    sshKeys(cursor: $cursor) {
         results {
             key
         }
+        cursor
     }
 }
 
@@ -81,23 +82,24 @@ fragment pgpKeys on User {
     }
 }
 
-query listRawPGPKeys {
+query listRawPGPKeys($cursor: Cursor) {
     me {
         ...pgpKeysRaw
     }
 }
 
-query listRawPGPKeysByUser($username: String!) {
+query listRawPGPKeysByUser($username: String!, $cursor: Cursor) {
     userByName(username: $username) {
         ...pgpKeysRaw
     }
 }
 
 fragment pgpKeysRaw on User {
-    pgpKeys {
+    pgpKeys(cursor: $cursor) {
         results {
             key
         }
+        cursor
     }
 }
 

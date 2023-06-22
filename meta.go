@@ -243,13 +243,13 @@ func newMetaSSHKeyListCommand() *cobra.Command {
 		if len(args) > 0 {
 			username := strings.TrimLeft(args[0], ownerPrefixes)
 			if raw {
-				user, err = metasrht.ListRawSSHKeysByUser(c.Client, ctx, username)
+				user, err = metasrht.ListRawSSHKeysByUser(c.Client, ctx, username, nil)
 			} else {
 				user, err = metasrht.ListSSHKeysByUser(c.Client, ctx, username)
 			}
 		} else {
 			if raw {
-				user, err = metasrht.ListRawSSHKeys(c.Client, ctx)
+				user, err = metasrht.ListRawSSHKeys(c.Client, ctx, nil)
 			} else {
 				user, err = metasrht.ListSSHKeys(c.Client, ctx)
 			}
@@ -412,13 +412,13 @@ func newMetaPGPKeyListCommand() *cobra.Command {
 		if len(args) > 0 {
 			username := strings.TrimLeft(args[0], ownerPrefixes)
 			if raw {
-				user, err = metasrht.ListRawPGPKeysByUser(c.Client, ctx, username)
+				user, err = metasrht.ListRawPGPKeysByUser(c.Client, ctx, username, nil)
 			} else {
 				user, err = metasrht.ListPGPKeysByUser(c.Client, ctx, username)
 			}
 		} else {
 			if raw {
-				user, err = metasrht.ListRawPGPKeys(c.Client, ctx)
+				user, err = metasrht.ListRawPGPKeys(c.Client, ctx, nil)
 			} else {
 				user, err = metasrht.ListPGPKeys(c.Client, ctx)
 			}

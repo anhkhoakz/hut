@@ -72,8 +72,7 @@ hut is a CLI companion utility to interact with sr.ht.
 *export* <directory>
 	Export account data.
 
-	Note, todo.sr.ht is not yet supported and pagination not implemented at the
-	moment.
+	Note, todo.sr.ht is not yet supported.
 
 ## builds
 

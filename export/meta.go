@@ -47,19 +47,29 @@ func (ex *MetaExporter) Export(ctx context.Context, dir string) error {
 		return err
 	}
 
+	var cursor *metasrht.Cursor
+
 	sshFile, err := os.Create(path.Join(dir, "ssh.keys"))
 	if err != nil {
 		return err
 	}
 	defer sshFile.Close()
 
-	user, err := metasrht.ListRawSSHKeys(ex.client, ctx)
-	if err != nil {
-		return err
-	}
-	for _, key := range user.SshKeys.Results {
-		if _, err := fmt.Fprintln(sshFile, key.Key); err != nil {
+	for {
+		user, err := metasrht.ListRawSSHKeys(ex.client, ctx, cursor)
+		if err != nil {
 			return err
+		}
+
+		for _, key := range user.SshKeys.Results {
+			if _, err := fmt.Fprintln(sshFile, key.Key); err != nil {
+				return err
+			}
+		}
+
+		cursor = user.SshKeys.Cursor
+		if cursor == nil {
+			break
 		}
 	}
 
@@ -69,13 +79,21 @@ func (ex *MetaExporter) Export(ctx context.Context, dir string) error {
 	}
 	defer pgpFile.Close()
 
-	user, err = metasrht.ListRawPGPKeys(ex.client, ctx)
-	if err != nil {
-		return err
-	}
-	for _, key := range user.PgpKeys.Results {
-		if _, err := fmt.Fprintln(pgpFile, key.Key); err != nil {
+	for {
+		user, err := metasrht.ListRawPGPKeys(ex.client, ctx, cursor)
+		if err != nil {
 			return err
+		}
+
+		for _, key := range user.PgpKeys.Results {
+			if _, err := fmt.Fprintln(pgpFile, key.Key); err != nil {
+				return err
+			}
+		}
+
+		cursor = user.PgpKeys.Cursor
+		if cursor == nil {
+			break
 		}
 	}
 

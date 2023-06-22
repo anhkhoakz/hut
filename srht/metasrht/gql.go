@@ -446,8 +446,9 @@ func ListSSHKeysByUser(client *gqlclient.Client, ctx context.Context, username s
 	return respData.UserByName, err
 }
 
-func ListRawSSHKeys(client *gqlclient.Client, ctx context.Context) (me *User, err error) {
-	op := gqlclient.NewOperation("query listRawSSHKeys {\n\tme {\n\t\t... sshKeysRaw\n\t}\n}\nfragment sshKeysRaw on User {\n\tsshKeys {\n\t\tresults {\n\t\t\tkey\n\t\t}\n\t}\n}\n")
+func ListRawSSHKeys(client *gqlclient.Client, ctx context.Context, cursor *Cursor) (me *User, err error) {
+	op := gqlclient.NewOperation("query listRawSSHKeys ($cursor: Cursor) {\n\tme {\n\t\t... sshKeysRaw\n\t}\n}\nfragment sshKeysRaw on User {\n\tsshKeys(cursor: $cursor) {\n\t\tresults {\n\t\t\tkey\n\t\t}\n\t\tcursor\n\t}\n}\n")
+	op.Var("cursor", cursor)
 	var respData struct {
 		Me *User
 	}
@@ -455,9 +456,10 @@ func ListRawSSHKeys(client *gqlclient.Client, ctx context.Context) (me *User, er
 	return respData.Me, err
 }
 
-func ListRawSSHKeysByUser(client *gqlclient.Client, ctx context.Context, username string) (userByName *User, err error) {
-	op := gqlclient.NewOperation("query listRawSSHKeysByUser ($username: String!) {\n\tuserByName(username: $username) {\n\t\t... sshKeysRaw\n\t}\n}\nfragment sshKeysRaw on User {\n\tsshKeys {\n\t\tresults {\n\t\t\tkey\n\t\t}\n\t}\n}\n")
+func ListRawSSHKeysByUser(client *gqlclient.Client, ctx context.Context, username string, cursor *Cursor) (userByName *User, err error) {
+	op := gqlclient.NewOperation("query listRawSSHKeysByUser ($username: String!, $cursor: Cursor) {\n\tuserByName(username: $username) {\n\t\t... sshKeysRaw\n\t}\n}\nfragment sshKeysRaw on User {\n\tsshKeys(cursor: $cursor) {\n\t\tresults {\n\t\t\tkey\n\t\t}\n\t\tcursor\n\t}\n}\n")
 	op.Var("username", username)
+	op.Var("cursor", cursor)
 	var respData struct {
 		UserByName *User
 	}
@@ -484,8 +486,9 @@ func ListPGPKeysByUser(client *gqlclient.Client, ctx context.Context, username s
 	return respData.UserByName, err
 }
 
-func ListRawPGPKeys(client *gqlclient.Client, ctx context.Context) (me *User, err error) {
-	op := gqlclient.NewOperation("query listRawPGPKeys {\n\tme {\n\t\t... pgpKeysRaw\n\t}\n}\nfragment pgpKeysRaw on User {\n\tpgpKeys {\n\t\tresults {\n\t\t\tkey\n\t\t}\n\t}\n}\n")
+func ListRawPGPKeys(client *gqlclient.Client, ctx context.Context, cursor *Cursor) (me *User, err error) {
+	op := gqlclient.NewOperation("query listRawPGPKeys ($cursor: Cursor) {\n\tme {\n\t\t... pgpKeysRaw\n\t}\n}\nfragment pgpKeysRaw on User {\n\tpgpKeys(cursor: $cursor) {\n\t\tresults {\n\t\t\tkey\n\t\t}\n\t\tcursor\n\t}\n}\n")
+	op.Var("cursor", cursor)
 	var respData struct {
 		Me *User
 	}
@@ -493,9 +496,10 @@ func ListRawPGPKeys(client *gqlclient.Client, ctx context.Context) (me *User, er
 	return respData.Me, err
 }
 
-func ListRawPGPKeysByUser(client *gqlclient.Client, ctx context.Context, username string) (userByName *User, err error) {
-	op := gqlclient.NewOperation("query listRawPGPKeysByUser ($username: String!) {\n\tuserByName(username: $username) {\n\t\t... pgpKeysRaw\n\t}\n}\nfragment pgpKeysRaw on User {\n\tpgpKeys {\n\t\tresults {\n\t\t\tkey\n\t\t}\n\t}\n}\n")
+func ListRawPGPKeysByUser(client *gqlclient.Client, ctx context.Context, username string, cursor *Cursor) (userByName *User, err error) {
+	op := gqlclient.NewOperation("query listRawPGPKeysByUser ($username: String!, $cursor: Cursor) {\n\tuserByName(username: $username) {\n\t\t... pgpKeysRaw\n\t}\n}\nfragment pgpKeysRaw on User {\n\tpgpKeys(cursor: $cursor) {\n\t\tresults {\n\t\t\tkey\n\t\t}\n\t\tcursor\n\t}\n}\n")
 	op.Var("username", username)
+	op.Var("cursor", cursor)
 	var respData struct {
 		UserByName *User
 	}
