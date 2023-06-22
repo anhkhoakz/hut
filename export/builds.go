@@ -43,10 +43,11 @@ func (ex *BuildsExporter) BaseURL() string {
 }
 
 type JobInfo struct {
-	Id     int32    `json:"id"`
-	Status string   `json:"status"`
-	Note   *string  `json:"note,omitempty"`
-	Tags   []string `json:"tags"`
+	Id         int32                 `json:"id"`
+	Status     string                `json:"status"`
+	Note       *string               `json:"note,omitempty"`
+	Tags       []string              `json:"tags"`
+	Visibility buildssrht.Visibility `json:"visibility"`
 }
 
 func (ex *BuildsExporter) Export(ctx context.Context, dir string) error {
@@ -128,9 +129,10 @@ func (ex *BuildsExporter) exportJob(ctx context.Context, job *buildssrht.Job, ba
 	defer file.Close()
 
 	jobInfo := JobInfo{
-		Id:   job.Id,
-		Note: job.Note,
-		Tags: job.Tags,
+		Id:         job.Id,
+		Note:       job.Note,
+		Tags:       job.Tags,
+		Visibility: job.Visibility,
 	}
 	err = json.NewEncoder(file).Encode(&jobInfo)
 	if err != nil {
