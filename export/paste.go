@@ -49,21 +49,29 @@ type PasteInfo struct {
 
 func (ex *PasteExporter) Export(ctx context.Context, dir string) error {
 	log.Println("paste.sr.ht")
-
-	pastes, err := pastesrht.PasteContents(ex.client, ctx)
-	if err != nil {
-		return err
-	}
-
+	var cursor *pastesrht.Cursor
 	var ret error
-	for _, paste := range pastes.Results {
-		if err := ex.exportPaste(ctx, &paste, dir); err != nil {
-			var pe partialError
-			if errors.As(err, &pe) {
-				ret = err
-				continue
-			}
+
+	for {
+		pastes, err := pastesrht.PasteContents(ex.client, ctx, cursor)
+		if err != nil {
 			return err
+		}
+
+		for _, paste := range pastes.Results {
+			if err := ex.exportPaste(ctx, &paste, dir); err != nil {
+				var pe partialError
+				if errors.As(err, &pe) {
+					ret = err
+					continue
+				}
+				return err
+			}
+		}
+
+		cursor = pastes.Cursor
+		if cursor == nil {
+			break
 		}
 	}
 
