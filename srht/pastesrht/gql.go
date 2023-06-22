@@ -332,8 +332,9 @@ func DeleteUserWebhook(client *gqlclient.Client, ctx context.Context, id int32) 
 	return respData.DeleteUserWebhook, err
 }
 
-func Pastes(client *gqlclient.Client, ctx context.Context) (pastes *PasteCursor, err error) {
-	op := gqlclient.NewOperation("query pastes {\n\tpastes {\n\t\tresults {\n\t\t\tid\n\t\t\tcreated\n\t\t\tvisibility\n\t\t\tfiles {\n\t\t\t\tfilename\n\t\t\t}\n\t\t}\n\t}\n}\n")
+func Pastes(client *gqlclient.Client, ctx context.Context, cursor *Cursor) (pastes *PasteCursor, err error) {
+	op := gqlclient.NewOperation("query pastes ($cursor: Cursor) {\n\tpastes(cursor: $cursor) {\n\t\tresults {\n\t\t\tid\n\t\t\tcreated\n\t\t\tvisibility\n\t\t\tfiles {\n\t\t\t\tfilename\n\t\t\t}\n\t\t}\n\t\tcursor\n\t}\n}\n")
+	op.Var("cursor", cursor)
 	var respData struct {
 		Pastes *PasteCursor
 	}

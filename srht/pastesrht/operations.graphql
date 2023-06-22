@@ -31,8 +31,8 @@ mutation deleteUserWebhook($id: Int!) {
     }
 }
 
-query pastes {
-    pastes {
+query pastes($cursor: Cursor) {
+    pastes(cursor: $cursor) {
         results {
             id
             created
@@ -41,6 +41,7 @@ query pastes {
                 filename
             }
         }
+        cursor
     }
 }
 

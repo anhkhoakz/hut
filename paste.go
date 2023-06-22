@@ -136,23 +136,23 @@ func newPasteListCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("paste", cmd)
+		var cursor *pastesrht.Cursor
 
-		pastes, err := pastesrht.Pastes(c.Client, ctx)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		for _, paste := range pastes.Results {
-			fmt.Printf("%s %s %s\n", termfmt.DarkYellow.Sprint(paste.Id),
-				paste.Visibility.TermString(), humanize.Time(paste.Created.Time))
-			for _, file := range paste.Files {
-				if file.Filename != nil && *file.Filename != "" {
-					fmt.Printf("  %s\n", *file.Filename)
-				}
+		pagerify(func(p pager) bool {
+			pastes, err := pastesrht.Pastes(c.Client, ctx, cursor)
+			if err != nil {
+				log.Fatal(err)
 			}
 
-			fmt.Println()
-		}
+			for _, paste := range pastes.Results {
+				printPaste(p, &paste)
+				fmt.Fprintln(p)
+			}
+
+			cursor = pastes.Cursor
+			return cursor == nil
+		})
+
 	}
 
 	cmd := &cobra.Command{
@@ -161,6 +161,16 @@ func newPasteListCommand() *cobra.Command {
 		Run:   run,
 	}
 	return cmd
+}
+
+func printPaste(w io.Writer, paste *pastesrht.Paste) {
+	fmt.Fprintf(w, "%s %s %s\n", termfmt.DarkYellow.Sprint(paste.Id),
+		paste.Visibility.TermString(), humanize.Time(paste.Created.Time))
+	for _, file := range paste.Files {
+		if file.Filename != nil && *file.Filename != "" {
+			fmt.Fprintf(w, "  %s\n", *file.Filename)
+		}
+	}
 }
 
 func newPasteShowCommand() *cobra.Command {
