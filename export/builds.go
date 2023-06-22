@@ -52,30 +52,38 @@ type JobInfo struct {
 
 func (ex *BuildsExporter) Export(ctx context.Context, dir string) error {
 	log.Println("builds.sr.ht")
-
-	jobs, err := buildssrht.ExportJobs(ex.client, ctx)
-	if err != nil {
-		return err
-	}
-
+	var cursor *buildssrht.Cursor
 	var ret error
-	for _, job := range jobs.Results {
-		if job.Status != "SUCCESS" && job.Status != "FAILED" {
-			continue
-		}
 
-		base := path.Join(dir, strconv.Itoa(int(job.Id)))
-		if err := os.MkdirAll(base, 0o755); err != nil {
+	for {
+		jobs, err := buildssrht.ExportJobs(ex.client, ctx, cursor)
+		if err != nil {
 			return err
 		}
 
-		if err := ex.exportJob(ctx, &job, base); err != nil {
-			var pe partialError
-			if errors.As(err, &pe) {
-				ret = err
+		for _, job := range jobs.Results {
+			if job.Status != "SUCCESS" && job.Status != "FAILED" {
 				continue
 			}
-			return err
+
+			base := path.Join(dir, strconv.Itoa(int(job.Id)))
+			if err := os.MkdirAll(base, 0o755); err != nil {
+				return err
+			}
+
+			if err := ex.exportJob(ctx, &job, base); err != nil {
+				var pe partialError
+				if errors.As(err, &pe) {
+					ret = err
+					continue
+				}
+				return err
+			}
+		}
+
+		cursor = jobs.Cursor
+		if cursor == nil {
+			break
 		}
 	}
 

@@ -93,8 +93,8 @@ fragment jobs on JobCursor {
     cursor
 }
 
-query exportJobs {
-    jobs {
+query exportJobs($cursor: Cursor) {
+    jobs(cursor: $cursor) {
         results {
             id
             status
@@ -112,6 +112,7 @@ query exportJobs {
                 }
             }
         }
+        cursor
     }
 }
 
