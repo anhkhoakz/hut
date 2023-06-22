@@ -618,34 +618,24 @@ func newBuildsSecretsCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("builds", cmd)
+		var cursor *buildssrht.Cursor
 
-		secrets, err := buildssrht.Secrets(c.Client, ctx)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		var s string
-		for i, secret := range secrets.Results {
-			if i != 0 {
-				s += "\n"
+		pagerify(func(p pager) bool {
+			secrets, err := buildssrht.Secrets(c.Client, ctx, cursor)
+			if err != nil {
+				log.Fatal(err)
 			}
 
-			created := termfmt.Dim.String(humanize.Time(secret.Created.Time))
-			s += fmt.Sprintf("%s\t%s\n", termfmt.DarkYellow.Sprint(secret.Uuid), created)
-			if secret.Name != nil && *secret.Name != "" {
-				s += fmt.Sprintf("%s\n", *secret.Name)
+			for i, secret := range secrets.Results {
+				if i != 0 {
+					fmt.Fprintln(p)
+				}
+				printSecret(p, &secret)
 			}
 
-			switch v := secret.Value.(type) {
-			case *buildssrht.SecretFile:
-				s += fmt.Sprintf("File: %s %o\n", v.Path, v.Mode)
-			case *buildssrht.SSHKey:
-				s += "SSH Key\n"
-			case *buildssrht.PGPKey:
-				s += "PGP Key\n"
-			}
-		}
-		fmt.Print(s)
+			cursor = secrets.Cursor
+			return cursor == nil
+		})
 	}
 
 	cmd := &cobra.Command{
@@ -655,6 +645,26 @@ func newBuildsSecretsCommand() *cobra.Command {
 		Run:   run,
 	}
 	return cmd
+}
+
+func printSecret(w io.Writer, secret *buildssrht.Secret) {
+	var s string
+	created := termfmt.Dim.String(humanize.Time(secret.Created.Time))
+	s += fmt.Sprintf("%s\t%s\n", termfmt.DarkYellow.Sprint(secret.Uuid), created)
+	if secret.Name != nil && *secret.Name != "" {
+		s += fmt.Sprintf("%s\n", *secret.Name)
+	}
+
+	switch v := secret.Value.(type) {
+	case *buildssrht.SecretFile:
+		s += fmt.Sprintf("File: %s %o\n", v.Path, v.Mode)
+	case *buildssrht.SSHKey:
+		s += "SSH Key\n"
+	case *buildssrht.PGPKey:
+		s += "PGP Key\n"
+	}
+
+	fmt.Fprint(w, s)
 }
 
 type buildLog struct {

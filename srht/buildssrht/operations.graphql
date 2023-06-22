@@ -134,8 +134,8 @@ query show($id: Int!) {
     }
 }
 
-query secrets {
-    secrets {
+query secrets($cursor: Cursor) {
+    secrets(cursor: $cursor) {
         results {
             created
             uuid
@@ -146,6 +146,7 @@ query secrets {
                 mode
             }
         }
+        cursor
     }
 }
 
