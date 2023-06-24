@@ -371,10 +371,11 @@ func newBuildsListCommand() *cobra.Command {
 		if len(args) > 0 {
 			username = strings.TrimLeft(args[0], ownerPrefixes)
 		}
+
 		pagerify(func(p pager) bool {
 			var jobs *buildssrht.JobCursor
 			if len(username) > 0 {
-				user, err := buildssrht.JobsByUser(c.Client, ctx, username)
+				user, err := buildssrht.JobsByUser(c.Client, ctx, username, cursor)
 				if err != nil {
 					log.Fatal(err)
 				} else if user == nil {
@@ -383,7 +384,7 @@ func newBuildsListCommand() *cobra.Command {
 				jobs = user.Jobs
 			} else {
 				var err error
-				jobs, err = buildssrht.Jobs(c.Client, ctx, nil)
+				jobs, err = buildssrht.Jobs(c.Client, ctx, cursor)
 				if err != nil {
 					log.Fatal(err)
 				}

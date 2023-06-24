@@ -71,9 +71,9 @@ query jobs($cursor: Cursor) {
     }
 }
 
-query jobsByUser($username: String!) {
+query jobsByUser($username: String!, $cursor: Cursor) {
     userByName(username: $username) {
-        jobs {
+        jobs(cursor: $cursor) {
             ...jobs
         }
     }
