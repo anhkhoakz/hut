@@ -910,6 +910,16 @@ func MailingListWebhooksByUser(client *gqlclient.Client, ctx context.Context, us
 	return respData.User, err
 }
 
+func Subscriptions(client *gqlclient.Client, ctx context.Context, cursor *Cursor) (subscriptions *ActivitySubscriptionCursor, err error) {
+	op := gqlclient.NewOperation("query subscriptions ($cursor: Cursor) {\n\tsubscriptions(cursor: $cursor) {\n\t\tresults {\n\t\t\tcreated\n\t\t\t__typename\n\t\t\t... on MailingListSubscription {\n\t\t\t\tlist {\n\t\t\t\t\tname\n\t\t\t\t\towner {\n\t\t\t\t\t\tcanonicalName\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\tcursor\n\t}\n}\n")
+	op.Var("cursor", cursor)
+	var respData struct {
+		Subscriptions *ActivitySubscriptionCursor
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Subscriptions, err
+}
+
 func MailingListSubscribe(client *gqlclient.Client, ctx context.Context, listID int32) (mailingListSubscribe *MailingListSubscription, err error) {
 	op := gqlclient.NewOperation("mutation mailingListSubscribe ($listID: Int!) {\n\tmailingListSubscribe(listID: $listID) {\n\t\tlist {\n\t\t\tname\n\t\t\towner {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	op.Var("listID", listID)

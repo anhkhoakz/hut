@@ -37,6 +37,7 @@ func newListsCommand() *cobra.Command {
 	cmd.AddCommand(newListsACLCommand())
 	cmd.AddCommand(newListsUserWebhookCommand())
 	cmd.AddCommand(newListsWebhookCommand())
+	cmd.AddCommand(newListsSubscriptions())
 	cmd.PersistentFlags().StringP("mailing-list", "l", "", "mailing list name")
 	cmd.RegisterFlagCompletionFunc("mailing-list", completeList)
 	return cmd
@@ -915,6 +916,46 @@ func newListsWebhookDeleteCommand() *cobra.Command {
 		Run:               run,
 	}
 	return cmd
+}
+
+func newListsSubscriptions() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("lists", cmd)
+		var cursor *listssrht.Cursor
+
+		pagerify(func(p pager) bool {
+			subscriptions, err := listssrht.Subscriptions(c.Client, ctx, cursor)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			for _, sub := range subscriptions.Results {
+				printMailingListSubscription(p, c, &sub)
+			}
+
+			cursor = subscriptions.Cursor
+			return cursor == nil
+		})
+	}
+
+	cmd := &cobra.Command{
+		Use:   "subscriptions",
+		Short: "List mailing list subscriptions",
+		Args:  cobra.ExactArgs(0),
+		Run:   run,
+	}
+	return cmd
+}
+
+func printMailingListSubscription(w io.Writer, c *Client, sub *listssrht.ActivitySubscription) {
+	mlSub, ok := sub.Value.(*listssrht.MailingListSubscription)
+	if !ok {
+		return
+	}
+
+	created := termfmt.Dim.String(humanize.Time(sub.Created.Time))
+	fmt.Fprintf(w, "%s/%s %s\n", mlSub.List.Owner.CanonicalName, mlSub.List.Name, created)
 }
 
 // parseMailingListName parses a mailing list name, following either the

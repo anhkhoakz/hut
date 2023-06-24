@@ -387,6 +387,9 @@ Options are:
 *subscribe* [list]
 	Subscribe to a mailing list.
 
+*subscriptions*
+	List mailing list subscriptions.
+
 *unsubscribe* [list]
 	Unsubscribe from a mailing list.
 

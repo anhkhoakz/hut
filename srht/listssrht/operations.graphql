@@ -250,6 +250,24 @@ fragment mailingListWebhooks on MailingList {
     }
 }
 
+query subscriptions($cursor: Cursor) {
+    subscriptions(cursor: $cursor) {
+        results {
+            created
+            __typename
+            ... on MailingListSubscription {
+                list {
+                    name
+                    owner {
+                        canonicalName
+                    }
+                }
+            }
+        }
+        cursor
+    }
+}
+
 mutation mailingListSubscribe($listID: Int!) {
     mailingListSubscribe(listID: $listID) {
         list {
