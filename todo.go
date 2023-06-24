@@ -948,28 +948,36 @@ func newTodoLabelListCommand() *cobra.Command {
 
 		c := createClientWithInstance("todo", cmd, instance)
 		var (
+			cursor   *todosrht.Cursor
 			user     *todosrht.User
 			username string
 		)
-
 		if owner != "" {
 			username = strings.TrimLeft(owner, ownerPrefixes)
-			user, err = todosrht.LabelsByUser(c.Client, ctx, username, name)
-		} else {
-			user, err = todosrht.Labels(c.Client, ctx, name)
 		}
 
-		if err != nil {
-			log.Fatal(err)
-		} else if user == nil {
-			log.Fatalf("no such user %q", username)
-		} else if user.Tracker == nil {
-			log.Fatalf("no such tracker %q", name)
-		}
+		pagerify(func(p pager) bool {
+			if username != "" {
+				user, err = todosrht.LabelsByUser(c.Client, ctx, username, name, cursor)
+			} else {
+				user, err = todosrht.Labels(c.Client, ctx, name, cursor)
+			}
 
-		for _, label := range user.Tracker.Labels.Results {
-			fmt.Println(label.TermString())
-		}
+			if err != nil {
+				log.Fatal(err)
+			} else if user == nil {
+				log.Fatalf("no such user %q", username)
+			} else if user.Tracker == nil {
+				log.Fatalf("no such tracker %q", name)
+			}
+
+			for _, label := range user.Tracker.Labels.Results {
+				fmt.Fprintln(p, label.TermString())
+			}
+
+			cursor = user.Tracker.Labels.Cursor
+			return cursor == nil
+		})
 	}
 
 	cmd := &cobra.Command{

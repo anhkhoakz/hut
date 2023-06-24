@@ -981,9 +981,10 @@ func TicketsByUser(client *gqlclient.Client, ctx context.Context, username strin
 	return respData.User, err
 }
 
-func Labels(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
-	op := gqlclient.NewOperation("query labels ($name: String!) {\n\tme {\n\t\ttracker(name: $name) {\n\t\t\tlabels {\n\t\t\t\t... labels\n\t\t\t}\n\t\t}\n\t}\n}\nfragment labels on LabelCursor {\n\tresults {\n\t\tname\n\t\tbackgroundColor\n\t\tforegroundColor\n\t}\n}\n")
+func Labels(client *gqlclient.Client, ctx context.Context, name string, cursor *Cursor) (me *User, err error) {
+	op := gqlclient.NewOperation("query labels ($name: String!, $cursor: Cursor) {\n\tme {\n\t\ttracker(name: $name) {\n\t\t\tlabels(cursor: $cursor) {\n\t\t\t\t... labels\n\t\t\t}\n\t\t}\n\t}\n}\nfragment labels on LabelCursor {\n\tresults {\n\t\tname\n\t\tbackgroundColor\n\t\tforegroundColor\n\t}\n\tcursor\n}\n")
 	op.Var("name", name)
+	op.Var("cursor", cursor)
 	var respData struct {
 		Me *User
 	}
@@ -991,10 +992,11 @@ func Labels(client *gqlclient.Client, ctx context.Context, name string) (me *Use
 	return respData.Me, err
 }
 
-func LabelsByUser(client *gqlclient.Client, ctx context.Context, username string, name string) (user *User, err error) {
-	op := gqlclient.NewOperation("query labelsByUser ($username: String!, $name: String!) {\n\tuser(username: $username) {\n\t\ttracker(name: $name) {\n\t\t\tlabels {\n\t\t\t\t... labels\n\t\t\t}\n\t\t}\n\t}\n}\nfragment labels on LabelCursor {\n\tresults {\n\t\tname\n\t\tbackgroundColor\n\t\tforegroundColor\n\t}\n}\n")
+func LabelsByUser(client *gqlclient.Client, ctx context.Context, username string, name string, cursor *Cursor) (user *User, err error) {
+	op := gqlclient.NewOperation("query labelsByUser ($username: String!, $name: String!, $cursor: Cursor) {\n\tuser(username: $username) {\n\t\ttracker(name: $name) {\n\t\t\tlabels(cursor: $cursor) {\n\t\t\t\t... labels\n\t\t\t}\n\t\t}\n\t}\n}\nfragment labels on LabelCursor {\n\tresults {\n\t\tname\n\t\tbackgroundColor\n\t\tforegroundColor\n\t}\n\tcursor\n}\n")
 	op.Var("username", username)
 	op.Var("name", name)
+	op.Var("cursor", cursor)
 	var respData struct {
 		User *User
 	}

@@ -76,20 +76,20 @@ fragment tickets on TicketCursor {
     cursor
 }
 
-query labels($name: String!) {
+query labels($name: String!, $cursor: Cursor) {
     me {
         tracker(name: $name) {
-            labels {
+            labels(cursor: $cursor) {
                 ...labels
             }
         }
     }
 }
 
-query labelsByUser($username: String!, $name: String!) {
+query labelsByUser($username: String!, $name: String!, $cursor: Cursor) {
     user(username: $username) {
         tracker(name: $name) {
-            labels {
+            labels(cursor: $cursor) {
                 ...labels
             }
         }
@@ -102,6 +102,7 @@ fragment labels on LabelCursor {
         backgroundColor
         foregroundColor
     }
+    cursor
 }
 
 query aclByTrackerName($name: String!) {
