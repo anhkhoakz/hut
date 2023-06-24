@@ -37,20 +37,20 @@ query trackerIDByUser($username: String!, $name: String!) {
     }
 }
 
-query tickets($name: String!) {
+query tickets($name: String!, $cursor: Cursor) {
     me {
         tracker(name: $name) {
-            tickets {
+            tickets(cursor: $cursor) {
                 ...tickets
             }
         }
     }
 }
 
-query ticketsByUser($username: String!, $name: String!) {
+query ticketsByUser($username: String!, $name: String!, $cursor: Cursor) {
     user(username: $username) {
         tracker(name: $name) {
-            tickets {
+            tickets(cursor: $cursor) {
                 ...tickets
             }
         }
@@ -73,6 +73,7 @@ fragment tickets on TicketCursor {
             foregroundColor
         }
     }
+    cursor
 }
 
 query labels($name: String!) {

@@ -291,45 +291,37 @@ func newTodoTicketListCommand() *cobra.Command {
 
 		c := createClientWithInstance("todo", cmd, instance)
 		var (
+			cursor   *todosrht.Cursor
 			user     *todosrht.User
 			username string
 		)
-
 		if owner != "" {
 			username = strings.TrimLeft(owner, ownerPrefixes)
-			user, err = todosrht.TicketsByUser(c.Client, ctx, username, name)
-		} else {
-			user, err = todosrht.Tickets(c.Client, ctx, name)
 		}
 
-		if err != nil {
-			log.Fatal(err)
-		} else if user == nil {
-			log.Fatalf("no such user %q", username)
-		} else if user.Tracker == nil {
-			log.Fatalf("no such tracker %q", name)
-		}
-
-		for _, ticket := range user.Tracker.Tickets.Results {
-			var labels string
-			s := termfmt.DarkYellow.Sprintf("#%d %s ", ticket.Id, ticket.Status.TermString())
-			if ticket.Status == todosrht.TicketStatusResolved && ticket.Resolution != todosrht.TicketResolutionClosed {
-				s += termfmt.Green.Sprintf("%s ", strings.ToLower(string(ticket.Resolution)))
+		pagerify(func(p pager) bool {
+			if username != "" {
+				user, err = todosrht.TicketsByUser(c.Client, ctx, username, name, cursor)
+			} else {
+				user, err = todosrht.Tickets(c.Client, ctx, name, cursor)
 			}
 
-			if len(ticket.Labels) > 0 {
-				labels = " "
-				for i, label := range ticket.Labels {
-					labels += label.TermString()
-					if i != len(ticket.Labels)-1 {
-						labels += " "
-					}
-				}
+			if err != nil {
+				log.Fatal(err)
+			} else if user == nil {
+				log.Fatalf("no such user %q", username)
+			} else if user.Tracker == nil {
+				log.Fatalf("no such tracker %q", name)
 			}
-			s += fmt.Sprintf("%s%s (%s %s)", ticket.Subject, labels,
-				ticket.Submitter.CanonicalName, humanize.Time(ticket.Created.Time))
-			fmt.Println(s)
-		}
+
+			for _, ticket := range user.Tracker.Tickets.Results {
+				printTicket(p, &ticket)
+			}
+
+			cursor = user.Tracker.Tickets.Cursor
+			return cursor == nil
+		})
+
 	}
 
 	cmd := &cobra.Command{
@@ -339,6 +331,27 @@ func newTodoTicketListCommand() *cobra.Command {
 		Run:   run,
 	}
 	return cmd
+}
+
+func printTicket(w io.Writer, ticket *todosrht.Ticket) {
+	var labels string
+	s := termfmt.DarkYellow.Sprintf("#%d %s ", ticket.Id, ticket.Status.TermString())
+	if ticket.Status == todosrht.TicketStatusResolved && ticket.Resolution != todosrht.TicketResolutionClosed {
+		s += termfmt.Green.Sprintf("%s ", strings.ToLower(string(ticket.Resolution)))
+	}
+
+	if len(ticket.Labels) > 0 {
+		labels = " "
+		for i, label := range ticket.Labels {
+			labels += label.TermString()
+			if i != len(ticket.Labels)-1 {
+				labels += " "
+			}
+		}
+	}
+	s += fmt.Sprintf("%s%s (%s %s)", ticket.Subject, labels,
+		ticket.Submitter.CanonicalName, humanize.Time(ticket.Created.Time))
+	fmt.Fprintln(w, s)
 }
 
 func newTodoTicketCommentCommand() *cobra.Command {

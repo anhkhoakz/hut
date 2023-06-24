@@ -958,9 +958,10 @@ func TrackerIDByUser(client *gqlclient.Client, ctx context.Context, username str
 	return respData.User, err
 }
 
-func Tickets(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
-	op := gqlclient.NewOperation("query tickets ($name: String!) {\n\tme {\n\t\ttracker(name: $name) {\n\t\t\ttickets {\n\t\t\t\t... tickets\n\t\t\t}\n\t\t}\n\t}\n}\nfragment tickets on TicketCursor {\n\tresults {\n\t\tid\n\t\tsubject\n\t\tstatus\n\t\tresolution\n\t\tcreated\n\t\tsubmitter {\n\t\t\tcanonicalName\n\t\t}\n\t\tlabels {\n\t\t\tname\n\t\t\tbackgroundColor\n\t\t\tforegroundColor\n\t\t}\n\t}\n}\n")
+func Tickets(client *gqlclient.Client, ctx context.Context, name string, cursor *Cursor) (me *User, err error) {
+	op := gqlclient.NewOperation("query tickets ($name: String!, $cursor: Cursor) {\n\tme {\n\t\ttracker(name: $name) {\n\t\t\ttickets(cursor: $cursor) {\n\t\t\t\t... tickets\n\t\t\t}\n\t\t}\n\t}\n}\nfragment tickets on TicketCursor {\n\tresults {\n\t\tid\n\t\tsubject\n\t\tstatus\n\t\tresolution\n\t\tcreated\n\t\tsubmitter {\n\t\t\tcanonicalName\n\t\t}\n\t\tlabels {\n\t\t\tname\n\t\t\tbackgroundColor\n\t\t\tforegroundColor\n\t\t}\n\t}\n\tcursor\n}\n")
 	op.Var("name", name)
+	op.Var("cursor", cursor)
 	var respData struct {
 		Me *User
 	}
@@ -968,10 +969,11 @@ func Tickets(client *gqlclient.Client, ctx context.Context, name string) (me *Us
 	return respData.Me, err
 }
 
-func TicketsByUser(client *gqlclient.Client, ctx context.Context, username string, name string) (user *User, err error) {
-	op := gqlclient.NewOperation("query ticketsByUser ($username: String!, $name: String!) {\n\tuser(username: $username) {\n\t\ttracker(name: $name) {\n\t\t\ttickets {\n\t\t\t\t... tickets\n\t\t\t}\n\t\t}\n\t}\n}\nfragment tickets on TicketCursor {\n\tresults {\n\t\tid\n\t\tsubject\n\t\tstatus\n\t\tresolution\n\t\tcreated\n\t\tsubmitter {\n\t\t\tcanonicalName\n\t\t}\n\t\tlabels {\n\t\t\tname\n\t\t\tbackgroundColor\n\t\t\tforegroundColor\n\t\t}\n\t}\n}\n")
+func TicketsByUser(client *gqlclient.Client, ctx context.Context, username string, name string, cursor *Cursor) (user *User, err error) {
+	op := gqlclient.NewOperation("query ticketsByUser ($username: String!, $name: String!, $cursor: Cursor) {\n\tuser(username: $username) {\n\t\ttracker(name: $name) {\n\t\t\ttickets(cursor: $cursor) {\n\t\t\t\t... tickets\n\t\t\t}\n\t\t}\n\t}\n}\nfragment tickets on TicketCursor {\n\tresults {\n\t\tid\n\t\tsubject\n\t\tstatus\n\t\tresolution\n\t\tcreated\n\t\tsubmitter {\n\t\t\tcanonicalName\n\t\t}\n\t\tlabels {\n\t\t\tname\n\t\t\tbackgroundColor\n\t\t\tforegroundColor\n\t\t}\n\t}\n\tcursor\n}\n")
 	op.Var("username", username)
 	op.Var("name", name)
+	op.Var("cursor", cursor)
 	var respData struct {
 		User *User
 	}
