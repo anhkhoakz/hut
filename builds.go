@@ -557,7 +557,7 @@ func newBuildsUserWebhookListCommand() *cobra.Command {
 			}
 
 			for _, webhook := range webhooks.Results {
-				fmt.Printf("%s %s\n", termfmt.DarkYellow.Sprintf("#%d", webhook.Id), webhook.Url)
+				fmt.Fprintf(p, "%s %s\n", termfmt.DarkYellow.Sprintf("#%d", webhook.Id), webhook.Url)
 			}
 
 			cursor = webhooks.Cursor
