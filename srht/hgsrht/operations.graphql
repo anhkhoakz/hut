@@ -40,12 +40,13 @@ fragment repos on RepositoryCursor {
     cursor
 }
 
-query userWebhooks {
-    userWebhooks {
+query userWebhooks($cursor: Cursor) {
+    userWebhooks(cursor: $cursor) {
         results {
             id
             url
         }
+        cursor
     }
 }
 

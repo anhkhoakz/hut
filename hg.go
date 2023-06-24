@@ -203,15 +203,22 @@ func newHgUserWebhookListCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("hg", cmd)
+		var cursor *hgsrht.Cursor
 
-		webhooks, err := hgsrht.UserWebhooks(c.Client, ctx)
-		if err != nil {
-			log.Fatal(err)
-		}
+		pagerify(func(p pager) bool {
+			webhooks, err := hgsrht.UserWebhooks(c.Client, ctx, cursor)
+			if err != nil {
+				log.Fatal(err)
+			}
 
-		for _, webhook := range webhooks.Results {
-			fmt.Printf("%s %s\n", termfmt.DarkYellow.Sprintf("#%d", webhook.Id), webhook.Url)
-		}
+			for _, webhook := range webhooks.Results {
+				fmt.Printf("%s %s\n", termfmt.DarkYellow.Sprintf("#%d", webhook.Id), webhook.Url)
+			}
+
+			cursor = webhooks.Cursor
+			return cursor == nil
+		})
+
 	}
 
 	cmd := &cobra.Command{
@@ -290,7 +297,7 @@ func completeHgUserWebhookID(cmd *cobra.Command, args []string, toComplete strin
 	c := createClient("hg", cmd)
 	var webhookList []string
 
-	webhooks, err := hgsrht.UserWebhooks(c.Client, ctx)
+	webhooks, err := hgsrht.UserWebhooks(c.Client, ctx, nil)
 	if err != nil {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
