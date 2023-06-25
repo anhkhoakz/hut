@@ -248,14 +248,14 @@ func newListsCreateCommand() *cobra.Command {
 			description = &text
 		}
 
-		tracker, err := listssrht.CreateMailingList(c.Client, ctx, args[0], description, listVisibility)
+		list, err := listssrht.CreateMailingList(c.Client, ctx, args[0], description, listVisibility)
 		if err != nil {
 			log.Fatal(err)
-		} else if tracker == nil {
+		} else if list == nil {
 			log.Fatal("failed to create mailing list")
 		}
 
-		log.Printf("Created mailing list %q\n", tracker.Name)
+		log.Printf("Created mailing list %q\n", list.Name)
 	}
 	cmd := &cobra.Command{
 		Use:               "create <name>",
