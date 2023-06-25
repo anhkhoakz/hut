@@ -1138,9 +1138,10 @@ func UserWebhooks(client *gqlclient.Client, ctx context.Context, cursor *Cursor)
 	return respData.UserWebhooks, err
 }
 
-func TrackerWebhooks(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
-	op := gqlclient.NewOperation("query trackerWebhooks ($name: String!) {\n\tme {\n\t\ttracker(name: $name) {\n\t\t\t... trackerWebhooks\n\t\t}\n\t}\n}\nfragment trackerWebhooks on Tracker {\n\twebhooks {\n\t\tresults {\n\t\t\tid\n\t\t\turl\n\t\t}\n\t}\n}\n")
+func TrackerWebhooks(client *gqlclient.Client, ctx context.Context, name string, cursor *Cursor) (me *User, err error) {
+	op := gqlclient.NewOperation("query trackerWebhooks ($name: String!, $cursor: Cursor) {\n\tme {\n\t\ttracker(name: $name) {\n\t\t\t... trackerWebhooks\n\t\t}\n\t}\n}\nfragment trackerWebhooks on Tracker {\n\twebhooks(cursor: $cursor) {\n\t\tresults {\n\t\t\tid\n\t\t\turl\n\t\t}\n\t\tcursor\n\t}\n}\n")
 	op.Var("name", name)
+	op.Var("cursor", cursor)
 	var respData struct {
 		Me *User
 	}
@@ -1148,10 +1149,11 @@ func TrackerWebhooks(client *gqlclient.Client, ctx context.Context, name string)
 	return respData.Me, err
 }
 
-func TrackerWebhooksByUser(client *gqlclient.Client, ctx context.Context, username string, name string) (user *User, err error) {
-	op := gqlclient.NewOperation("query trackerWebhooksByUser ($username: String!, $name: String!) {\n\tuser(username: $username) {\n\t\ttracker(name: $name) {\n\t\t\t... trackerWebhooks\n\t\t}\n\t}\n}\nfragment trackerWebhooks on Tracker {\n\twebhooks {\n\t\tresults {\n\t\t\tid\n\t\t\turl\n\t\t}\n\t}\n}\n")
+func TrackerWebhooksByUser(client *gqlclient.Client, ctx context.Context, username string, name string, cursor *Cursor) (user *User, err error) {
+	op := gqlclient.NewOperation("query trackerWebhooksByUser ($username: String!, $name: String!, $cursor: Cursor) {\n\tuser(username: $username) {\n\t\ttracker(name: $name) {\n\t\t\t... trackerWebhooks\n\t\t}\n\t}\n}\nfragment trackerWebhooks on Tracker {\n\twebhooks(cursor: $cursor) {\n\t\tresults {\n\t\t\tid\n\t\t\turl\n\t\t}\n\t\tcursor\n\t}\n}\n")
 	op.Var("username", username)
 	op.Var("name", name)
+	op.Var("cursor", cursor)
 	var respData struct {
 		User *User
 	}

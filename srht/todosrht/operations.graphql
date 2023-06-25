@@ -297,7 +297,7 @@ query userWebhooks($cursor: Cursor) {
     }
 }
 
-query trackerWebhooks($name: String!) {
+query trackerWebhooks($name: String!, $cursor: Cursor) {
     me {
         tracker(name: $name) {
             ...trackerWebhooks
@@ -305,7 +305,11 @@ query trackerWebhooks($name: String!) {
     }
 }
 
-query trackerWebhooksByUser($username: String!, $name: String!) {
+query trackerWebhooksByUser(
+    $username: String!
+    $name: String!
+    $cursor: Cursor
+) {
     user(username: $username) {
         tracker(name: $name) {
             ...trackerWebhooks
@@ -314,11 +318,12 @@ query trackerWebhooksByUser($username: String!, $name: String!) {
 }
 
 fragment trackerWebhooks on Tracker {
-    webhooks {
+    webhooks(cursor: $cursor) {
         results {
             id
             url
         }
+        cursor
     }
 }
 
