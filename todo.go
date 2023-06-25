@@ -14,7 +14,6 @@ import (
 	"git.sr.ht/~emersion/hut/srht/todosrht"
 	"git.sr.ht/~emersion/hut/termfmt"
 	"github.com/dustin/go-humanize"
-	"github.com/juju/ansiterm/tabwriter"
 	"github.com/spf13/cobra"
 )
 
@@ -1096,44 +1095,47 @@ func newTodoACLListCommand() *cobra.Command {
 
 		c := createClientWithInstance("todo", cmd, instance)
 		var (
+			cursor   *todosrht.Cursor
 			user     *todosrht.User
 			username string
 			err      error
 		)
-
 		if owner != "" {
 			username = strings.TrimLeft(owner, ownerPrefixes)
-			user, err = todosrht.AclByUser(c.Client, ctx, username, name)
-		} else {
-			user, err = todosrht.AclByTrackerName(c.Client, ctx, name)
 		}
 
-		if err != nil {
-			log.Fatal(err)
-		} else if user == nil {
-			log.Fatalf("no such user %q", username)
-		} else if user.Tracker == nil {
-			log.Fatalf("no such tracker %q", name)
-		}
+		pagerify(func(p pager) bool {
+			if username != "" {
+				user, err = todosrht.AclByUser(c.Client, ctx, username, name, cursor)
+			} else {
+				user, err = todosrht.AclByTrackerName(c.Client, ctx, name, cursor)
+			}
 
-		fmt.Println(termfmt.Bold.Sprint("Default permissions"))
-		fmt.Println(user.Tracker.DefaultACL.TermString())
+			if err != nil {
+				log.Fatal(err)
+			} else if user == nil {
+				log.Fatalf("no such user %q", username)
+			} else if user.Tracker == nil {
+				log.Fatalf("no such tracker %q", name)
+			}
 
-		if len(user.Tracker.Acls.Results) > 0 {
-			fmt.Println(termfmt.Bold.Sprint("\nUser permissions"))
-		}
+			if cursor == nil {
+				// only print once
+				fmt.Fprintln(p, termfmt.Bold.Sprint("Default permissions"))
+				fmt.Fprintln(p, user.Tracker.DefaultACL.TermString())
 
-		tw := tabwriter.NewWriter(os.Stdout, 0, 2, 2, ' ', 0)
-		defer tw.Flush()
-		for _, acl := range user.Tracker.Acls.Results {
-			s := fmt.Sprintf("%s browse  %s submit  %s comment  %s edit  %s triage",
-				todosrht.PermissionIcon(acl.Browse), todosrht.PermissionIcon(acl.Submit),
-				todosrht.PermissionIcon(acl.Comment), todosrht.PermissionIcon(acl.Edit),
-				todosrht.PermissionIcon(acl.Triage))
-			created := termfmt.Dim.String(humanize.Time(acl.Created.Time))
-			fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n", termfmt.DarkYellow.Sprintf("#%d", acl.Id),
-				acl.Entity.CanonicalName, s, created)
-		}
+				if len(user.Tracker.Acls.Results) > 0 {
+					fmt.Fprintln(p, termfmt.Bold.Sprint("\nUser permissions"))
+				}
+			}
+
+			for _, acl := range user.Tracker.Acls.Results {
+				printACLEntry(p, &acl)
+			}
+
+			cursor = user.Tracker.Acls.Cursor
+			return cursor == nil
+		})
 	}
 
 	cmd := &cobra.Command{
@@ -1144,6 +1146,16 @@ func newTodoACLListCommand() *cobra.Command {
 		Run:               run,
 	}
 	return cmd
+}
+
+func printACLEntry(w io.Writer, acl *todosrht.TrackerACL) {
+	s := fmt.Sprintf("%s browse  %s submit  %s comment  %s edit  %s triage",
+		todosrht.PermissionIcon(acl.Browse), todosrht.PermissionIcon(acl.Submit),
+		todosrht.PermissionIcon(acl.Comment), todosrht.PermissionIcon(acl.Edit),
+		todosrht.PermissionIcon(acl.Triage))
+	created := termfmt.Dim.String(humanize.Time(acl.Created.Time))
+	fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", termfmt.DarkYellow.Sprintf("#%d", acl.Id),
+		acl.Entity.CanonicalName, s, created)
 }
 
 func newTodoACLDeleteCommand() *cobra.Command {

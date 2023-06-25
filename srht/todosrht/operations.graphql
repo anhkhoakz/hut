@@ -105,7 +105,7 @@ fragment labels on LabelCursor {
     cursor
 }
 
-query aclByTrackerName($name: String!) {
+query aclByTrackerName($name: String!, $cursor: Cursor) {
     me {
         tracker(name: $name) {
             ...acl
@@ -113,7 +113,7 @@ query aclByTrackerName($name: String!) {
     }
 }
 
-query aclByUser($username: String!, $name: String!) {
+query aclByUser($username: String!, $name: String!, $cursor: Cursor) {
     user(username: $username) {
         tracker(name: $name) {
             ...acl
@@ -129,7 +129,7 @@ fragment acl on Tracker {
         edit
         triage
     }
-    acls {
+    acls(cursor: $cursor) {
         results {
             id
             created
@@ -142,6 +142,7 @@ fragment acl on Tracker {
             edit
             triage
         }
+        cursor
     }
 }
 
