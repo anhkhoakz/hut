@@ -12,6 +12,17 @@ hut - A CLI tool for sr.ht
 
 hut is a CLI companion utility to interact with sr.ht.
 
+Resources (such as build jobs, todo tickets, lists patchsets, git repositories,
+and so on) can be specified in multiple forms: name, owner and name, or full
+URL. For instance, the repository _hut_ owned by _~emersion_ on _git.sr.ht_ can
+be referred to via:
+
+- "hut"
+- "~emersion/hut"
+- "https://git.sr.ht/~emersion/hut"
+
+Additionally, mailing lists can be referred to by their email address.
+
 # OPTIONS
 
 *-h*, *--help*
