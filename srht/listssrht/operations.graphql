@@ -190,12 +190,13 @@ query aclByListName($name: String!) {
     }
 }
 
-query userWebhooks {
-    userWebhooks {
+query userWebhooks($cursor: Cursor) {
+    userWebhooks(cursor: $cursor) {
         results {
             id
             url
         }
+        cursor
     }
 }
 
