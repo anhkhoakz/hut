@@ -865,28 +865,36 @@ func newTodoTicketWebhookListCommand() *cobra.Command {
 
 		c := createClientWithInstance("todo", cmd, instance)
 		var (
+			cursor   *todosrht.Cursor
 			user     *todosrht.User
 			username string
 		)
-
 		if owner != "" {
 			username = strings.TrimLeft(owner, ownerPrefixes)
-			user, err = todosrht.TicketWebhooksByUser(c.Client, ctx, username, name, ticketID)
-		} else {
-			user, err = todosrht.TicketWebhooks(c.Client, ctx, name, ticketID)
 		}
 
-		if err != nil {
-			log.Fatal(err)
-		} else if user == nil {
-			log.Fatalf("no such user %q", username)
-		} else if user.Tracker == nil {
-			log.Fatalf("no such tracker %q", name)
-		}
+		pagerify(func(p pager) bool {
+			if username != "" {
+				user, err = todosrht.TicketWebhooksByUser(c.Client, ctx, username, name, ticketID, cursor)
+			} else {
+				user, err = todosrht.TicketWebhooks(c.Client, ctx, name, ticketID, cursor)
+			}
 
-		for _, webhook := range user.Tracker.Ticket.Webhooks.Results {
-			fmt.Printf("%s %s\n", termfmt.DarkYellow.Sprintf("#%d", webhook.Id), webhook.Url)
-		}
+			if err != nil {
+				log.Fatal(err)
+			} else if user == nil {
+				log.Fatalf("no such user %q", username)
+			} else if user.Tracker == nil {
+				log.Fatalf("no such tracker %q", name)
+			}
+
+			for _, webhook := range user.Tracker.Ticket.Webhooks.Results {
+				fmt.Fprintf(p, "%s %s\n", termfmt.DarkYellow.Sprintf("#%d", webhook.Id), webhook.Url)
+			}
+
+			cursor = user.Tracker.Ticket.Webhooks.Cursor
+			return cursor == nil
+		})
 	}
 
 	cmd := &cobra.Command{

@@ -252,7 +252,7 @@ query trackerNames {
     }
 }
 
-query ticketWebhooks($name: String!, $id: Int!) {
+query ticketWebhooks($name: String!, $id: Int!, $cursor: Cursor) {
     me {
         tracker(name: $name) {
             ticket(id: $id) {
@@ -262,7 +262,12 @@ query ticketWebhooks($name: String!, $id: Int!) {
     }
 }
 
-query ticketWebhooksByUser($username: String!, $name: String!, $id: Int!) {
+query ticketWebhooksByUser(
+    $username: String!
+    $name: String!
+    $id: Int!
+    $cursor: Cursor
+) {
     user(username: $username) {
         tracker(name: $name) {
             ticket(id: $id) {
@@ -273,11 +278,12 @@ query ticketWebhooksByUser($username: String!, $name: String!, $id: Int!) {
 }
 
 fragment ticketWebhooks on Ticket {
-    webhooks {
+    webhooks(cursor: $cursor) {
         results {
             id
             url
         }
+        cursor
     }
 }
 
