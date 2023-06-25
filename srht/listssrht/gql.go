@@ -890,9 +890,10 @@ func CompleteLists(client *gqlclient.Client, ctx context.Context) (me *User, err
 	return respData.Me, err
 }
 
-func MailingListWebhooks(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
-	op := gqlclient.NewOperation("query mailingListWebhooks ($name: String!) {\n\tme {\n\t\tlist(name: $name) {\n\t\t\t... mailingListWebhooks\n\t\t}\n\t}\n}\nfragment mailingListWebhooks on MailingList {\n\twebhooks {\n\t\tresults {\n\t\t\tid\n\t\t\turl\n\t\t}\n\t}\n}\n")
+func MailingListWebhooks(client *gqlclient.Client, ctx context.Context, name string, cursor *Cursor) (me *User, err error) {
+	op := gqlclient.NewOperation("query mailingListWebhooks ($name: String!, $cursor: Cursor) {\n\tme {\n\t\tlist(name: $name) {\n\t\t\t... mailingListWebhooks\n\t\t}\n\t}\n}\nfragment mailingListWebhooks on MailingList {\n\twebhooks(cursor: $cursor) {\n\t\tresults {\n\t\t\tid\n\t\t\turl\n\t\t}\n\t\tcursor\n\t}\n}\n")
 	op.Var("name", name)
+	op.Var("cursor", cursor)
 	var respData struct {
 		Me *User
 	}
@@ -900,10 +901,11 @@ func MailingListWebhooks(client *gqlclient.Client, ctx context.Context, name str
 	return respData.Me, err
 }
 
-func MailingListWebhooksByUser(client *gqlclient.Client, ctx context.Context, username string, name string) (user *User, err error) {
-	op := gqlclient.NewOperation("query mailingListWebhooksByUser ($username: String!, $name: String!) {\n\tuser(username: $username) {\n\t\tlist(name: $name) {\n\t\t\t... mailingListWebhooks\n\t\t}\n\t}\n}\nfragment mailingListWebhooks on MailingList {\n\twebhooks {\n\t\tresults {\n\t\t\tid\n\t\t\turl\n\t\t}\n\t}\n}\n")
+func MailingListWebhooksByUser(client *gqlclient.Client, ctx context.Context, username string, name string, cursor *Cursor) (user *User, err error) {
+	op := gqlclient.NewOperation("query mailingListWebhooksByUser ($username: String!, $name: String!, $cursor: Cursor) {\n\tuser(username: $username) {\n\t\tlist(name: $name) {\n\t\t\t... mailingListWebhooks\n\t\t}\n\t}\n}\nfragment mailingListWebhooks on MailingList {\n\twebhooks(cursor: $cursor) {\n\t\tresults {\n\t\t\tid\n\t\t\turl\n\t\t}\n\t\tcursor\n\t}\n}\n")
 	op.Var("username", username)
 	op.Var("name", name)
+	op.Var("cursor", cursor)
 	var respData struct {
 		User *User
 	}

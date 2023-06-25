@@ -226,7 +226,7 @@ query completeLists {
     }
 }
 
-query mailingListWebhooks($name: String!) {
+query mailingListWebhooks($name: String!, $cursor: Cursor) {
     me {
         list(name: $name) {
             ...mailingListWebhooks
@@ -234,7 +234,11 @@ query mailingListWebhooks($name: String!) {
     }
 }
 
-query mailingListWebhooksByUser($username: String!, $name: String!) {
+query mailingListWebhooksByUser(
+    $username: String!
+    $name: String!
+    $cursor: Cursor
+) {
     user(username: $username) {
         list(name: $name) {
             ...mailingListWebhooks
@@ -243,11 +247,12 @@ query mailingListWebhooksByUser($username: String!, $name: String!) {
 }
 
 fragment mailingListWebhooks on MailingList {
-    webhooks {
+    webhooks(cursor: $cursor) {
         results {
             id
             url
         }
+        cursor
     }
 }
 

@@ -861,29 +861,37 @@ func newListsWebhookListCommand() *cobra.Command {
 		c := createClientWithInstance("lists", cmd, instance)
 
 		var (
+			cursor   *listssrht.Cursor
 			user     *listssrht.User
 			username string
 			err      error
 		)
-
 		if owner != "" {
 			username = strings.TrimLeft(owner, ownerPrefixes)
-			user, err = listssrht.MailingListWebhooksByUser(c.Client, ctx, username, name)
-		} else {
-			user, err = listssrht.MailingListWebhooks(c.Client, ctx, name)
 		}
 
-		if err != nil {
-			log.Fatal(err)
-		} else if user == nil {
-			log.Fatalf("no such user %q", username)
-		} else if user.List == nil {
-			log.Fatalf("no such tracker %q", name)
-		}
+		pagerify(func(p pager) bool {
+			if username != "" {
+				user, err = listssrht.MailingListWebhooksByUser(c.Client, ctx, username, name, cursor)
+			} else {
+				user, err = listssrht.MailingListWebhooks(c.Client, ctx, name, cursor)
+			}
 
-		for _, webhook := range user.List.Webhooks.Results {
-			fmt.Printf("%s %s\n", termfmt.DarkYellow.Sprintf("#%d", webhook.Id), webhook.Url)
-		}
+			if err != nil {
+				log.Fatal(err)
+			} else if user == nil {
+				log.Fatalf("no such user %q", username)
+			} else if user.List == nil {
+				log.Fatalf("no such mailing list %q", name)
+			}
+
+			for _, webhook := range user.List.Webhooks.Results {
+				fmt.Fprintf(p, "%s %s\n", termfmt.DarkYellow.Sprintf("#%d", webhook.Id), webhook.Url)
+			}
+
+			cursor = user.List.Webhooks.Cursor
+			return cursor == nil
+		})
 	}
 
 	cmd := &cobra.Command{
