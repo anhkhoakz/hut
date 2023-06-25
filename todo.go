@@ -1083,23 +1083,35 @@ func newTodoACLCommand() *cobra.Command {
 func newTodoACLListCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		var name, instance string
+		var name, owner, instance string
 		if len(args) > 0 {
-			// TODO: handle owner
-			name, _, instance = parseResourceName(args[0])
+			name, owner, instance = parseResourceName(args[0])
 		} else {
 			var err error
-			name, _, instance, err = getTrackerName(ctx, cmd)
+			name, owner, instance, err = getTrackerName(ctx, cmd)
 			if err != nil {
 				log.Fatal(err)
 			}
 		}
 
 		c := createClientWithInstance("todo", cmd, instance)
+		var (
+			user     *todosrht.User
+			username string
+			err      error
+		)
 
-		user, err := todosrht.AclByTrackerName(c.Client, ctx, name)
+		if owner != "" {
+			username = strings.TrimLeft(owner, ownerPrefixes)
+			user, err = todosrht.AclByUser(c.Client, ctx, username, name)
+		} else {
+			user, err = todosrht.AclByTrackerName(c.Client, ctx, name)
+		}
+
 		if err != nil {
 			log.Fatal(err)
+		} else if user == nil {
+			log.Fatalf("no such user %q", username)
 		} else if user.Tracker == nil {
 			log.Fatalf("no such tracker %q", name)
 		}

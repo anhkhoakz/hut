@@ -108,27 +108,39 @@ fragment labels on LabelCursor {
 query aclByTrackerName($name: String!) {
     me {
         tracker(name: $name) {
-            defaultACL {
-                browse
-                submit
-                comment
-                edit
-                triage
+            ...acl
+        }
+    }
+}
+
+query aclByUser($username: String!, $name: String!) {
+    user(username: $username) {
+        tracker(name: $name) {
+            ...acl
+        }
+    }
+}
+
+fragment acl on Tracker {
+    defaultACL {
+        browse
+        submit
+        comment
+        edit
+        triage
+    }
+    acls {
+        results {
+            id
+            created
+            entity {
+                canonicalName
             }
-            acls {
-                results {
-                    id
-                    created
-                    entity {
-                        canonicalName
-                    }
-                    browse
-                    submit
-                    comment
-                    edit
-                    triage
-                }
-            }
+            browse
+            submit
+            comment
+            edit
+            triage
         }
     }
 }
