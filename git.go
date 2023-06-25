@@ -364,21 +364,31 @@ func newGitACLCommand() *cobra.Command {
 func newGitACLListCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		var name, instance string
+		var name, owner, instance string
 		if len(args) > 0 {
-			// TODO: handle owner
-			name, _, instance = parseResourceName(args[0])
+			name, owner, instance = parseResourceName(args[0])
 		} else {
 			var err error
-			name, _, instance, err = getRepoName(ctx, cmd)
+			name, owner, instance, err = getRepoName(ctx, cmd)
 			if err != nil {
 				log.Fatal(err)
 			}
 		}
 
 		c := createClientWithInstance("git", cmd, instance)
+		var (
+			user     *gitsrht.User
+			username string
+			err      error
+		)
 
-		user, err := gitsrht.AclByRepoName(c.Client, ctx, name)
+		if owner != "" {
+			username = strings.TrimLeft(owner, ownerPrefixes)
+			user, err = gitsrht.AclByUser(c.Client, ctx, username, name)
+		} else {
+			user, err = gitsrht.AclByRepoName(c.Client, ctx, name)
+		}
+
 		if err != nil {
 			log.Fatal(err)
 		} else if user == nil {

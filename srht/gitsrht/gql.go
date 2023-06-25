@@ -715,13 +715,24 @@ func RevsByUser(client *gqlclient.Client, ctx context.Context, username string, 
 }
 
 func AclByRepoName(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
-	op := gqlclient.NewOperation("query aclByRepoName ($name: String!) {\n\tme {\n\t\trepository(name: $name) {\n\t\t\tacls {\n\t\t\t\tresults {\n\t\t\t\t\tid\n\t\t\t\t\tcreated\n\t\t\t\t\tentity {\n\t\t\t\t\t\tcanonicalName\n\t\t\t\t\t}\n\t\t\t\t\tmode\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op := gqlclient.NewOperation("query aclByRepoName ($name: String!) {\n\tme {\n\t\t... acl\n\t}\n}\nfragment acl on User {\n\trepository(name: $name) {\n\t\tacls {\n\t\t\tresults {\n\t\t\t\tid\n\t\t\t\tcreated\n\t\t\t\tentity {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t\tmode\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	op.Var("name", name)
 	var respData struct {
 		Me *User
 	}
 	err = client.Execute(ctx, op, &respData)
 	return respData.Me, err
+}
+
+func AclByUser(client *gqlclient.Client, ctx context.Context, username string, name string) (user *User, err error) {
+	op := gqlclient.NewOperation("query aclByUser ($username: String!, $name: String!) {\n\tuser(username: $username) {\n\t\t... acl\n\t}\n}\nfragment acl on User {\n\trepository(name: $name) {\n\t\tacls {\n\t\t\tresults {\n\t\t\t\tid\n\t\t\t\tcreated\n\t\t\t\tentity {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t\tmode\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op.Var("username", username)
+	op.Var("name", name)
+	var respData struct {
+		User *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.User, err
 }
 
 func UserWebhooks(client *gqlclient.Client, ctx context.Context) (userWebhooks *WebhookSubscriptionCursor, err error) {

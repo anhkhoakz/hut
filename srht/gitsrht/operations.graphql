@@ -150,16 +150,26 @@ fragment revs on Repository {
 
 query aclByRepoName($name: String!) {
     me {
-        repository(name: $name) {
-            acls {
-                results {
-                    id
-                    created
-                    entity {
-                        canonicalName
-                    }
-                    mode
+        ...acl
+    }
+}
+
+query aclByUser($username: String!, $name: String!) {
+    user(username: $username) {
+        ...acl
+    }
+}
+
+fragment acl on User {
+    repository(name: $name) {
+        acls {
+            results {
+                id
+                created
+                entity {
+                    canonicalName
                 }
+                mode
             }
         }
     }
