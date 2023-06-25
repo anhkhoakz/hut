@@ -809,9 +809,10 @@ func PatchesByUser(client *gqlclient.Client, ctx context.Context, username strin
 	return respData.User, err
 }
 
-func PatchsetById(client *gqlclient.Client, ctx context.Context, id int32) (patchset *Patchset, err error) {
-	op := gqlclient.NewOperation("query patchsetById ($id: Int!) {\n\tpatchset(id: $id) {\n\t\tpatches {\n\t\t\tresults {\n\t\t\t\tdate\n\t\t\t\tbody\n\t\t\t\tsubject\n\t\t\t\theader(want: \"From\")\n\t\t\t}\n\t\t}\n\t}\n}\n")
+func PatchsetById(client *gqlclient.Client, ctx context.Context, id int32, cursor *Cursor) (patchset *Patchset, err error) {
+	op := gqlclient.NewOperation("query patchsetById ($id: Int!, $cursor: Cursor) {\n\tpatchset(id: $id) {\n\t\tpatches(cursor: $cursor) {\n\t\t\tresults {\n\t\t\t\tdate\n\t\t\t\tbody\n\t\t\t\tsubject\n\t\t\t\theader(want: \"From\")\n\t\t\t}\n\t\t\tcursor\n\t\t}\n\t}\n}\n")
 	op.Var("id", id)
+	op.Var("cursor", cursor)
 	var respData struct {
 		Patchset *Patchset
 	}

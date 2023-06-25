@@ -506,7 +506,7 @@ func newListsPatchsetShowCommand() *cobra.Command {
 		}
 		c := createClientWithInstance("lists", cmd, instance)
 
-		patchset, err := listssrht.PatchsetById(c.Client, ctx, id)
+		patchset, err := listssrht.PatchsetById(c.Client, ctx, id, nil)
 		if err != nil {
 			log.Fatal(err)
 		} else if patchset == nil {
@@ -529,17 +529,25 @@ func newListsPatchsetApplyCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 		c := createClientWithInstance("lists", cmd, instance)
-
-		patchset, err := listssrht.PatchsetById(c.Client, ctx, id)
-		if err != nil {
-			log.Fatal(err)
-		} else if patchset == nil {
-			log.Fatalf("no such patchset %d", id)
-		}
-
+		var cursor *listssrht.Cursor
 		var mbox bytes.Buffer
-		for _, patch := range patchset.Patches.Results {
-			formatPatch(&mbox, &patch)
+
+		for {
+			patchset, err := listssrht.PatchsetById(c.Client, ctx, id, cursor)
+			if err != nil {
+				log.Fatal(err)
+			} else if patchset == nil {
+				log.Fatalf("no such patchset %d", id)
+			}
+
+			for _, patch := range patchset.Patches.Results {
+				formatPatch(&mbox, &patch)
+			}
+
+			cursor = patchset.Patches.Cursor
+			if cursor == nil {
+				break
+			}
 		}
 
 		applyCmd := exec.Command("git", "am", "-3")
