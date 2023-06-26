@@ -415,40 +415,50 @@ func newMetaPGPKeyListCommand() *cobra.Command {
 		c := createClient("meta", cmd)
 
 		var (
-			user *metasrht.User
-			err  error
+			cursor   *metasrht.Cursor
+			user     *metasrht.User
+			username string
+			err      error
 		)
-
 		if len(args) > 0 {
-			username := strings.TrimLeft(args[0], ownerPrefixes)
-			if raw {
-				user, err = metasrht.ListRawPGPKeysByUser(c.Client, ctx, username, nil)
-			} else {
-				user, err = metasrht.ListPGPKeysByUser(c.Client, ctx, username)
-			}
-		} else {
-			if raw {
-				user, err = metasrht.ListRawPGPKeys(c.Client, ctx, nil)
-			} else {
-				user, err = metasrht.ListPGPKeys(c.Client, ctx)
-			}
-		}
-		if err != nil {
-			log.Fatal(err)
-		} else if user == nil {
-			log.Fatal("no such user")
+			username = strings.TrimLeft(args[0], ownerPrefixes)
 		}
 
-		if raw {
-			for _, key := range user.PgpKeys.Results {
-				fmt.Println(key.Key)
+		pagerify(func(p pager) bool {
+			if username != "" {
+				if raw {
+					user, err = metasrht.ListRawPGPKeysByUser(c.Client, ctx, username, cursor)
+				} else {
+					user, err = metasrht.ListPGPKeysByUser(c.Client, ctx, username, cursor)
+				}
+			} else {
+				if raw {
+					user, err = metasrht.ListRawPGPKeys(c.Client, ctx, cursor)
+				} else {
+					user, err = metasrht.ListPGPKeys(c.Client, ctx, cursor)
+				}
 			}
-		} else {
-			for _, key := range user.PgpKeys.Results {
-				fmt.Printf("#%d: %s\n", key.Id, key.Fingerprint)
-				fmt.Println()
+
+			if err != nil {
+				log.Fatal(err)
+			} else if user == nil {
+				log.Fatalf("no such user %q", username)
 			}
-		}
+
+			if raw {
+				for _, key := range user.PgpKeys.Results {
+					fmt.Fprintln(p, key.Key)
+				}
+			} else {
+				for _, key := range user.PgpKeys.Results {
+					fmt.Fprintf(p, "#%d: %s\n", key.Id, key.Fingerprint)
+					fmt.Fprintln(p)
+				}
+			}
+
+			cursor = user.PgpKeys.Cursor
+			return cursor == nil
+		})
 	}
 
 	cmd := &cobra.Command{
@@ -601,7 +611,7 @@ func completePGPKeys(cmd *cobra.Command, args []string, toComplete string) ([]st
 	c := createClient("meta", cmd)
 	var keyList []string
 
-	user, err := metasrht.ListPGPKeys(c.Client, ctx)
+	user, err := metasrht.ListPGPKeys(c.Client, ctx, nil)
 	if err != nil {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}

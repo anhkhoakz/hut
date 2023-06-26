@@ -62,24 +62,25 @@ fragment sshKeysRaw on User {
     }
 }
 
-query listPGPKeys {
+query listPGPKeys($cursor: Cursor) {
     me {
         ...pgpKeys
     }
 }
 
-query listPGPKeysByUser($username: String!) {
+query listPGPKeysByUser($username: String!, $cursor: Cursor) {
     userByName(username: $username) {
         ...pgpKeys
     }
 }
 
 fragment pgpKeys on User {
-    pgpKeys {
+    pgpKeys(cursor: $cursor) {
         results {
             id
             fingerprint
         }
+        cursor
     }
 }
 
