@@ -322,15 +322,21 @@ func newPagesUserWebhookListCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("pages", cmd)
+		var cursor *pagessrht.Cursor
 
-		webhooks, err := pagessrht.UserWebhooks(c.Client, ctx)
-		if err != nil {
-			log.Fatal(err)
-		}
+		pagerify(func(p pager) bool {
+			webhooks, err := pagessrht.UserWebhooks(c.Client, ctx, cursor)
+			if err != nil {
+				log.Fatal(err)
+			}
 
-		for _, webhook := range webhooks.Results {
-			fmt.Printf("%s %s\n", termfmt.DarkYellow.Sprintf("#%d", webhook.Id), webhook.Url)
-		}
+			for _, webhook := range webhooks.Results {
+				fmt.Fprintf(p, "%s %s\n", termfmt.DarkYellow.Sprintf("#%d", webhook.Id), webhook.Url)
+			}
+
+			cursor = webhooks.Cursor
+			return cursor == nil
+		})
 	}
 
 	cmd := &cobra.Command{
@@ -413,7 +419,7 @@ func completePagesUserWebhookID(cmd *cobra.Command, args []string, toComplete st
 	c := createClient("pages", cmd)
 	var webhookList []string
 
-	webhooks, err := pagessrht.UserWebhooks(c.Client, ctx)
+	webhooks, err := pagessrht.UserWebhooks(c.Client, ctx, nil)
 	if err != nil {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
