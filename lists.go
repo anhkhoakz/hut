@@ -592,23 +592,35 @@ func newListsACLListCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
-		var name, instance string
+		var name, owner, instance string
 		if len(args) > 0 {
-			// TODO: handle owner
-			name, _, instance = parseMailingListName(args[0])
+			name, owner, instance = parseMailingListName(args[0])
 		} else {
 			var err error
-			name, _, instance, err = getMailingListName(ctx, cmd)
+			name, owner, instance, err = getMailingListName(ctx, cmd)
 			if err != nil {
 				log.Fatal(err)
 			}
 		}
 
 		c := createClientWithInstance("lists", cmd, instance)
+		var (
+			user     *listssrht.User
+			username string
+			err      error
+		)
 
-		user, err := listssrht.AclByListName(c.Client, ctx, name)
+		if owner != "" {
+			username = strings.TrimLeft(owner, ownerPrefixes)
+			user, err = listssrht.AclByUser(c.Client, ctx, username, name)
+		} else {
+			user, err = listssrht.AclByListName(c.Client, ctx, name)
+		}
+
 		if err != nil {
 			log.Fatal(err)
+		} else if user == nil {
+			log.Fatalf("no such user %q", username)
 		} else if user.List == nil {
 			log.Fatalf("no such list %q", name)
 		}
@@ -636,7 +648,7 @@ func newListsACLListCommand() *cobra.Command {
 		Use:               "list",
 		Short:             "List ACL entries",
 		Args:              cobra.MaximumNArgs(1),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction: completeList,
 		Run:               run,
 	}
 	return cmd

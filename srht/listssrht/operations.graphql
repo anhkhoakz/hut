@@ -167,25 +167,35 @@ fragment completePatchset on MailingList {
 
 query aclByListName($name: String!) {
     me {
-        list(name: $name) {
-            defaultACL {
+        ...acl
+    }
+}
+
+query aclByUser($username: String!, $name: String!) {
+    user(username: $username) {
+        ...acl
+    }
+}
+
+fragment acl on User {
+    list(name: $name) {
+        defaultACL {
+            browse
+            reply
+            post
+            moderate
+        }
+        acl {
+            results {
+                id
+                created
+                entity {
+                    canonicalName
+                }
                 browse
                 reply
                 post
                 moderate
-            }
-            acl {
-                results {
-                    id
-                    created
-                    entity {
-                        canonicalName
-                    }
-                    browse
-                    reply
-                    post
-                    moderate
-                }
             }
         }
     }
