@@ -14,7 +14,6 @@ import (
 	"strings"
 
 	"github.com/dustin/go-humanize"
-	"github.com/juju/ansiterm/tabwriter"
 
 	"github.com/spf13/cobra"
 
@@ -374,70 +373,63 @@ func newListsPatchsetListCommand() *cobra.Command {
 		c := createClientWithInstance("lists", cmd, instance)
 
 		var (
-			err     error
-			patches *listssrht.PatchsetCursor
+			cursor   *listssrht.Cursor
+			patches  *listssrht.PatchsetCursor
+			user     *listssrht.User
+			username string
+			err      error
 		)
 
 		if byUser {
-			var user *listssrht.User
 			if len(args) > 0 {
-				name = strings.TrimLeft(name, ownerPrefixes)
-				user, err = listssrht.PatchesByUser(c.Client, ctx, name)
-			} else {
-				user, err = listssrht.Patches(c.Client, ctx)
+				username = strings.TrimLeft(name, ownerPrefixes)
 			}
-
-			if err != nil {
-				log.Fatal(err)
-			} else if user == nil {
-				log.Fatalf("no such user %q", name)
-			}
-			patches = user.Patches
 		} else {
-			var (
-				user     *listssrht.User
-				username string
-			)
-
 			if owner != "" {
 				username = strings.TrimLeft(owner, ownerPrefixes)
-				user, err = listssrht.ListPatchesByUser(c.Client, ctx, username, name)
-			} else {
-				user, err = listssrht.ListPatches(c.Client, ctx, name)
 			}
-
-			if err != nil {
-				log.Fatal(err)
-			} else if user == nil {
-				log.Fatalf("no such user %q", username)
-			} else if user.List == nil {
-				log.Fatalf("no such list %q", name)
-			}
-			patches = user.List.Patches
 		}
 
-		tw := tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
-		defer tw.Flush()
-		for _, patchset := range patches.Results {
-			s := fmt.Sprintf("%s\t%s\t", termfmt.DarkYellow.Sprintf("#%d", patchset.Id), patchset.Status.TermString())
-			if patchset.Prefix != nil && *patchset.Prefix != "" {
-				s += fmt.Sprintf("[%s] ", *patchset.Prefix)
-			}
-			s += patchset.Subject
-			if patchset.Version != 1 {
-				s += fmt.Sprintf(" v%d", patchset.Version)
-			}
-
-			created := termfmt.Dim.String(humanize.Time(patchset.Created.Time))
-
+		pagerify(func(p pager) bool {
 			if byUser {
-				s += fmt.Sprintf("\t%s/%s\t%s", patchset.List.Owner.CanonicalName,
-					patchset.List.Name, created)
+				if username != "" {
+					user, err = listssrht.PatchesByUser(c.Client, ctx, name, cursor)
+				} else {
+					user, err = listssrht.Patches(c.Client, ctx, cursor)
+				}
+
+				if err != nil {
+					log.Fatal(err)
+				} else if user == nil {
+					log.Fatalf("no such user %q", name)
+				}
+
+				patches = user.Patches
 			} else {
-				s += fmt.Sprintf("\t%s\t%s", patchset.Submitter.CanonicalName, created)
+				if username != "" {
+					user, err = listssrht.ListPatchesByUser(c.Client, ctx, username, name, cursor)
+				} else {
+					user, err = listssrht.ListPatches(c.Client, ctx, name, cursor)
+				}
+
+				if err != nil {
+					log.Fatal(err)
+				} else if user == nil {
+					log.Fatalf("no such user %q", username)
+				} else if user.List == nil {
+					log.Fatalf("no such list %q", name)
+				}
+
+				patches = user.List.Patches
 			}
-			fmt.Fprintln(tw, s)
-		}
+
+			for _, patchset := range patches.Results {
+				printPatchset(p, byUser, &patchset)
+			}
+
+			cursor = patches.Cursor
+			return cursor == nil
+		})
 	}
 
 	cmd := &cobra.Command{
@@ -449,6 +441,27 @@ func newListsPatchsetListCommand() *cobra.Command {
 	}
 	cmd.Flags().BoolVarP(&byUser, "user", "u", false, "list patches by user")
 	return cmd
+}
+
+func printPatchset(w io.Writer, byUser bool, patchset *listssrht.Patchset) {
+	s := fmt.Sprintf("%s\t%s\t", termfmt.DarkYellow.Sprintf("#%d", patchset.Id), patchset.Status.TermString())
+	if patchset.Prefix != nil && *patchset.Prefix != "" {
+		s += fmt.Sprintf("[%s] ", *patchset.Prefix)
+	}
+	s += patchset.Subject
+	if patchset.Version != 1 {
+		s += fmt.Sprintf(" v%d", patchset.Version)
+	}
+
+	created := termfmt.Dim.String(humanize.Time(patchset.Created.Time))
+
+	if byUser {
+		s += fmt.Sprintf("\t%s/%s\t%s", patchset.List.Owner.CanonicalName,
+			patchset.List.Name, created)
+	} else {
+		s += fmt.Sprintf("\t%s\t%s", patchset.Submitter.CanonicalName, created)
+	}
+	fmt.Fprintln(w, s)
 }
 
 func newListsPatchsetUpdateCommand() *cobra.Command {

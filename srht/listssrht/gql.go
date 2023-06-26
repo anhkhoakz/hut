@@ -769,9 +769,10 @@ func MailingListIDByUser(client *gqlclient.Client, ctx context.Context, username
 	return respData.User, err
 }
 
-func ListPatches(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
-	op := gqlclient.NewOperation("query listPatches ($name: String!) {\n\tme {\n\t\tlist(name: $name) {\n\t\t\t... patchsetsByList\n\t\t}\n\t}\n}\nfragment patchsetsByList on MailingList {\n\tpatches {\n\t\tresults {\n\t\t\tid\n\t\t\tsubject\n\t\t\tstatus\n\t\t\tcreated\n\t\t\tversion\n\t\t\tprefix\n\t\t\tsubmitter {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t}\n\t}\n}\n")
+func ListPatches(client *gqlclient.Client, ctx context.Context, name string, cursor *Cursor) (me *User, err error) {
+	op := gqlclient.NewOperation("query listPatches ($name: String!, $cursor: Cursor) {\n\tme {\n\t\tlist(name: $name) {\n\t\t\t... patchsetsByList\n\t\t}\n\t}\n}\nfragment patchsetsByList on MailingList {\n\tpatches(cursor: $cursor) {\n\t\tresults {\n\t\t\tid\n\t\t\tsubject\n\t\t\tstatus\n\t\t\tcreated\n\t\t\tversion\n\t\t\tprefix\n\t\t\tsubmitter {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t}\n\t\tcursor\n\t}\n}\n")
 	op.Var("name", name)
+	op.Var("cursor", cursor)
 	var respData struct {
 		Me *User
 	}
@@ -779,10 +780,11 @@ func ListPatches(client *gqlclient.Client, ctx context.Context, name string) (me
 	return respData.Me, err
 }
 
-func ListPatchesByUser(client *gqlclient.Client, ctx context.Context, username string, name string) (user *User, err error) {
-	op := gqlclient.NewOperation("query listPatchesByUser ($username: String!, $name: String!) {\n\tuser(username: $username) {\n\t\tlist(name: $name) {\n\t\t\t... patchsetsByList\n\t\t}\n\t}\n}\nfragment patchsetsByList on MailingList {\n\tpatches {\n\t\tresults {\n\t\t\tid\n\t\t\tsubject\n\t\t\tstatus\n\t\t\tcreated\n\t\t\tversion\n\t\t\tprefix\n\t\t\tsubmitter {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t}\n\t}\n}\n")
+func ListPatchesByUser(client *gqlclient.Client, ctx context.Context, username string, name string, cursor *Cursor) (user *User, err error) {
+	op := gqlclient.NewOperation("query listPatchesByUser ($username: String!, $name: String!, $cursor: Cursor) {\n\tuser(username: $username) {\n\t\tlist(name: $name) {\n\t\t\t... patchsetsByList\n\t\t}\n\t}\n}\nfragment patchsetsByList on MailingList {\n\tpatches(cursor: $cursor) {\n\t\tresults {\n\t\t\tid\n\t\t\tsubject\n\t\t\tstatus\n\t\t\tcreated\n\t\t\tversion\n\t\t\tprefix\n\t\t\tsubmitter {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t}\n\t\tcursor\n\t}\n}\n")
 	op.Var("username", username)
 	op.Var("name", name)
+	op.Var("cursor", cursor)
 	var respData struct {
 		User *User
 	}
@@ -790,8 +792,9 @@ func ListPatchesByUser(client *gqlclient.Client, ctx context.Context, username s
 	return respData.User, err
 }
 
-func Patches(client *gqlclient.Client, ctx context.Context) (me *User, err error) {
-	op := gqlclient.NewOperation("query patches {\n\tme {\n\t\t... patchsets\n\t}\n}\nfragment patchsets on User {\n\tpatches {\n\t\tresults {\n\t\t\tid\n\t\t\tsubject\n\t\t\tstatus\n\t\t\tcreated\n\t\t\tversion\n\t\t\tprefix\n\t\t\tlist {\n\t\t\t\tname\n\t\t\t\towner {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
+func Patches(client *gqlclient.Client, ctx context.Context, cursor *Cursor) (me *User, err error) {
+	op := gqlclient.NewOperation("query patches ($cursor: Cursor) {\n\tme {\n\t\t... patchsets\n\t}\n}\nfragment patchsets on User {\n\tpatches(cursor: $cursor) {\n\t\tresults {\n\t\t\tid\n\t\t\tsubject\n\t\t\tstatus\n\t\t\tcreated\n\t\t\tversion\n\t\t\tprefix\n\t\t\tlist {\n\t\t\t\tname\n\t\t\t\towner {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\tcursor\n\t}\n}\n")
+	op.Var("cursor", cursor)
 	var respData struct {
 		Me *User
 	}
@@ -799,9 +802,10 @@ func Patches(client *gqlclient.Client, ctx context.Context) (me *User, err error
 	return respData.Me, err
 }
 
-func PatchesByUser(client *gqlclient.Client, ctx context.Context, username string) (user *User, err error) {
-	op := gqlclient.NewOperation("query patchesByUser ($username: String!) {\n\tuser(username: $username) {\n\t\t... patchsets\n\t}\n}\nfragment patchsets on User {\n\tpatches {\n\t\tresults {\n\t\t\tid\n\t\t\tsubject\n\t\t\tstatus\n\t\t\tcreated\n\t\t\tversion\n\t\t\tprefix\n\t\t\tlist {\n\t\t\t\tname\n\t\t\t\towner {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
+func PatchesByUser(client *gqlclient.Client, ctx context.Context, username string, cursor *Cursor) (user *User, err error) {
+	op := gqlclient.NewOperation("query patchesByUser ($username: String!, $cursor: Cursor) {\n\tuser(username: $username) {\n\t\t... patchsets\n\t}\n}\nfragment patchsets on User {\n\tpatches(cursor: $cursor) {\n\t\tresults {\n\t\t\tid\n\t\t\tsubject\n\t\t\tstatus\n\t\t\tcreated\n\t\t\tversion\n\t\t\tprefix\n\t\t\tlist {\n\t\t\t\tname\n\t\t\t\towner {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\tcursor\n\t}\n}\n")
 	op.Var("username", username)
+	op.Var("cursor", cursor)
 	var respData struct {
 		User *User
 	}

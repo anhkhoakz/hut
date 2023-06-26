@@ -60,7 +60,7 @@ query mailingListIDByUser($username: String!, $name: String!) {
     }
 }
 
-query listPatches($name: String!) {
+query listPatches($name: String!, $cursor: Cursor) {
     me {
         list(name: $name) {
             ...patchsetsByList
@@ -68,7 +68,7 @@ query listPatches($name: String!) {
     }
 }
 
-query listPatchesByUser($username: String!, $name: String!) {
+query listPatchesByUser($username: String!, $name: String!, $cursor: Cursor) {
     user(username: $username) {
         list(name: $name) {
             ...patchsetsByList
@@ -77,7 +77,7 @@ query listPatchesByUser($username: String!, $name: String!) {
 }
 
 fragment patchsetsByList on MailingList {
-    patches {
+    patches(cursor: $cursor) {
         results {
             id
             subject
@@ -89,23 +89,24 @@ fragment patchsetsByList on MailingList {
                 canonicalName
             }
         }
+        cursor
     }
 }
 
-query patches {
+query patches($cursor: Cursor) {
     me {
         ...patchsets
     }
 }
 
-query patchesByUser($username: String!) {
+query patchesByUser($username: String!, $cursor: Cursor) {
     user(username: $username) {
         ...patchsets
     }
 }
 
 fragment patchsets on User {
-    patches {
+    patches(cursor: $cursor) {
         results {
             id
             subject
@@ -120,6 +121,7 @@ fragment patchsets on User {
                 }
             }
         }
+        cursor
     }
 }
 
