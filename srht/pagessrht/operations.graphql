@@ -22,12 +22,13 @@ mutation deleteUserWebhook($id: Int!) {
     }
 }
 
-query sites {
-    sites {
+query sites($cursor: Cursor) {
+    sites(cursor: $cursor) {
         results {
             domain
             protocol
         }
+        cursor
     }
 }
 

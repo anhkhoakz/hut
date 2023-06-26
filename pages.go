@@ -238,17 +238,22 @@ func newPagesUnpublishCommand() *cobra.Command {
 func newPagesListCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-
 		c := createClient("pages", cmd)
+		var cursor *pagessrht.Cursor
 
-		sites, err := pagessrht.Sites(c.Client, ctx)
-		if err != nil {
-			log.Fatalf("failed to list sites: %v", err)
-		}
+		pagerify(func(p pager) bool {
+			sites, err := pagessrht.Sites(c.Client, ctx, cursor)
+			if err != nil {
+				log.Fatalf("failed to list sites: %v", err)
+			}
 
-		for _, site := range sites.Results {
-			fmt.Printf("%s (%s)\n", termfmt.Bold.Sprintf(site.Domain), site.Protocol)
-		}
+			for _, site := range sites.Results {
+				fmt.Fprintf(p, "%s (%s)\n", termfmt.Bold.Sprintf(site.Domain), site.Protocol)
+			}
+
+			cursor = sites.Cursor
+			return cursor == nil
+		})
 	}
 
 	cmd := &cobra.Command{
@@ -377,7 +382,7 @@ func completeDomain(cmd *cobra.Command, args []string, toComplete string) ([]str
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	sites, err := pagessrht.Sites(c.Client, ctx)
+	sites, err := pagessrht.Sites(c.Client, ctx, nil)
 	if err != nil {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
