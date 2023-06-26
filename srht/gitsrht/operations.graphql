@@ -148,13 +148,13 @@ fragment revs on Repository {
     }
 }
 
-query aclByRepoName($name: String!) {
+query aclByRepoName($name: String!, $cursor: Cursor) {
     me {
         ...acl
     }
 }
 
-query aclByUser($username: String!, $name: String!) {
+query aclByUser($username: String!, $name: String!, $cursor: Cursor) {
     user(username: $username) {
         ...acl
     }
@@ -162,7 +162,7 @@ query aclByUser($username: String!, $name: String!) {
 
 fragment acl on User {
     repository(name: $name) {
-        acls {
+        acls(cursor: $cursor) {
             results {
                 id
                 created
@@ -171,6 +171,7 @@ fragment acl on User {
                 }
                 mode
             }
+            cursor
         }
     }
 }

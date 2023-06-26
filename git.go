@@ -13,7 +13,6 @@ import (
 
 	"git.sr.ht/~emersion/gqlclient"
 	"github.com/dustin/go-humanize"
-	"github.com/juju/ansiterm/tabwriter"
 	"github.com/spf13/cobra"
 
 	"git.sr.ht/~emersion/hut/srht/gitsrht"
@@ -377,38 +376,37 @@ func newGitACLListCommand() *cobra.Command {
 
 		c := createClientWithInstance("git", cmd, instance)
 		var (
+			cursor   *gitsrht.Cursor
 			user     *gitsrht.User
 			username string
 			err      error
 		)
-
 		if owner != "" {
 			username = strings.TrimLeft(owner, ownerPrefixes)
-			user, err = gitsrht.AclByUser(c.Client, ctx, username, name)
-		} else {
-			user, err = gitsrht.AclByRepoName(c.Client, ctx, name)
 		}
 
-		if err != nil {
-			log.Fatal(err)
-		} else if user == nil {
-			log.Fatal("no such user")
-		} else if user.Repository == nil {
-			log.Fatalf("no such repository %q", name)
-		}
-
-		tw := tabwriter.NewWriter(os.Stdout, 0, 2, 2, ' ', 0)
-		defer tw.Flush()
-		for _, acl := range user.Repository.Acls.Results {
-			var mode string
-			if acl.Mode != nil {
-				mode = string(*acl.Mode)
+		pagerify(func(p pager) bool {
+			if username != "" {
+				user, err = gitsrht.AclByUser(c.Client, ctx, username, name, cursor)
+			} else {
+				user, err = gitsrht.AclByRepoName(c.Client, ctx, name, cursor)
 			}
 
-			created := termfmt.Dim.String(humanize.Time(acl.Created.Time))
-			fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n", termfmt.DarkYellow.Sprintf("#%d", acl.Id),
-				acl.Entity.CanonicalName, mode, created)
-		}
+			if err != nil {
+				log.Fatal(err)
+			} else if user == nil {
+				log.Fatal("no such user")
+			} else if user.Repository == nil {
+				log.Fatalf("no such repository %q", name)
+			}
+
+			for _, acl := range user.Repository.Acls.Results {
+				printGitACLEntry(p, &acl)
+			}
+
+			cursor = user.Repository.Acls.Cursor
+			return cursor == nil
+		})
 	}
 
 	cmd := &cobra.Command{
@@ -419,6 +417,17 @@ func newGitACLListCommand() *cobra.Command {
 		Run:               run,
 	}
 	return cmd
+}
+
+func printGitACLEntry(w io.Writer, acl *gitsrht.ACL) {
+	var mode string
+	if acl.Mode != nil {
+		mode = string(*acl.Mode)
+	}
+
+	created := termfmt.Dim.String(humanize.Time(acl.Created.Time))
+	fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", termfmt.DarkYellow.Sprintf("#%d", acl.Id),
+		acl.Entity.CanonicalName, mode, created)
 }
 
 func newGitACLUpdateCommand() *cobra.Command {
