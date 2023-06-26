@@ -427,8 +427,9 @@ func FetchUser(client *gqlclient.Client, ctx context.Context, username string) (
 	return respData.UserByName, err
 }
 
-func ListSSHKeys(client *gqlclient.Client, ctx context.Context) (me *User, err error) {
-	op := gqlclient.NewOperation("query listSSHKeys {\n\tme {\n\t\t... sshKeys\n\t}\n}\nfragment sshKeys on User {\n\tsshKeys {\n\t\tresults {\n\t\t\tid\n\t\t\tfingerprint\n\t\t\tcomment\n\t\t}\n\t}\n}\n")
+func ListSSHKeys(client *gqlclient.Client, ctx context.Context, cursor *Cursor) (me *User, err error) {
+	op := gqlclient.NewOperation("query listSSHKeys ($cursor: Cursor) {\n\tme {\n\t\t... sshKeys\n\t}\n}\nfragment sshKeys on User {\n\tsshKeys(cursor: $cursor) {\n\t\tresults {\n\t\t\tid\n\t\t\tfingerprint\n\t\t\tcomment\n\t\t}\n\t\tcursor\n\t}\n}\n")
+	op.Var("cursor", cursor)
 	var respData struct {
 		Me *User
 	}
@@ -436,9 +437,10 @@ func ListSSHKeys(client *gqlclient.Client, ctx context.Context) (me *User, err e
 	return respData.Me, err
 }
 
-func ListSSHKeysByUser(client *gqlclient.Client, ctx context.Context, username string) (userByName *User, err error) {
-	op := gqlclient.NewOperation("query listSSHKeysByUser ($username: String!) {\n\tuserByName(username: $username) {\n\t\t... sshKeys\n\t}\n}\nfragment sshKeys on User {\n\tsshKeys {\n\t\tresults {\n\t\t\tid\n\t\t\tfingerprint\n\t\t\tcomment\n\t\t}\n\t}\n}\n")
+func ListSSHKeysByUser(client *gqlclient.Client, ctx context.Context, username string, cursor *Cursor) (userByName *User, err error) {
+	op := gqlclient.NewOperation("query listSSHKeysByUser ($username: String!, $cursor: Cursor) {\n\tuserByName(username: $username) {\n\t\t... sshKeys\n\t}\n}\nfragment sshKeys on User {\n\tsshKeys(cursor: $cursor) {\n\t\tresults {\n\t\t\tid\n\t\t\tfingerprint\n\t\t\tcomment\n\t\t}\n\t\tcursor\n\t}\n}\n")
 	op.Var("username", username)
+	op.Var("cursor", cursor)
 	var respData struct {
 		UserByName *User
 	}

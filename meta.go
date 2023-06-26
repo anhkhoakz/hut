@@ -236,43 +236,53 @@ func newMetaSSHKeyListCommand() *cobra.Command {
 		c := createClient("meta", cmd)
 
 		var (
-			user *metasrht.User
-			err  error
+			cursor   *metasrht.Cursor
+			user     *metasrht.User
+			username string
+			err      error
 		)
-
 		if len(args) > 0 {
-			username := strings.TrimLeft(args[0], ownerPrefixes)
-			if raw {
-				user, err = metasrht.ListRawSSHKeysByUser(c.Client, ctx, username, nil)
-			} else {
-				user, err = metasrht.ListSSHKeysByUser(c.Client, ctx, username)
-			}
-		} else {
-			if raw {
-				user, err = metasrht.ListRawSSHKeys(c.Client, ctx, nil)
-			} else {
-				user, err = metasrht.ListSSHKeys(c.Client, ctx)
-			}
-		}
-		if err != nil {
-			log.Fatal(err)
-		} else if user == nil {
-			log.Fatal("no such user")
+			username = strings.TrimLeft(args[0], ownerPrefixes)
 		}
 
-		if raw {
-			for _, key := range user.SshKeys.Results {
-				fmt.Println(key.Key)
-			}
-		} else {
-			for _, key := range user.SshKeys.Results {
-				fmt.Printf("#%d: %s\n", key.Id, key.Fingerprint)
-				if key.Comment != nil {
-					fmt.Printf("  %s\n", *key.Comment)
+		pagerify(func(p pager) bool {
+			if username != "" {
+				if raw {
+					user, err = metasrht.ListRawSSHKeysByUser(c.Client, ctx, username, cursor)
+				} else {
+					user, err = metasrht.ListSSHKeysByUser(c.Client, ctx, username, cursor)
 				}
-				fmt.Println()
+			} else {
+				if raw {
+					user, err = metasrht.ListRawSSHKeys(c.Client, ctx, cursor)
+				} else {
+					user, err = metasrht.ListSSHKeys(c.Client, ctx, cursor)
+				}
 			}
-		}
+
+			if err != nil {
+				log.Fatal(err)
+			} else if user == nil {
+				log.Fatalf("no such user %q", username)
+			}
+
+			if raw {
+				for _, key := range user.SshKeys.Results {
+					fmt.Fprintln(p, key.Key)
+				}
+			} else {
+				for _, key := range user.SshKeys.Results {
+					fmt.Fprintf(p, "#%d: %s\n", key.Id, key.Fingerprint)
+					if key.Comment != nil {
+						fmt.Fprintf(p, "  %s\n", *key.Comment)
+					}
+					fmt.Fprintln(p)
+				}
+			}
+
+			cursor = user.SshKeys.Cursor
+			return cursor == nil
+		})
 	}
 
 	cmd := &cobra.Command{
@@ -570,7 +580,7 @@ func completeSSHKeys(cmd *cobra.Command, args []string, toComplete string) ([]st
 	c := createClient("meta", cmd)
 	var keyList []string
 
-	user, err := metasrht.ListSSHKeys(c.Client, ctx)
+	user, err := metasrht.ListSSHKeys(c.Client, ctx, nil)
 	if err != nil {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}

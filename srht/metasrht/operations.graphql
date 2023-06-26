@@ -18,25 +18,26 @@ fragment user on User {
     bio
 }
 
-query listSSHKeys {
+query listSSHKeys($cursor: Cursor) {
     me {
         ...sshKeys
     }
 }
 
-query listSSHKeysByUser($username: String!) {
+query listSSHKeysByUser($username: String!, $cursor: Cursor) {
     userByName(username: $username) {
         ...sshKeys
     }
 }
 
 fragment sshKeys on User {
-    sshKeys {
+    sshKeys(cursor: $cursor) {
         results {
             id
             fingerprint
             comment
         }
+        cursor
     }
 }
 
