@@ -605,43 +605,47 @@ func newListsACLListCommand() *cobra.Command {
 
 		c := createClientWithInstance("lists", cmd, instance)
 		var (
+			cursor   *listssrht.Cursor
 			user     *listssrht.User
 			username string
 			err      error
 		)
-
 		if owner != "" {
 			username = strings.TrimLeft(owner, ownerPrefixes)
-			user, err = listssrht.AclByUser(c.Client, ctx, username, name)
-		} else {
-			user, err = listssrht.AclByListName(c.Client, ctx, name)
 		}
 
-		if err != nil {
-			log.Fatal(err)
-		} else if user == nil {
-			log.Fatalf("no such user %q", username)
-		} else if user.List == nil {
-			log.Fatalf("no such list %q", name)
-		}
+		pagerify(func(p pager) bool {
+			if username != "" {
+				user, err = listssrht.AclByUser(c.Client, ctx, username, name, cursor)
+			} else {
+				user, err = listssrht.AclByListName(c.Client, ctx, name, cursor)
+			}
 
-		fmt.Println(termfmt.Bold.Sprint("Default permissions"))
-		fmt.Println(user.List.DefaultACL.TermString())
+			if err != nil {
+				log.Fatal(err)
+			} else if user == nil {
+				log.Fatalf("no such user %q", username)
+			} else if user.List == nil {
+				log.Fatalf("no such list %q", name)
+			}
 
-		if len(user.List.Acl.Results) > 0 {
-			fmt.Println(termfmt.Bold.Sprint("\nUser permissions"))
-		}
+			if cursor == nil {
+				// only print once
+				fmt.Fprintln(p, termfmt.Bold.Sprint("Default permissions"))
+				fmt.Fprintln(p, user.List.DefaultACL.TermString())
 
-		tw := tabwriter.NewWriter(os.Stdout, 0, 2, 2, ' ', 0)
-		defer tw.Flush()
-		for _, acl := range user.List.Acl.Results {
-			s := fmt.Sprintf("%s browse  %s reply  %s post  %s moderate",
-				listssrht.PermissionIcon(acl.Browse), listssrht.PermissionIcon(acl.Reply),
-				listssrht.PermissionIcon(acl.Post), listssrht.PermissionIcon(acl.Moderate))
-			created := termfmt.Dim.String(humanize.Time(acl.Created.Time))
-			fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n", termfmt.DarkYellow.Sprintf("#%d", acl.Id),
-				acl.Entity.CanonicalName, s, created)
-		}
+				if len(user.List.Acl.Results) > 0 {
+					fmt.Fprintln(p, termfmt.Bold.Sprint("\nUser permissions"))
+				}
+			}
+
+			for _, acl := range user.List.Acl.Results {
+				printListsACLEntry(p, &acl)
+			}
+
+			cursor = user.List.Acl.Cursor
+			return cursor == nil
+		})
 	}
 
 	cmd := &cobra.Command{
@@ -652,6 +656,15 @@ func newListsACLListCommand() *cobra.Command {
 		Run:               run,
 	}
 	return cmd
+}
+
+func printListsACLEntry(w io.Writer, acl *listssrht.MailingListACL) {
+	s := fmt.Sprintf("%s browse  %s reply  %s post  %s moderate",
+		listssrht.PermissionIcon(acl.Browse), listssrht.PermissionIcon(acl.Reply),
+		listssrht.PermissionIcon(acl.Post), listssrht.PermissionIcon(acl.Moderate))
+	created := termfmt.Dim.String(humanize.Time(acl.Created.Time))
+	fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", termfmt.DarkYellow.Sprintf("#%d", acl.Id),
+		acl.Entity.CanonicalName, s, created)
 }
 
 func newListsACLDeleteCommand() *cobra.Command {

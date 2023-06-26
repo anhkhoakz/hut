@@ -165,13 +165,13 @@ fragment completePatchset on MailingList {
     }
 }
 
-query aclByListName($name: String!) {
+query aclByListName($name: String!, $cursor: Cursor) {
     me {
         ...acl
     }
 }
 
-query aclByUser($username: String!, $name: String!) {
+query aclByUser($username: String!, $name: String!, $cursor: Cursor) {
     user(username: $username) {
         ...acl
     }
@@ -185,7 +185,7 @@ fragment acl on User {
             post
             moderate
         }
-        acl {
+        acl(cursor: $cursor) {
             results {
                 id
                 created
@@ -197,6 +197,7 @@ fragment acl on User {
                 post
                 moderate
             }
+            cursor
         }
     }
 }

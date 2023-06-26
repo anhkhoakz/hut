@@ -841,9 +841,10 @@ func CompletePatchsetIdByUser(client *gqlclient.Client, ctx context.Context, use
 	return respData.User, err
 }
 
-func AclByListName(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
-	op := gqlclient.NewOperation("query aclByListName ($name: String!) {\n\tme {\n\t\t... acl\n\t}\n}\nfragment acl on User {\n\tlist(name: $name) {\n\t\tdefaultACL {\n\t\t\tbrowse\n\t\t\treply\n\t\t\tpost\n\t\t\tmoderate\n\t\t}\n\t\tacl {\n\t\t\tresults {\n\t\t\t\tid\n\t\t\t\tcreated\n\t\t\t\tentity {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t\tbrowse\n\t\t\t\treply\n\t\t\t\tpost\n\t\t\t\tmoderate\n\t\t\t}\n\t\t}\n\t}\n}\n")
+func AclByListName(client *gqlclient.Client, ctx context.Context, name string, cursor *Cursor) (me *User, err error) {
+	op := gqlclient.NewOperation("query aclByListName ($name: String!, $cursor: Cursor) {\n\tme {\n\t\t... acl\n\t}\n}\nfragment acl on User {\n\tlist(name: $name) {\n\t\tdefaultACL {\n\t\t\tbrowse\n\t\t\treply\n\t\t\tpost\n\t\t\tmoderate\n\t\t}\n\t\tacl(cursor: $cursor) {\n\t\t\tresults {\n\t\t\t\tid\n\t\t\t\tcreated\n\t\t\t\tentity {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t\tbrowse\n\t\t\t\treply\n\t\t\t\tpost\n\t\t\t\tmoderate\n\t\t\t}\n\t\t\tcursor\n\t\t}\n\t}\n}\n")
 	op.Var("name", name)
+	op.Var("cursor", cursor)
 	var respData struct {
 		Me *User
 	}
@@ -851,10 +852,11 @@ func AclByListName(client *gqlclient.Client, ctx context.Context, name string) (
 	return respData.Me, err
 }
 
-func AclByUser(client *gqlclient.Client, ctx context.Context, username string, name string) (user *User, err error) {
-	op := gqlclient.NewOperation("query aclByUser ($username: String!, $name: String!) {\n\tuser(username: $username) {\n\t\t... acl\n\t}\n}\nfragment acl on User {\n\tlist(name: $name) {\n\t\tdefaultACL {\n\t\t\tbrowse\n\t\t\treply\n\t\t\tpost\n\t\t\tmoderate\n\t\t}\n\t\tacl {\n\t\t\tresults {\n\t\t\t\tid\n\t\t\t\tcreated\n\t\t\t\tentity {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t\tbrowse\n\t\t\t\treply\n\t\t\t\tpost\n\t\t\t\tmoderate\n\t\t\t}\n\t\t}\n\t}\n}\n")
+func AclByUser(client *gqlclient.Client, ctx context.Context, username string, name string, cursor *Cursor) (user *User, err error) {
+	op := gqlclient.NewOperation("query aclByUser ($username: String!, $name: String!, $cursor: Cursor) {\n\tuser(username: $username) {\n\t\t... acl\n\t}\n}\nfragment acl on User {\n\tlist(name: $name) {\n\t\tdefaultACL {\n\t\t\tbrowse\n\t\t\treply\n\t\t\tpost\n\t\t\tmoderate\n\t\t}\n\t\tacl(cursor: $cursor) {\n\t\t\tresults {\n\t\t\t\tid\n\t\t\t\tcreated\n\t\t\t\tentity {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t\tbrowse\n\t\t\t\treply\n\t\t\t\tpost\n\t\t\t\tmoderate\n\t\t\t}\n\t\t\tcursor\n\t\t}\n\t}\n}\n")
 	op.Var("username", username)
 	op.Var("name", name)
+	op.Var("cursor", cursor)
 	var respData struct {
 		User *User
 	}
