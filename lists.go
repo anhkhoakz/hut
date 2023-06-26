@@ -505,16 +505,24 @@ func newListsPatchsetShowCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 		c := createClientWithInstance("lists", cmd, instance)
+		var cursor *listssrht.Cursor
 
-		patchset, err := listssrht.PatchsetById(c.Client, ctx, id, nil)
-		if err != nil {
-			log.Fatal(err)
-		} else if patchset == nil {
-			log.Fatalf("no such patchset %d", id)
-		}
+		for {
+			patchset, err := listssrht.PatchsetById(c.Client, ctx, id, cursor)
+			if err != nil {
+				log.Fatal(err)
+			} else if patchset == nil {
+				log.Fatalf("no such patchset %d", id)
+			}
 
-		for _, patch := range patchset.Patches.Results {
-			formatPatch(os.Stdout, &patch)
+			for _, patch := range patchset.Patches.Results {
+				formatPatch(os.Stdout, &patch)
+			}
+
+			cursor = patchset.Patches.Cursor
+			if cursor == nil {
+				break
+			}
 		}
 	}
 	return &cmd
