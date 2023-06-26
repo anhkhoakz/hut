@@ -641,15 +641,21 @@ func newGitUserWebhookListCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("git", cmd)
+		var cursor *gitsrht.Cursor
 
-		webhooks, err := gitsrht.UserWebhooks(c.Client, ctx)
-		if err != nil {
-			log.Fatal(err)
-		}
+		pagerify(func(p pager) bool {
+			webhooks, err := gitsrht.UserWebhooks(c.Client, ctx, cursor)
+			if err != nil {
+				log.Fatal(err)
+			}
 
-		for _, webhook := range webhooks.Results {
-			fmt.Printf("%s %s\n", termfmt.DarkYellow.Sprintf("#%d", webhook.Id), webhook.Url)
-		}
+			for _, webhook := range webhooks.Results {
+				fmt.Fprintf(p, "%s %s\n", termfmt.DarkYellow.Sprintf("#%d", webhook.Id), webhook.Url)
+			}
+
+			cursor = webhooks.Cursor
+			return cursor == nil
+		})
 	}
 
 	cmd := &cobra.Command{
@@ -971,7 +977,7 @@ func completeGitUserWebhookID(cmd *cobra.Command, args []string, toComplete stri
 	c := createClient("git", cmd)
 	var webhookList []string
 
-	webhooks, err := gitsrht.UserWebhooks(c.Client, ctx)
+	webhooks, err := gitsrht.UserWebhooks(c.Client, ctx, nil)
 	if err != nil {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
