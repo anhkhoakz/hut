@@ -272,7 +272,7 @@ func newMetaSSHKeyListCommand() *cobra.Command {
 				}
 			} else {
 				for _, key := range user.SshKeys.Results {
-					fmt.Fprintf(p, "#%d: %s\n", key.Id, key.Fingerprint)
+					fmt.Fprintf(p, "%s %s\n", termfmt.DarkYellow.Sprintf("#%d", key.Id), key.Fingerprint)
 					if key.Comment != nil {
 						fmt.Fprintf(p, "  %s\n", *key.Comment)
 					}
@@ -451,7 +451,7 @@ func newMetaPGPKeyListCommand() *cobra.Command {
 				}
 			} else {
 				for _, key := range user.PgpKeys.Results {
-					fmt.Fprintf(p, "#%d: %s\n", key.Id, key.Fingerprint)
+					fmt.Fprintf(p, "%s %s\n", termfmt.DarkYellow.Sprintf("#%d", key.Id), key.Fingerprint)
 					fmt.Fprintln(p)
 				}
 			}
