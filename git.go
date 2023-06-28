@@ -946,16 +946,23 @@ var completeAccessMode = cobra.FixedCompletions([]string{"RO", "RW"}, cobra.Shel
 
 func completeArtifacts(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	ctx := cmd.Context()
-	repoName, _, instance, err := getRepoName(ctx, cmd)
+	repoName, owner, instance, err := getRepoName(ctx, cmd)
 	if err != nil {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
 	c := createClientWithInstance("git", cmd, instance)
+	var user *gitsrht.User
 	var artifactList []string
 
-	user, err := gitsrht.ListArtifacts(c.Client, ctx, repoName)
-	if err != nil || user.Repository == nil {
+	if owner != "" {
+		username := strings.TrimLeft(owner, ownerPrefixes)
+		user, err = gitsrht.ListArtifactsByUser(c.Client, ctx, username, repoName)
+	} else {
+		user, err = gitsrht.ListArtifacts(c.Client, ctx, repoName)
+	}
+
+	if err != nil || user == nil || user.Repository == nil {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
