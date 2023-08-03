@@ -24,10 +24,6 @@ func NewHgExporter(client *gqlclient.Client, baseURL string) *HgExporter {
 	return &HgExporter{client, baseURL}
 }
 
-func (ex *HgExporter) BaseURL() string {
-	return ex.baseURL
-}
-
 // A subset of hgsrht.Repository which only contains the fields we want to
 // export (i.e. the ones filled in by the GraphQL query)
 type HgRepoInfo struct {
@@ -37,7 +33,7 @@ type HgRepoInfo struct {
 }
 
 func (ex *HgExporter) Export(ctx context.Context, dir string) error {
-	baseURL, err := url.Parse(ex.BaseURL())
+	baseURL, err := url.Parse(ex.baseURL)
 	if err != nil {
 		panic(err)
 	}

@@ -3,7 +3,6 @@ package export
 import "context"
 
 type Exporter interface {
-	BaseURL() string
 	Export(ctx context.Context, dir string) error
 }
 

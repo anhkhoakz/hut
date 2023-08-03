@@ -18,13 +18,11 @@ import (
 )
 
 type ListsExporter struct {
-	client  *gqlclient.Client
-	http    *http.Client
-	baseURL string
+	client *gqlclient.Client
+	http   *http.Client
 }
 
-func NewListsExporter(client *gqlclient.Client, baseURL string,
-	http *http.Client) *ListsExporter {
+func NewListsExporter(client *gqlclient.Client, http *http.Client) *ListsExporter {
 	newHttp := *http
 	// XXX: Is this a sane default? Maybe large lists or slow
 	// connections could require more. Would be nice to ensure a
@@ -33,14 +31,9 @@ func NewListsExporter(client *gqlclient.Client, baseURL string,
 	// headers to be able to resume this on failure or interruption.
 	newHttp.Timeout = 10 * time.Minute
 	return &ListsExporter{
-		client:  client,
-		http:    &newHttp,
-		baseURL: baseURL,
+		client: client,
+		http:   &newHttp,
 	}
-}
-
-func (ex *ListsExporter) BaseURL() string {
-	return ex.baseURL
 }
 
 // A subset of listssrht.MailingList which only contains the fields we want to

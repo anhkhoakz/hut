@@ -18,25 +18,18 @@ import (
 )
 
 type PasteExporter struct {
-	client  *gqlclient.Client
-	http    *http.Client
-	baseURL string
+	client *gqlclient.Client
+	http   *http.Client
 }
 
-func NewPasteExporter(client *gqlclient.Client, baseURL string,
-	http *http.Client) *PasteExporter {
+func NewPasteExporter(client *gqlclient.Client, http *http.Client) *PasteExporter {
 	// XXX: Is this a sane default?
 	newHttp := *http
 	newHttp.Timeout = 10 * time.Minute
 	return &PasteExporter{
-		client:  client,
-		http:    &newHttp,
-		baseURL: baseURL,
+		client: client,
+		http:   &newHttp,
 	}
-}
-
-func (ex *PasteExporter) BaseURL() string {
-	return ex.baseURL
 }
 
 type PasteInfo struct {

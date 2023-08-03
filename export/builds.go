@@ -19,23 +19,17 @@ import (
 )
 
 type BuildsExporter struct {
-	client  *gqlclient.Client
-	http    *http.Client
-	baseURL string
+	client *gqlclient.Client
+	http   *http.Client
 }
 
-func NewBuildsExporter(client *gqlclient.Client, baseURL string, http *http.Client) *BuildsExporter {
+func NewBuildsExporter(client *gqlclient.Client, http *http.Client) *BuildsExporter {
 	newHttp := *http
 	newHttp.Timeout = 10 * time.Minute // XXX: Sane default?
 	return &BuildsExporter{
-		client:  client,
-		baseURL: baseURL,
-		http:    &newHttp,
+		client: client,
+		http:   &newHttp,
 	}
-}
-
-func (ex *BuildsExporter) BaseURL() string {
-	return ex.baseURL
 }
 
 type JobInfo struct {

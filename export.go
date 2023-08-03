@@ -20,7 +20,8 @@ type ExportInfo struct {
 
 type exporter struct {
 	export.Exporter
-	Name string
+	Name    string
+	BaseURL string
 }
 
 func newExportCommand() *cobra.Command {
@@ -30,28 +31,28 @@ func newExportCommand() *cobra.Command {
 		// TODO: Allow exporting a subset of all services (maybe meta should
 		// provide a list of services configured for that instance?)
 		mc := createClient("meta", cmd)
-		meta := export.NewMetaExporter(mc.Client, mc.BaseURL)
-		exporters = append(exporters, exporter{meta, "meta.sr.ht"})
+		meta := export.NewMetaExporter(mc.Client)
+		exporters = append(exporters, exporter{meta, "meta.sr.ht", mc.BaseURL})
 
 		gc := createClient("git", cmd)
 		git := export.NewGitExporter(gc.Client, gc.BaseURL)
-		exporters = append(exporters, exporter{git, "git.sr.ht"})
+		exporters = append(exporters, exporter{git, "git.sr.ht", gc.BaseURL})
 
 		hc := createClient("hg", cmd)
 		hg := export.NewHgExporter(hc.Client, hc.BaseURL)
-		exporters = append(exporters, exporter{hg, "hg.sr.ht"})
+		exporters = append(exporters, exporter{hg, "hg.sr.ht", hc.BaseURL})
 
 		bc := createClient("builds", cmd)
-		builds := export.NewBuildsExporter(bc.Client, bc.BaseURL, bc.HTTP)
-		exporters = append(exporters, exporter{builds, "builds.sr.ht"})
+		builds := export.NewBuildsExporter(bc.Client, bc.HTTP)
+		exporters = append(exporters, exporter{builds, "builds.sr.ht", bc.BaseURL})
 
 		pc := createClient("paste", cmd)
-		paste := export.NewPasteExporter(pc.Client, pc.BaseURL, pc.HTTP)
-		exporters = append(exporters, exporter{paste, "paste.sr.ht"})
+		paste := export.NewPasteExporter(pc.Client, pc.HTTP)
+		exporters = append(exporters, exporter{paste, "paste.sr.ht", pc.BaseURL})
 
 		lc := createClient("lists", cmd)
-		lists := export.NewListsExporter(lc.Client, lc.BaseURL, lc.HTTP)
-		exporters = append(exporters, exporter{lists, "lists.sr.ht"})
+		lists := export.NewListsExporter(lc.Client, lc.HTTP)
+		exporters = append(exporters, exporter{lists, "lists.sr.ht", lc.BaseURL})
 
 		if _, ok := os.LookupEnv("SSH_AUTH_SOCK"); !ok {
 			log.Println("Warning! SSH_AUTH_SOCK is not set in your environment.")
@@ -81,7 +82,7 @@ func newExportCommand() *cobra.Command {
 			}
 
 			info := ExportInfo{
-				Instance: ex.BaseURL(),
+				Instance: ex.BaseURL,
 				Service:  ex.Name,
 				Date:     time.Now().UTC(),
 			}

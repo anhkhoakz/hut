@@ -24,10 +24,6 @@ func NewGitExporter(client *gqlclient.Client, baseURL string) *GitExporter {
 	return &GitExporter{client, baseURL}
 }
 
-func (ex *GitExporter) BaseURL() string {
-	return ex.baseURL
-}
-
 // A subset of gitsrht.Repository which only contains the fields we want to
 // export (i.e. the ones filled in by the GraphQL query)
 type GitRepoInfo struct {
@@ -43,7 +39,7 @@ func (ex *GitExporter) Export(ctx context.Context, dir string) error {
 	}
 	sshUser := settings.Settings.SshUser
 
-	baseURL, err := url.Parse(ex.BaseURL())
+	baseURL, err := url.Parse(ex.baseURL)
 	if err != nil {
 		panic(err)
 	}
