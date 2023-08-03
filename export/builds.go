@@ -51,7 +51,6 @@ type JobInfo struct {
 }
 
 func (ex *BuildsExporter) Export(ctx context.Context, dir string) error {
-	log.Println("builds.sr.ht")
 	var cursor *buildssrht.Cursor
 	var ret error
 

@@ -41,8 +41,6 @@ type GitRepoInfo struct {
 }
 
 func (ex *GitExporter) Export(ctx context.Context, dir string) error {
-	log.Println("git.sr.ht")
-
 	settings, err := gitsrht.SshSettings(ex.client, ctx)
 	if err != nil {
 		return err

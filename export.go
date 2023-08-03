@@ -57,6 +57,8 @@ func newExportCommand() *cobra.Command {
 		log.Println("Exporting account data...")
 
 		for _, ex := range exporters {
+			log.Println(ex.Name())
+
 			base := path.Join(args[0], ex.Name())
 			if err := os.MkdirAll(base, 0o755); err != nil {
 				log.Fatalf("Failed to create export directory: %s", err.Error())

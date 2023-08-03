@@ -48,7 +48,6 @@ type PasteInfo struct {
 }
 
 func (ex *PasteExporter) Export(ctx context.Context, dir string) error {
-	log.Println("paste.sr.ht")
 	var cursor *pastesrht.Cursor
 	var ret error
 

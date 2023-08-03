@@ -57,7 +57,6 @@ type MailingListInfo struct {
 }
 
 func (ex *ListsExporter) Export(ctx context.Context, dir string) error {
-	log.Println("lists.sr.ht")
 	var cursor *listssrht.Cursor
 	var ret error
 

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"path"
 
@@ -31,7 +30,6 @@ func (ex *MetaExporter) BaseURL() string {
 }
 
 func (ex *MetaExporter) Export(ctx context.Context, dir string) error {
-	log.Println("meta.sr.ht")
 	profileFile, err := os.Create(path.Join(dir, "profile.json"))
 	if err != nil {
 		return err

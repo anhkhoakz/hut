@@ -41,8 +41,6 @@ type HgRepoInfo struct {
 }
 
 func (ex *HgExporter) Export(ctx context.Context, dir string) error {
-	log.Println("hg.sr.ht")
-
 	baseURL, err := url.Parse(ex.BaseURL())
 	if err != nil {
 		panic(err)
