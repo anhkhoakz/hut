@@ -18,35 +18,40 @@ type ExportInfo struct {
 	Date     time.Time `json:"date"`
 }
 
+type exporter struct {
+	export.Exporter
+	Name string
+}
+
 func newExportCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
-		var exporters []export.Exporter
+		var exporters []exporter
 
 		// TODO: Allow exporting a subset of all services (maybe meta should
 		// provide a list of services configured for that instance?)
 		mc := createClient("meta", cmd)
 		meta := export.NewMetaExporter(mc.Client, mc.BaseURL)
-		exporters = append(exporters, meta)
+		exporters = append(exporters, exporter{meta, "meta.sr.ht"})
 
 		gc := createClient("git", cmd)
 		git := export.NewGitExporter(gc.Client, gc.BaseURL)
-		exporters = append(exporters, git)
+		exporters = append(exporters, exporter{git, "git.sr.ht"})
 
 		hc := createClient("hg", cmd)
 		hg := export.NewHgExporter(hc.Client, hc.BaseURL)
-		exporters = append(exporters, hg)
+		exporters = append(exporters, exporter{hg, "hg.sr.ht"})
 
 		bc := createClient("builds", cmd)
 		builds := export.NewBuildsExporter(bc.Client, bc.BaseURL, bc.HTTP)
-		exporters = append(exporters, builds)
+		exporters = append(exporters, exporter{builds, "builds.sr.ht"})
 
 		pc := createClient("paste", cmd)
 		paste := export.NewPasteExporter(pc.Client, pc.BaseURL, pc.HTTP)
-		exporters = append(exporters, paste)
+		exporters = append(exporters, exporter{paste, "paste.sr.ht"})
 
 		lc := createClient("lists", cmd)
 		lists := export.NewListsExporter(lc.Client, lc.BaseURL, lc.HTTP)
-		exporters = append(exporters, lists)
+		exporters = append(exporters, exporter{lists, "lists.sr.ht"})
 
 		if _, ok := os.LookupEnv("SSH_AUTH_SOCK"); !ok {
 			log.Println("Warning! SSH_AUTH_SOCK is not set in your environment.")
@@ -57,32 +62,31 @@ func newExportCommand() *cobra.Command {
 		log.Println("Exporting account data...")
 
 		for _, ex := range exporters {
-			log.Println(ex.Name())
+			log.Println(ex.Name)
 
-			base := path.Join(args[0], ex.Name())
+			base := path.Join(args[0], ex.Name)
 			if err := os.MkdirAll(base, 0o755); err != nil {
 				log.Fatalf("Failed to create export directory: %s", err.Error())
 			}
 
 			stamp := path.Join(base, "export-stamp.json")
 			if _, err := os.Stat(stamp); err == nil {
-				log.Printf("Skipping %s (already exported)", ex.Name())
+				log.Printf("Skipping %s (already exported)", ex.Name)
 				continue
 			}
 
 			if err := ex.Export(ctx, base); err != nil {
-				log.Printf("Error exporting %s: %s", ex.Name(), err.Error())
+				log.Printf("Error exporting %s: %s", ex.Name, err.Error())
 				continue
 			}
 
 			info := ExportInfo{
 				Instance: ex.BaseURL(),
-				Service:  ex.Name(),
+				Service:  ex.Name,
 				Date:     time.Now().UTC(),
 			}
 			if err := writeExportStamp(stamp, &info); err != nil {
-				log.Printf("Error writing stamp for %s: %s",
-					ex.Name(), err.Error())
+				log.Printf("Error writing stamp for %s: %s", ex.Name, err.Error())
 			}
 		}
 		log.Println("Export complete.")

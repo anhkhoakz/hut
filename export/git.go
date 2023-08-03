@@ -24,10 +24,6 @@ func NewGitExporter(client *gqlclient.Client, baseURL string) *GitExporter {
 	return &GitExporter{client, baseURL}
 }
 
-func (ex *GitExporter) Name() string {
-	return "git.sr.ht"
-}
-
 func (ex *GitExporter) BaseURL() string {
 	return ex.baseURL
 }

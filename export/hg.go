@@ -24,10 +24,6 @@ func NewHgExporter(client *gqlclient.Client, baseURL string) *HgExporter {
 	return &HgExporter{client, baseURL}
 }
 
-func (ex *HgExporter) Name() string {
-	return "hg.sr.ht"
-}
-
 func (ex *HgExporter) BaseURL() string {
 	return ex.baseURL
 }

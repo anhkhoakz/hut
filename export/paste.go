@@ -35,10 +35,6 @@ func NewPasteExporter(client *gqlclient.Client, baseURL string,
 	}
 }
 
-func (ex *PasteExporter) Name() string {
-	return "paste.sr.ht"
-}
-
 func (ex *PasteExporter) BaseURL() string {
 	return ex.baseURL
 }

@@ -34,10 +34,6 @@ func NewBuildsExporter(client *gqlclient.Client, baseURL string, http *http.Clie
 	}
 }
 
-func (ex *BuildsExporter) Name() string {
-	return "builds.sr.ht"
-}
-
 func (ex *BuildsExporter) BaseURL() string {
 	return ex.baseURL
 }

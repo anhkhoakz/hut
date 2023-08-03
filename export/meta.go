@@ -21,10 +21,6 @@ func NewMetaExporter(client *gqlclient.Client, baseURL string) *MetaExporter {
 	return &MetaExporter{client, baseURL}
 }
 
-func (ex *MetaExporter) Name() string {
-	return "meta.sr.ht"
-}
-
 func (ex *MetaExporter) BaseURL() string {
 	return ex.baseURL
 }

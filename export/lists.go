@@ -39,10 +39,6 @@ func NewListsExporter(client *gqlclient.Client, baseURL string,
 	}
 }
 
-func (ex *ListsExporter) Name() string {
-	return "lists.sr.ht"
-}
-
 func (ex *ListsExporter) BaseURL() string {
 	return ex.baseURL
 }
