@@ -92,7 +92,7 @@ func newExportCommand() *cobra.Command {
 		}
 		log.Println("Export complete.")
 	}
-	cmd := &cobra.Command{
+	return &cobra.Command{
 		Use:   "export <directory>",
 		Short: "Exports your account data",
 		Args:  cobra.ExactArgs(1),
@@ -101,7 +101,6 @@ func newExportCommand() *cobra.Command {
 		},
 		Run: run,
 	}
-	return cmd
 }
 
 func writeExportStamp(path string, info *ExportInfo) error {
