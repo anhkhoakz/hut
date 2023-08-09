@@ -33,6 +33,7 @@ func NewBuildsExporter(client *gqlclient.Client, http *http.Client) *BuildsExpor
 }
 
 type JobInfo struct {
+	Info
 	Id         int32                 `json:"id"`
 	Status     string                `json:"status"`
 	Note       *string               `json:"note,omitempty"`
@@ -80,7 +81,7 @@ func (ex *BuildsExporter) Export(ctx context.Context, dir string) error {
 }
 
 func (ex *BuildsExporter) exportJob(ctx context.Context, job *buildssrht.Job, base string) error {
-	infoPath := path.Join(base, "info.json")
+	infoPath := path.Join(base, infoFilename)
 	if _, err := os.Stat(infoPath); err == nil {
 		log.Printf("\tSkipping #%d (already exists)", job.Id)
 		return nil
@@ -126,6 +127,10 @@ func (ex *BuildsExporter) exportJob(ctx context.Context, job *buildssrht.Job, ba
 	defer file.Close()
 
 	jobInfo := JobInfo{
+		Info: Info{
+			Service: "builds.sr.ht",
+			Name:    strconv.Itoa(int(job.Id)),
+		},
 		Id:         job.Id,
 		Note:       job.Note,
 		Tags:       job.Tags,

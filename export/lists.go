@@ -39,7 +39,7 @@ func NewListsExporter(client *gqlclient.Client, http *http.Client) *ListsExporte
 // A subset of listssrht.MailingList which only contains the fields we want to
 // export (i.e. the ones filled in by the GraphQL query)
 type MailingListInfo struct {
-	Name        string   `json:"name"`
+	Info
 	Description *string  `json:"description"`
 	PermitMime  []string `json:"permitMime"`
 	RejectMime  []string `json:"rejectMime"`
@@ -81,7 +81,7 @@ func (ex *ListsExporter) Export(ctx context.Context, dir string) error {
 }
 
 func (ex *ListsExporter) exportList(ctx context.Context, list listssrht.MailingList, base string) error {
-	infoPath := path.Join(base, "info.json")
+	infoPath := path.Join(base, infoFilename)
 	if _, err := os.Stat(infoPath); err == nil {
 		log.Printf("\tSkipping %s (already exists)", list.Name)
 		return nil
@@ -120,7 +120,10 @@ func (ex *ListsExporter) exportList(ctx context.Context, list listssrht.MailingL
 	defer file.Close()
 
 	listInfo := MailingListInfo{
-		Name:        list.Name,
+		Info: Info{
+			Service: "lists.sr.ht",
+			Name:    list.Name,
+		},
 		Description: list.Description,
 		PermitMime:  list.PermitMime,
 		RejectMime:  list.RejectMime,

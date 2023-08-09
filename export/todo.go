@@ -2,6 +2,7 @@ package export
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -29,6 +30,10 @@ func NewTodoExporter(client *gqlclient.Client, http *http.Client) *TodoExporter 
 		client: client,
 		http:   &newHttp,
 	}
+}
+
+type TrackerInfo struct {
+	Info
 }
 
 func (ex *TodoExporter) Export(ctx context.Context, dir string) error {
@@ -64,7 +69,13 @@ func (ex *TodoExporter) Export(ctx context.Context, dir string) error {
 }
 
 func (ex *TodoExporter) exportTracker(ctx context.Context, tracker todosrht.Tracker, base string) error {
+	infoPath := path.Join(base, infoFilename)
+	dataPath := path.Join(base, "tracker.json.gz")
 	log.Printf("\t%s", tracker.Name)
+	if err := os.MkdirAll(base, 0o755); err != nil {
+		return err
+	}
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, string(tracker.Export), nil)
 	if err != nil {
 		return err
@@ -79,7 +90,7 @@ func (ex *TodoExporter) exportTracker(ctx context.Context, tracker todosrht.Trac
 		return partialError{fmt.Errorf("%s: server returned non-200 status %d", tracker.Name, resp.StatusCode)}
 	}
 
-	f, err := os.Create(base + ".json.gz")
+	f, err := os.Create(dataPath)
 	if err != nil {
 		return err
 	}
@@ -87,5 +98,23 @@ func (ex *TodoExporter) exportTracker(ctx context.Context, tracker todosrht.Trac
 	if _, err := io.Copy(f, resp.Body); err != nil {
 		return err
 	}
+
+	file, err := os.Create(infoPath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	trackerInfo := PasteInfo{
+		Info: Info{
+			Service: "todo.sr.ht",
+			Name:    tracker.Name,
+		},
+	}
+	err = json.NewEncoder(file).Encode(&trackerInfo)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

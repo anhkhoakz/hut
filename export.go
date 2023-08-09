@@ -74,7 +74,7 @@ func newExportCommand() *cobra.Command {
 				log.Fatalf("Failed to create export directory: %s", err.Error())
 			}
 
-			stamp := path.Join(base, "export-stamp.json")
+			stamp := path.Join(base, "service.json")
 			if _, err := os.Stat(stamp); err == nil {
 				log.Printf("Skipping %s (already exported)", ex.Name)
 				continue

@@ -33,6 +33,7 @@ func NewPasteExporter(client *gqlclient.Client, http *http.Client) *PasteExporte
 }
 
 type PasteInfo struct {
+	Info
 	Visibility pastesrht.Visibility `json:"visibility"`
 }
 
@@ -68,20 +69,21 @@ func (ex *PasteExporter) Export(ctx context.Context, dir string) error {
 
 func (ex *PasteExporter) exportPaste(ctx context.Context, paste *pastesrht.Paste, dir string) error {
 	base := path.Join(dir, paste.Id)
-	infoPath := path.Join(dir, fmt.Sprintf("%s.json", paste.Id))
+	infoPath := path.Join(base, infoFilename)
 	if _, err := os.Stat(infoPath); err == nil {
 		log.Printf("\tSkipping %s (already exists)", paste.Id)
 		return nil
 	}
 
 	log.Printf("\t%s", paste.Id)
-	if err := os.MkdirAll(base, 0o755); err != nil {
+	files := path.Join(base, "files")
+	if err := os.MkdirAll(files, 0o755); err != nil {
 		return err
 	}
 
 	var ret error
 	for _, file := range paste.Files {
-		if err := ex.exportFile(ctx, paste, base, &file); err != nil {
+		if err := ex.exportFile(ctx, paste, files, &file); err != nil {
 			ret = err
 		}
 	}
@@ -93,6 +95,10 @@ func (ex *PasteExporter) exportPaste(ctx context.Context, paste *pastesrht.Paste
 	defer file.Close()
 
 	pasteInfo := PasteInfo{
+		Info: Info{
+			Service: "paste.sr.ht",
+			Name:    paste.Id,
+		},
 		Visibility: paste.Visibility,
 	}
 	err = json.NewEncoder(file).Encode(&pasteInfo)

@@ -27,7 +27,7 @@ func NewHgExporter(client *gqlclient.Client, baseURL string) *HgExporter {
 // A subset of hgsrht.Repository which only contains the fields we want to
 // export (i.e. the ones filled in by the GraphQL query)
 type HgRepoInfo struct {
-	Name        string            `json:"name"`
+	Info
 	Description *string           `json:"description"`
 	Visibility  hgsrht.Visibility `json:"visibility"`
 }
@@ -47,27 +47,36 @@ func (ex *HgExporter) Export(ctx context.Context, dir string) error {
 
 		// TODO: Should we fetch & store ACLs?
 		for _, repo := range repos.Results {
-			repoPath := path.Join(dir, "repos", repo.Name)
+			repoPath := path.Join(dir, repo.Name)
+			infoPath := path.Join(repoPath, infoFilename)
+			clonePath := path.Join(repoPath, "repository.git")
 			cloneURL := fmt.Sprintf("ssh://hg@%s/%s/%s", baseURL.Host, repo.Owner.CanonicalName, repo.Name)
-			if _, err := os.Stat(repoPath); err == nil {
+
+			if _, err := os.Stat(clonePath); err == nil {
 				log.Printf("\tSkipping %s (already exists)", repo.Name)
 				continue
 			}
+			if err := os.MkdirAll(repoPath, 0o755); err != nil {
+				return err
+			}
 
 			log.Printf("\tCloning %s", repo.Name)
-			cmd := exec.Command("hg", "clone", "-U", cloneURL, repoPath)
+			cmd := exec.Command("hg", "clone", "-U", cloneURL, clonePath)
 			err := cmd.Run()
 			if err != nil {
 				return err
 			}
 
 			repoInfo := HgRepoInfo{
-				Name:        repo.Name,
+				Info: Info{
+					Service: "hg.sr.ht",
+					Name:    repo.Name,
+				},
 				Description: repo.Description,
 				Visibility:  repo.Visibility,
 			}
 
-			file, err := os.Create(path.Join(repoPath, ".hg", "srht.json"))
+			file, err := os.Create(infoPath)
 			if err != nil {
 				return err
 			}
