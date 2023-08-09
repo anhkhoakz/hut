@@ -83,8 +83,6 @@ Additionally, mailing lists can be referred to by their email address.
 *export* <directory>
 	Export account data.
 
-	Note, todo.sr.ht is not yet supported.
-
 ## builds
 
 *artifacts* <ID>
