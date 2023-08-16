@@ -937,6 +937,16 @@ func TrackersByUser(client *gqlclient.Client, ctx context.Context, username stri
 	return respData.User, err
 }
 
+func ExportTrackers(client *gqlclient.Client, ctx context.Context, cursor *Cursor) (trackers *TrackerCursor, err error) {
+	op := gqlclient.NewOperation("query exportTrackers ($cursor: Cursor) {\n\ttrackers(cursor: $cursor) {\n\t\tresults {\n\t\t\tname\n\t\t\tdescription\n\t\t\tvisibility\n\t\t\texport\n\t\t}\n\t\tcursor\n\t}\n}\n")
+	op.Var("cursor", cursor)
+	var respData struct {
+		Trackers *TrackerCursor
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Trackers, err
+}
+
 func TrackerIDByName(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
 	op := gqlclient.NewOperation("query trackerIDByName ($name: String!) {\n\tme {\n\t\ttracker(name: $name) {\n\t\t\tid\n\t\t}\n\t}\n}\n")
 	op.Var("name", name)

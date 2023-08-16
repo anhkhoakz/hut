@@ -36,7 +36,7 @@ func (ex *TodoExporter) Export(ctx context.Context, dir string) error {
 	var ret error
 
 	for {
-		trackers, err := todosrht.Trackers(ex.client, ctx, cursor)
+		trackers, err := todosrht.ExportTrackers(ex.client, ctx, cursor)
 		if err != nil {
 			return err
 		}
