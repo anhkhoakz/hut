@@ -2,7 +2,6 @@ package export
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/url"
@@ -75,14 +74,7 @@ func (ex *HgExporter) Export(ctx context.Context, dir string) error {
 				Description: repo.Description,
 				Visibility:  repo.Visibility,
 			}
-
-			file, err := os.Create(infoPath)
-			if err != nil {
-				return err
-			}
-			err = json.NewEncoder(file).Encode(&repoInfo)
-			file.Close()
-			if err != nil {
+			if err := writeJSON(infoPath, &repoInfo); err != nil {
 				return err
 			}
 		}

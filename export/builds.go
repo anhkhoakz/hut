@@ -2,7 +2,6 @@ package export
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -120,12 +119,6 @@ func (ex *BuildsExporter) exportJob(ctx context.Context, job *buildssrht.Job, ba
 		}
 	}
 
-	file, err = os.Create(infoPath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
 	jobInfo := JobInfo{
 		Info: Info{
 			Service: "builds.sr.ht",
@@ -136,8 +129,7 @@ func (ex *BuildsExporter) exportJob(ctx context.Context, job *buildssrht.Job, ba
 		Tags:       job.Tags,
 		Visibility: job.Visibility,
 	}
-	err = json.NewEncoder(file).Encode(&jobInfo)
-	if err != nil {
+	if err := writeJSON(infoPath, &jobInfo); err != nil {
 		return err
 	}
 

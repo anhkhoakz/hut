@@ -2,7 +2,6 @@ package export
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -88,12 +87,6 @@ func (ex *PasteExporter) exportPaste(ctx context.Context, paste *pastesrht.Paste
 		}
 	}
 
-	file, err := os.Create(infoPath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
 	pasteInfo := PasteInfo{
 		Info: Info{
 			Service: "paste.sr.ht",
@@ -101,8 +94,7 @@ func (ex *PasteExporter) exportPaste(ctx context.Context, paste *pastesrht.Paste
 		},
 		Visibility: paste.Visibility,
 	}
-	err = json.NewEncoder(file).Encode(&pasteInfo)
-	if err != nil {
+	if err := writeJSON(infoPath, &pasteInfo); err != nil {
 		return err
 	}
 

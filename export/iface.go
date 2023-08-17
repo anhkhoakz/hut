@@ -1,6 +1,10 @@
 package export
 
-import "context"
+import (
+	"context"
+	"encoding/json"
+	"os"
+)
 
 const infoFilename = "info.json"
 
@@ -19,4 +23,18 @@ type partialError struct {
 
 func (err partialError) Unwrap() error {
 	return err.error
+}
+
+func writeJSON(filename string, v interface{}) error {
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	if err := json.NewEncoder(f).Encode(v); err != nil {
+		return err
+	}
+
+	return f.Close()
 }

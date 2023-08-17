@@ -2,7 +2,6 @@ package export
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path"
@@ -21,18 +20,11 @@ func NewMetaExporter(client *gqlclient.Client) *MetaExporter {
 }
 
 func (ex *MetaExporter) Export(ctx context.Context, dir string) error {
-	profileFile, err := os.Create(path.Join(dir, "profile.json"))
-	if err != nil {
-		return err
-	}
-	defer profileFile.Close()
-
 	me, err := metasrht.FetchMe(ex.client, ctx)
 	if err != nil {
 		return err
 	}
-	err = json.NewEncoder(profileFile).Encode(me)
-	if err != nil {
+	if err := writeJSON(path.Join(dir, "profile.json"), me); err != nil {
 		return err
 	}
 

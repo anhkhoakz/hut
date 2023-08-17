@@ -2,7 +2,6 @@ package export
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -99,20 +98,13 @@ func (ex *TodoExporter) exportTracker(ctx context.Context, tracker todosrht.Trac
 		return err
 	}
 
-	file, err := os.Create(infoPath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	trackerInfo := TrackerInfo{
+	trackerInfo := PasteInfo{
 		Info: Info{
 			Service: "todo.sr.ht",
 			Name:    tracker.Name,
 		},
 	}
-	err = json.NewEncoder(file).Encode(&trackerInfo)
-	if err != nil {
+	if err := writeJSON(infoPath, &trackerInfo); err != nil {
 		return err
 	}
 

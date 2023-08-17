@@ -2,7 +2,6 @@ package export
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -113,12 +112,6 @@ func (ex *ListsExporter) exportList(ctx context.Context, list listssrht.MailingL
 		return err
 	}
 
-	file, err := os.Create(infoPath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
 	listInfo := MailingListInfo{
 		Info: Info{
 			Service: "lists.sr.ht",
@@ -128,7 +121,7 @@ func (ex *ListsExporter) exportList(ctx context.Context, list listssrht.MailingL
 		PermitMime:  list.PermitMime,
 		RejectMime:  list.RejectMime,
 	}
-	if err = json.NewEncoder(file).Encode(&listInfo); err != nil {
+	if err := writeJSON(infoPath, &listInfo); err != nil {
 		return err
 	}
 
