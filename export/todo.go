@@ -105,7 +105,7 @@ func (ex *TodoExporter) exportTracker(ctx context.Context, tracker todosrht.Trac
 	}
 	defer file.Close()
 
-	trackerInfo := PasteInfo{
+	trackerInfo := TrackerInfo{
 		Info: Info{
 			Service: "todo.sr.ht",
 			Name:    tracker.Name,
