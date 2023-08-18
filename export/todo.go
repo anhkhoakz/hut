@@ -71,6 +71,11 @@ func (ex *TodoExporter) Export(ctx context.Context, dir string) error {
 
 func (ex *TodoExporter) exportTracker(ctx context.Context, tracker todosrht.Tracker, base string) error {
 	infoPath := path.Join(base, infoFilename)
+	if _, err := os.Stat(infoPath); err == nil {
+		log.Printf("\tSkipping %s (already exists)", tracker.Name)
+		return nil
+	}
+
 	dataPath := path.Join(base, "tracker.json.gz")
 	log.Printf("\t%s", tracker.Name)
 	if err := os.MkdirAll(base, 0o755); err != nil {
