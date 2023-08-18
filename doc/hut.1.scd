@@ -61,6 +61,9 @@ Additionally, mailing lists can be referred to by their email address.
 
 	Options are:
 
+	*--file* <key>=<value>
+		Set a file variable.
+
 	*--stdin*
 		Read query from _stdin_.
 

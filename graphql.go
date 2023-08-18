@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"mime"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"git.sr.ht/~emersion/gqlclient"
@@ -19,7 +21,7 @@ const graphqlPrefill = `
 # %v`
 
 func newGraphqlCommand() *cobra.Command {
-	var stringVars []string
+	var stringVars, fileVars []string
 	var stdin bool
 	run := func(cmd *cobra.Command, args []string) {
 		service := args[0]
@@ -61,6 +63,21 @@ func newGraphqlCommand() *cobra.Command {
 		for _, kv := range stringVars {
 			op.Var(splitKeyValue(kv))
 		}
+		for _, kv := range fileVars {
+			k, filename := splitKeyValue(kv)
+
+			f, err := os.Open(filename)
+			if err != nil {
+				log.Fatalf("in variable definition %q: %v", kv, err)
+			}
+			defer f.Close()
+
+			op.Var(k, gqlclient.Upload{
+				Filename: filepath.Base(filename),
+				MIMEType: mime.TypeByExtension(filename),
+				Body:     f,
+			})
+		}
 
 		var data json.RawMessage
 		if err := c.Execute(ctx, op, &data); err != nil {
@@ -82,8 +99,9 @@ func newGraphqlCommand() *cobra.Command {
 		Run:               run,
 	}
 	cmd.Flags().StringSliceVarP(&stringVars, "var", "v", nil, "set string variable")
+	cmd.Flags().StringSliceVar(&fileVars, "file", nil, "set file variable")
 	cmd.Flags().BoolVar(&stdin, "stdin", false, "read query from stdin")
-	// TODO: JSON and file variables
+	// TODO: JSON variable
 	return cmd
 }
 
