@@ -33,6 +33,8 @@ func NewTodoExporter(client *gqlclient.Client, http *http.Client) *TodoExporter 
 
 type TrackerInfo struct {
 	Info
+	Description *string             `json:"description"`
+	Visibility  todosrht.Visibility `json:"visibility"`
 }
 
 func (ex *TodoExporter) Export(ctx context.Context, dir string) error {
@@ -103,6 +105,8 @@ func (ex *TodoExporter) exportTracker(ctx context.Context, tracker todosrht.Trac
 			Service: "todo.sr.ht",
 			Name:    tracker.Name,
 		},
+		Description: tracker.Description,
+		Visibility:  tracker.Visibility,
 	}
 	if err := writeJSON(infoPath, &trackerInfo); err != nil {
 		return err
