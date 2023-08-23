@@ -14,6 +14,8 @@ import (
 	"git.sr.ht/~emersion/hut/srht/hgsrht"
 )
 
+const hgRepositoryDir = "repository"
+
 type HgExporter struct {
 	client  *gqlclient.Client
 	baseURL string
@@ -48,7 +50,7 @@ func (ex *HgExporter) Export(ctx context.Context, dir string) error {
 		for _, repo := range repos.Results {
 			repoPath := path.Join(dir, repo.Name)
 			infoPath := path.Join(repoPath, infoFilename)
-			clonePath := path.Join(repoPath, "repository.git")
+			clonePath := path.Join(repoPath, hgRepositoryDir)
 			cloneURL := fmt.Sprintf("ssh://hg@%s/%s/%s", baseURL.Host, repo.Owner.CanonicalName, repo.Name)
 
 			if _, err := os.Stat(clonePath); err == nil {
