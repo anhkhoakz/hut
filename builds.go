@@ -659,6 +659,11 @@ func printSecret(w io.Writer, secret *buildssrht.Secret) {
 	var s string
 	created := termfmt.Dim.String(humanize.Time(secret.Created.Time))
 	s += fmt.Sprintf("%s\t%s\n", termfmt.DarkYellow.Sprint(secret.Uuid), created)
+
+	if secret.FromUser != nil {
+		s += termfmt.Dim.Sprintf("Shared by %s\n", secret.FromUser.CanonicalName)
+	}
+
 	if secret.Name != nil && *secret.Name != "" {
 		s += fmt.Sprintf("%s\n", *secret.Name)
 	}

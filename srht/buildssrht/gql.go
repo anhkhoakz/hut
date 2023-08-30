@@ -645,7 +645,7 @@ func Show(client *gqlclient.Client, ctx context.Context, id int32) (job *Job, er
 }
 
 func Secrets(client *gqlclient.Client, ctx context.Context, cursor *Cursor) (secrets *SecretCursor, err error) {
-	op := gqlclient.NewOperation("query secrets ($cursor: Cursor) {\n\tsecrets(cursor: $cursor) {\n\t\tresults {\n\t\t\tcreated\n\t\t\tuuid\n\t\t\tname\n\t\t\t__typename\n\t\t\t... on SecretFile {\n\t\t\t\tpath\n\t\t\t\tmode\n\t\t\t}\n\t\t}\n\t\tcursor\n\t}\n}\n")
+	op := gqlclient.NewOperation("query secrets ($cursor: Cursor) {\n\tsecrets(cursor: $cursor) {\n\t\tresults {\n\t\t\tcreated\n\t\t\tuuid\n\t\t\tname\n\t\t\tfromUser {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t\t__typename\n\t\t\t... on SecretFile {\n\t\t\t\tpath\n\t\t\t\tmode\n\t\t\t}\n\t\t}\n\t\tcursor\n\t}\n}\n")
 	op.Var("cursor", cursor)
 	var respData struct {
 		Secrets *SecretCursor

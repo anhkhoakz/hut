@@ -142,6 +142,9 @@ query secrets($cursor: Cursor) {
             created
             uuid
             name
+            fromUser {
+                canonicalName
+            }
             __typename
             ... on SecretFile {
                 path
