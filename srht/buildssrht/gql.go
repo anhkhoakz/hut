@@ -163,8 +163,8 @@ const (
 type Log struct {
 	// The most recently written 128 KiB of the build log.
 	Last128KiB string `json:"last128KiB"`
-	// The URL at which the full build log can be downloaded with a GET request
-	// (text/plain).
+	// The URL at which the full build log can be downloaded with an authenticated
+	// GET request (text/plain).
 	FullURL string `json:"fullURL"`
 }
 
@@ -177,6 +177,7 @@ type PGPKey struct {
 	Created    gqlclient.Time `json:"created"`
 	Uuid       string         `json:"uuid"`
 	Name       *string        `json:"name,omitempty"`
+	FromUser   *Entity        `json:"fromUser,omitempty"`
 	PrivateKey Binary         `json:"privateKey"`
 }
 
@@ -187,6 +188,7 @@ type SSHKey struct {
 	Created    gqlclient.Time `json:"created"`
 	Uuid       string         `json:"uuid"`
 	Name       *string        `json:"name,omitempty"`
+	FromUser   *Entity        `json:"fromUser,omitempty"`
 	PrivateKey Binary         `json:"privateKey"`
 }
 
@@ -197,6 +199,8 @@ type Secret struct {
 	Created gqlclient.Time `json:"created"`
 	Uuid    string         `json:"uuid"`
 	Name    *string        `json:"name,omitempty"`
+	// Set when this secret was copied from another user account
+	FromUser *Entity `json:"fromUser,omitempty"`
 
 	// Underlying value of the GraphQL interface
 	Value SecretValue `json:"-"`
@@ -244,13 +248,14 @@ type SecretCursor struct {
 }
 
 type SecretFile struct {
-	Id      int32          `json:"id"`
-	Created gqlclient.Time `json:"created"`
-	Uuid    string         `json:"uuid"`
-	Name    *string        `json:"name,omitempty"`
-	Path    string         `json:"path"`
-	Mode    int32          `json:"mode"`
-	Data    Binary         `json:"data"`
+	Id       int32          `json:"id"`
+	Created  gqlclient.Time `json:"created"`
+	Uuid     string         `json:"uuid"`
+	Name     *string        `json:"name,omitempty"`
+	FromUser *Entity        `json:"fromUser,omitempty"`
+	Path     string         `json:"path"`
+	Mode     int32          `json:"mode"`
+	Data     Binary         `json:"data"`
 }
 
 func (*SecretFile) isSecret() {}

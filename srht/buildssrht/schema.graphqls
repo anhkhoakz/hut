@@ -144,8 +144,8 @@ type Log {
   "The most recently written 128 KiB of the build log."
   last128KiB: String!
   """
-  The URL at which the full build log can be downloaded with a GET request
-  (text/plain).
+  The URL at which the full build log can be downloaded with an authenticated
+  GET request (text/plain).
   """
   fullURL: String!
 }
@@ -232,6 +232,8 @@ interface Secret {
   created: Time!
   uuid: String!
   name: String
+  "Set when this secret was copied from another user account"
+  fromUser: Entity
 }
 
 """
@@ -251,6 +253,7 @@ type SSHKey implements Secret {
   created: Time!
   uuid: String!
   name: String
+  fromUser: Entity
   privateKey: Binary! @worker
 }
 
@@ -259,6 +262,7 @@ type PGPKey implements Secret {
   created: Time!
   uuid: String!
   name: String
+  fromUser: Entity
   privateKey: Binary! @worker
 }
 
@@ -267,6 +271,7 @@ type SecretFile implements Secret {
   created: Time!
   uuid: String!
   name: String
+  fromUser: Entity
   path: String!
   mode: Int!
   data: Binary! @worker
@@ -277,7 +282,7 @@ type OAuthClient {
 }
 
 enum WebhookEvent {
-  JOB_CREATED @access(scope: JOBS, kind: RO)
+  JOB_CREATED
 }
 
 interface WebhookSubscription {
@@ -437,8 +442,10 @@ type Mutation {
   """
   Submits a new job to the queue.
 
-  'secrets' may be set to false to disable secrets for this build. Secrets
-  are enabled if unspecified.
+  'secrets' may be set to false to disable secrets for this build. If
+  unspecified, secrets are enabled if at least one is specified in the manifest
+  and the SECRETS:RO grant is available. Enabling secrets requires the
+  SECRETS:RO grant.
 
   'execute' may be set to false to defer queueing this job. Builds are
   executed immediately if unspecified.
@@ -463,6 +470,9 @@ type Mutation {
 
   "Starts a pending job group."
   startGroup(groupId: Int!): JobGroup @access(scope: JOBS, kind: RW)
+
+  "Copies a secret to the target user account."
+  shareSecret(uuid: String!, user: String!): Secret! @access(scope: SECRETS, kind: RW)
 
   ###
   ### The following resolvers are for internal worker use
