@@ -133,6 +133,12 @@ query show($id: Int!) {
                 fullURL
             }
         }
+        group {
+            jobs {
+                id
+                status
+            }
+        }
     }
 }
 

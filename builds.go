@@ -615,6 +615,16 @@ func printJob(w io.Writer, job *buildssrht.Job) {
 	}
 	fmt.Fprintln(w)
 
+	if job.Group != nil && len(job.Group.Jobs) > 1 {
+		fmt.Fprintf(w, "Group: ")
+		for _, j := range job.Group.Jobs {
+			if j.Id == job.Id {
+				continue
+			}
+			fmt.Fprintf(w, "%s %s  ", j.Status.TermIcon(), termfmt.DarkYellow.Sprintf("#%d", j.Id))
+		}
+	}
+
 	if job.Note != nil && *job.Note != "" {
 		fmt.Fprintln(w, "\n"+indent(strings.TrimSpace(*job.Note), "  "))
 	}
