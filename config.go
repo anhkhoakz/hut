@@ -170,6 +170,14 @@ func newInitCommand() *cobra.Command {
 			filename = defaultConfigFilename()
 		}
 
+		// Perform an early sanity check to avoid asking the user to login if
+		// the config file already exists
+		if _, err := os.Stat(filename); err == nil {
+			log.Fatalf("config file %q already exists (delete it if you want to overwrite it)", filename)
+		} else if err != nil && !errors.Is(err, os.ErrNotExist) {
+			log.Fatal(err)
+		}
+
 		instance, err := cmd.Flags().GetString("instance")
 		if err != nil {
 			log.Fatal(err)
