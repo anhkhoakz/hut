@@ -19,7 +19,12 @@ func newPager() pager {
 		return &singleWritePager{os.Stdout, true}
 	}
 
-	cmd := exec.Command("less")
+	name, ok := os.LookupEnv("PAGER")
+	if !ok {
+		name = "less"
+	}
+
+	cmd := exec.Command(name)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Env = append(os.Environ(), "LESS=FRX")
