@@ -119,7 +119,6 @@ query exportJobs($cursor: Cursor) {
 query show($id: Int!) {
     job(id: $id) {
         id
-        runner
         status
         note
         tags

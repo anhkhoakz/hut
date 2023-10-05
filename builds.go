@@ -341,13 +341,6 @@ func newBuildsShowCommand() *cobra.Command {
 					log.Fatalf("failed to fetch task logs: %v", err)
 				}
 			}
-
-			cmd, err := getSSHCommand(job)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			fmt.Printf("\nSSH Command: %s\n", cmd)
 		}
 	}
 
@@ -820,16 +813,6 @@ func jobStatusDone(status buildssrht.JobStatus) bool {
 	default:
 		return true
 	}
-}
-
-func getSSHCommand(job *buildssrht.Job) (string, error) {
-	// TODO: compare timestamps and check if ssh access is still possible
-	if job.Runner == nil {
-		return "", errors.New("job has no runner assigned yet")
-	}
-
-	cmd := fmt.Sprintf("ssh -t builds@%s connect %d", *job.Runner, job.Id)
-	return cmd, nil
 }
 
 func parseBuildID(s string) (id int32, instance string, err error) {
