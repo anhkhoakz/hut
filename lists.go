@@ -1175,6 +1175,10 @@ func completePatchsetID(cmd *cobra.Command, args []string, toComplete string) ([
 			continue
 		}
 
+		if cmd.Name() == "update" && strings.EqualFold(cmd.Flag("status").Value.String(), string(patchset.Status)) {
+			continue
+		}
+
 		s := fmt.Sprintf("%d\t", patchset.Id)
 		if patchset.Prefix != nil && *patchset.Prefix != "" {
 			s += fmt.Sprintf("[%s] ", *patchset.Prefix)
