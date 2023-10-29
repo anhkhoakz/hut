@@ -115,7 +115,7 @@ Additionally, mailing lists can be referred to by their email address.
 		Visibility to use (public, unlisted, private). Defaults to the same
 		visibility used by the original build job.
 
-*secrets*
+*secret list*
 	List secrets.
 
 *show* [ID] [options...]

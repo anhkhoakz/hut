@@ -32,7 +32,7 @@ func newBuildsCommand() *cobra.Command {
 	cmd.AddCommand(newBuildsCancelCommand())
 	cmd.AddCommand(newBuildsShowCommand())
 	cmd.AddCommand(newBuildsListCommand())
-	cmd.AddCommand(newBuildsSecretsCommand())
+	cmd.AddCommand(newBuildsSecretCommand())
 	cmd.AddCommand(newBuildsSSHCommand())
 	cmd.AddCommand(newBuildsArtifactsCommand())
 	cmd.AddCommand(newBuildsUserWebhookCommand())
@@ -625,7 +625,16 @@ func printJob(w io.Writer, job *buildssrht.Job) {
 	fmt.Fprintln(w)
 }
 
-func newBuildsSecretsCommand() *cobra.Command {
+func newBuildsSecretCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "secret",
+		Short: "Manage secrets",
+	}
+	cmd.AddCommand(newBuildsSecretListCommand())
+	return cmd
+}
+
+func newBuildsSecretListCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("builds", cmd)
@@ -650,7 +659,7 @@ func newBuildsSecretsCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:   "secrets",
+		Use:   "list",
 		Short: "List secrets",
 		Args:  cobra.ExactArgs(0),
 		Run:   run,
