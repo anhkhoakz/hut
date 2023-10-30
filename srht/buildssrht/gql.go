@@ -574,6 +574,17 @@ func DeleteUserWebhook(client *gqlclient.Client, ctx context.Context, id int32) 
 	return respData.DeleteUserWebhook, err
 }
 
+func ShareSecret(client *gqlclient.Client, ctx context.Context, uuid string, user string) (shareSecret *Secret, err error) {
+	op := gqlclient.NewOperation("mutation shareSecret ($uuid: String!, $user: String!) {\n\tshareSecret(uuid: $uuid, user: $user) {\n\t\tuuid\n\t}\n}\n")
+	op.Var("uuid", uuid)
+	op.Var("user", user)
+	var respData struct {
+		ShareSecret *Secret
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.ShareSecret, err
+}
+
 func Monitor(client *gqlclient.Client, ctx context.Context, id int32) (job *Job, err error) {
 	op := gqlclient.NewOperation("query monitor ($id: Int!) {\n\tjob(id: $id) {\n\t\tstatus\n\t\tlog {\n\t\t\tfullURL\n\t\t}\n\t\ttasks {\n\t\t\tname\n\t\t\tstatus\n\t\t\tlog {\n\t\t\t\tfullURL\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	op.Var("id", id)

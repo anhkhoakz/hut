@@ -35,6 +35,12 @@ mutation deleteUserWebhook($id: Int!) {
     }
 }
 
+mutation shareSecret($uuid: String!, $user: String!) {
+    shareSecret(uuid: $uuid, user: $user) {
+        uuid
+    }
+}
+
 query monitor($id: Int!) {
 	job(id: $id) {
 		status

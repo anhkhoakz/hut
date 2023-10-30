@@ -631,6 +631,7 @@ func newBuildsSecretCommand() *cobra.Command {
 		Short: "Manage secrets",
 	}
 	cmd.AddCommand(newBuildsSecretListCommand())
+	cmd.AddCommand(newBuildsSecretShareCommand())
 	return cmd
 }
 
@@ -690,6 +691,34 @@ func printSecret(w io.Writer, secret *buildssrht.Secret) {
 	}
 
 	fmt.Fprint(w, s)
+}
+
+func newBuildsSecretShareCommand() *cobra.Command {
+	var userName string
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("builds", cmd)
+		userName = strings.TrimLeft(userName, ownerPrefixes)
+
+		secret, err := buildssrht.ShareSecret(c.Client, ctx, args[0], userName)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		log.Printf("Shared secret %q with user %q\n", secret.Uuid, userName)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "share <secret>",
+		Short:             "Share a secret",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	cmd.Flags().StringVarP(&userName, "user", "u", "", "username")
+	cmd.MarkFlagRequired("user")
+	cmd.RegisterFlagCompletionFunc("user", cobra.NoFileCompletions)
+	return cmd
 }
 
 type buildLog struct {

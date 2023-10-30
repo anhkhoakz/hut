@@ -118,6 +118,14 @@ Additionally, mailing lists can be referred to by their email address.
 *secret list*
 	List secrets.
 
+*secret share* <secret>
+	Share a secret.
+
+	Options are:
+
+	*-u*, *--user*
+		User with whom to share the secret (required).
+
 *show* [ID] [options...]
 	Show job status.
 
