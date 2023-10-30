@@ -999,7 +999,7 @@ func newListsSubscriptions() *cobra.Command {
 			}
 
 			for _, sub := range subscriptions.Results {
-				printMailingListSubscription(p, c, &sub)
+				printMailingListSubscription(p, &sub)
 			}
 
 			cursor = subscriptions.Cursor
@@ -1016,7 +1016,7 @@ func newListsSubscriptions() *cobra.Command {
 	return cmd
 }
 
-func printMailingListSubscription(w io.Writer, c *Client, sub *listssrht.ActivitySubscription) {
+func printMailingListSubscription(w io.Writer, sub *listssrht.ActivitySubscription) {
 	mlSub, ok := sub.Value.(*listssrht.MailingListSubscription)
 	if !ok {
 		return
