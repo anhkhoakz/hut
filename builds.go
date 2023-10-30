@@ -712,7 +712,7 @@ func newBuildsSecretShareCommand() *cobra.Command {
 		Use:               "share <secret>",
 		Short:             "Share a secret",
 		Args:              cobra.ExactArgs(1),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction: completeSecret,
 		Run:               run,
 	}
 	cmd.Flags().StringVarP(&userName, "user", "u", "", "username")
@@ -1026,4 +1026,25 @@ func offerSSHConnection(ctx context.Context, c *Client, id int32) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func completeSecret(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	ctx := cmd.Context()
+	c := createClient("builds", cmd)
+	var secretList []string
+
+	secrets, err := buildssrht.CompleteSecrets(c.Client, ctx)
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	for _, secret := range secrets.Results {
+		s := secret.Uuid
+		if secret.Name != nil && *secret.Name != "" {
+			s = fmt.Sprintf("%s\t%s", s, *secret.Name)
+		}
+		secretList = append(secretList, s)
+	}
+
+	return secretList, cobra.ShellCompDirectiveNoFileComp
 }

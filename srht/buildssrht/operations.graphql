@@ -209,3 +209,12 @@ query userWebhooks($cursor: Cursor) {
         cursor
     }
 }
+
+query completeSecrets {
+    secrets {
+        results {
+            uuid
+            name
+        }
+    }
+}

@@ -704,3 +704,12 @@ func UserWebhooks(client *gqlclient.Client, ctx context.Context, cursor *Cursor)
 	err = client.Execute(ctx, op, &respData)
 	return respData.UserWebhooks, err
 }
+
+func CompleteSecrets(client *gqlclient.Client, ctx context.Context) (secrets *SecretCursor, err error) {
+	op := gqlclient.NewOperation("query completeSecrets {\n\tsecrets {\n\t\tresults {\n\t\t\tuuid\n\t\t\tname\n\t\t}\n\t}\n}\n")
+	var respData struct {
+		Secrets *SecretCursor
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Secrets, err
+}
