@@ -259,3 +259,9 @@ mutation updateRepository($id: Int!, $input: RepoInput!) {
         name
     }
 }
+
+mutation clearCustomReadme($id: Int!) {
+    updateRepository(id: $id, input: { readme: null }) {
+        name
+    }
+}

@@ -740,7 +740,12 @@ func newGitUpdateCommand() *cobra.Command {
 			input.HEAD = &branch
 		}
 
-		if readme != "" {
+		if readme == "" && cmd.Flags().Changed("readme") {
+			_, err := gitsrht.ClearCustomReadme(c.Client, ctx, id)
+			if err != nil {
+				log.Fatalf("failed to unset custom README: %v", err)
+			}
+		} else if readme != "" {
 			var (
 				b   []byte
 				err error

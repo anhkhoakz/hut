@@ -253,8 +253,9 @@ Options are:
 		Set one-line repository description.
 
 	*--readme* <file>
-		Update the custom README HTML from file. Pass "-" as the filename to
-		read from _stdin_.
+		Update the custom README settings. You can read the HTML from a file or
+		pass "-" as the filename to read from _stdin_.
+		To clear the custom README use an empty string "".
 
 	*-v*, *--visibility* <string>
 		Visibility to use (public, unlisted, private).

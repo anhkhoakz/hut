@@ -844,3 +844,13 @@ func UpdateRepository(client *gqlclient.Client, ctx context.Context, id int32, i
 	err = client.Execute(ctx, op, &respData)
 	return respData.UpdateRepository, err
 }
+
+func ClearCustomReadme(client *gqlclient.Client, ctx context.Context, id int32) (updateRepository *Repository, err error) {
+	op := gqlclient.NewOperation("mutation clearCustomReadme ($id: Int!) {\n\tupdateRepository(id: $id, input: {readme:null}) {\n\t\tname\n\t}\n}\n")
+	op.Var("id", id)
+	var respData struct {
+		UpdateRepository *Repository
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.UpdateRepository, err
+}
