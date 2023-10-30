@@ -1033,3 +1033,26 @@ func completeBranches(cmd *cobra.Command, args []string, toComplete string) ([]s
 
 	return user.Repository.References.Heads(), cobra.ShellCompDirectiveNoFileComp
 }
+
+func completeCoMaintainers(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	ctx := cmd.Context()
+	// Since completeCoMaintainers is intended to be called from other services
+	// than git, we cannot use getRepoName which requires the "repo" flag to be set.
+	repoName, _, instace, err := guessGitRepoName(ctx, cmd)
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+	c := createClientWithInstance("git", cmd, instace)
+
+	var userList []string
+	user, err := gitsrht.CompleteCoMaintainers(c.Client, ctx, repoName)
+	if err != nil || user.Repositories == nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	for _, acl := range user.Repository.Acls.Results {
+		userList = append(userList, acl.Entity.CanonicalName)
+	}
+
+	return userList, cobra.ShellCompDirectiveNoFileComp
+}

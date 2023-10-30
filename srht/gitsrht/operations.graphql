@@ -186,6 +186,20 @@ query userWebhooks($cursor: Cursor) {
     }
 }
 
+query completeCoMaintainers($name: String!) {
+    me {
+        repository(name: $name) {
+            acls {
+                results {
+                    entity {
+                        canonicalName
+                    }
+                }
+            }
+        }
+    }
+}
+
 mutation uploadArtifact($repoId: Int!, $revspec: String!, $file: Upload!) {
     uploadArtifact(repoId: $repoId, revspec: $revspec, file: $file) {
         filename

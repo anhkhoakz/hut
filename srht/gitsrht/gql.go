@@ -747,6 +747,16 @@ func UserWebhooks(client *gqlclient.Client, ctx context.Context, cursor *Cursor)
 	return respData.UserWebhooks, err
 }
 
+func CompleteCoMaintainers(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
+	op := gqlclient.NewOperation("query completeCoMaintainers ($name: String!) {\n\tme {\n\t\trepository(name: $name) {\n\t\t\tacls {\n\t\t\t\tresults {\n\t\t\t\t\tentity {\n\t\t\t\t\t\tcanonicalName\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op.Var("name", name)
+	var respData struct {
+		Me *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Me, err
+}
+
 func UploadArtifact(client *gqlclient.Client, ctx context.Context, repoId int32, revspec string, file gqlclient.Upload) (uploadArtifact *Artifact, err error) {
 	op := gqlclient.NewOperation("mutation uploadArtifact ($repoId: Int!, $revspec: String!, $file: Upload!) {\n\tuploadArtifact(repoId: $repoId, revspec: $revspec, file: $file) {\n\t\tfilename\n\t}\n}\n")
 	op.Var("repoId", repoId)

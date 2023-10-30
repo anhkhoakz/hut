@@ -717,7 +717,7 @@ func newBuildsSecretShareCommand() *cobra.Command {
 	}
 	cmd.Flags().StringVarP(&userName, "user", "u", "", "username")
 	cmd.MarkFlagRequired("user")
-	cmd.RegisterFlagCompletionFunc("user", cobra.NoFileCompletions)
+	cmd.RegisterFlagCompletionFunc("user", completeCoMaintainers)
 	return cmd
 }
 
