@@ -64,7 +64,12 @@ func createClientWithInstance(service string, cmd *cobra.Command, instanceName s
 			log.Fatalf("could not execute access-token-cmd: %v", err)
 		}
 
-		token = strings.Fields(string(output))[0]
+		fields := strings.Fields(string(output))
+		if len(fields) == 0 {
+			log.Fatalf("access-token-cmd did not return a token")
+		}
+
+		token = fields[0]
 	} else {
 		token = inst.AccessToken
 	}
