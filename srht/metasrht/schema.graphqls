@@ -42,7 +42,7 @@ read or write access. For the meta.sr.ht API, you have access to all public
 information without any special permissions - user profile information,
 public keys, and so on.
 """
-directive @access(scope: AccessScope!, kind: AccessKind!) on FIELD_DEFINITION | ENUM_VALUE
+directive @access(scope: AccessScope!, kind: AccessKind!) on FIELD_DEFINITION
 
 # https://semver.org
 type Version {
@@ -136,6 +136,7 @@ type OAuthGrant {
   issued: Time!
   expires: Time!
   tokenHash: String! @internal
+  grants: String
 }
 
 type OAuthGrantRegistration {
@@ -166,6 +167,7 @@ type OAuthPersonalToken {
   issued: Time!
   expires: Time!
   comment: String
+  grants: String
 }
 
 type OAuthPersonalTokenRegistration {
@@ -175,11 +177,11 @@ type OAuthPersonalTokenRegistration {
 
 enum WebhookEvent {
   "Used for user profile webhooks"
-  PROFILE_UPDATE  @access(scope: PROFILE, kind: RO)
-  PGP_KEY_ADDED   @access(scope: PGP_KEYS, kind: RO)
-  PGP_KEY_REMOVED @access(scope: PGP_KEYS, kind: RO)
-  SSH_KEY_ADDED   @access(scope: SSH_KEYS, kind: RO)
-  SSH_KEY_REMOVED @access(scope: SSH_KEYS, kind: RO)
+  PROFILE_UPDATE
+  PGP_KEY_ADDED
+  PGP_KEY_REMOVED
+  SSH_KEY_ADDED
+  SSH_KEY_REMOVED
 }
 
 interface WebhookSubscription {
@@ -514,7 +516,7 @@ type Mutation {
   Completes the OAuth 2.0 grant process and issues an OAuth token for a
   specific OAuth client.
   """
-  issueOAuthGrant(authorization: String!,
+  issueOAuthGrant(authorization: String!, clientUUID: String,
     clientSecret: String!, redirectUri: String): OAuthGrantRegistration @internal
 
   """
@@ -530,25 +532,6 @@ type Mutation {
   settings.
   """
   sendEmail(address: String!, message: String!): Boolean! @anoninternal
-
-  """
-  Sends a notification email to the given user.
-
-  The 'message' parameter must be a RFC 5322 compliant Internet message with
-  the special requirement that it must not contain any recipients (i.e. no
-  'To', 'Cc', or 'Bcc' header). It will be encrypted according to the user's
-  privacy settings and signed with the site key.
-  """
-  sendEmailNotification(username: String!, message: String!): Boolean! @anoninternal
-
-  """
-  Sends a notification email to an external address.
-
-  The 'message' parameter must be a RFC 5322 compliant Internet message with
-  the special requirement that it must not contain any recipients (i.e. no
-  'To', 'Cc', or 'Bcc' header). It will be signed with the site key.
-  """
-  sendEmailExternal(address: String!, message: String!): Boolean! @anoninternal
 
   """
   Deletes the authenticated user's account.

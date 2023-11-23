@@ -160,16 +160,16 @@ type OAuthClient {
 }
 
 enum WebhookEvent {
-  TRACKER_CREATED @access(scope: TRACKERS, kind: RO)
-  TRACKER_UPDATE  @access(scope: TRACKERS, kind: RO)
-  TRACKER_DELETED @access(scope: TRACKERS, kind: RO)
-  TICKET_CREATED  @access(scope: TICKETS, kind: RO)
-  TICKET_UPDATE   @access(scope: TICKETS, kind: RO)
-  TICKET_DELETED  @access(scope: TICKETS, kind: RO)
-  LABEL_CREATED   @access(scope: TRACKERS, kind: RO)
-  LABEL_UPDATE    @access(scope: TRACKERS, kind: RO)
-  LABEL_DELETED   @access(scope: TRACKERS, kind: RO)
-  EVENT_CREATED   @access(scope: EVENTS, kind: RO)
+  TRACKER_CREATED
+  TRACKER_UPDATE
+  TRACKER_DELETED
+  TICKET_CREATED
+  TICKET_UPDATE
+  TICKET_DELETED
+  LABEL_CREATED
+  LABEL_UPDATE
+  LABEL_DELETED
+  EVENT_CREATED
 }
 
 interface WebhookSubscription {
@@ -836,7 +836,7 @@ type Mutation {
     name: String!,
     description: String,
     visibility: Visibility!,
-    import: Upload): Tracker! @access(scope: TRACKERS, kind: RW)
+    importUpload: Upload): Tracker! @access(scope: TRACKERS, kind: RW)
 
   "Updates an existing bug tracker"
   updateTracker(

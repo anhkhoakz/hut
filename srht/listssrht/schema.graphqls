@@ -81,10 +81,10 @@ type User implements Entity {
   bio: String
 
   list(name: String!): MailingList @access(scope: LISTS, kind: RO)
-  lists(cursor: Cursor): MailingListCursor @access(scope: LISTS, kind: RO)
-  emails(cursor: Cursor): EmailCursor @access(scope: EMAILS, kind: RO)
-  threads(cursor: Cursor): ThreadCursor @access(scope: EMAILS, kind: RO)
-  patches(cursor: Cursor): PatchsetCursor @access(scope: PATCHES, kind: RO)
+  lists(cursor: Cursor): MailingListCursor! @access(scope: LISTS, kind: RO)
+  emails(cursor: Cursor): EmailCursor! @access(scope: EMAILS, kind: RO)
+  threads(cursor: Cursor): ThreadCursor! @access(scope: EMAILS, kind: RO)
+  patches(cursor: Cursor): PatchsetCursor! @access(scope: PATCHES, kind: RO)
 }
 
 "A mailbox not associated with a registered user"
@@ -164,11 +164,11 @@ type OAuthClient {
 }
 
 enum WebhookEvent {
-  LIST_CREATED      @access(scope: LISTS, kind: RO)
-  LIST_UPDATED      @access(scope: LISTS, kind: RO)
-  LIST_DELETED      @access(scope: LISTS, kind: RO)
-  EMAIL_RECEIVED    @access(scope: EMAILS, kind: RO)
-  PATCHSET_RECEIVED @access(scope: PATCHES, kind: RO)
+  LIST_CREATED
+  LIST_UPDATED
+  LIST_DELETED
+  EMAIL_RECEIVED
+  PATCHSET_RECEIVED
 }
 
 interface WebhookSubscription {
@@ -758,7 +758,13 @@ type Mutation {
   "Deletes a mailing list webhook."
   deleteMailingListWebhook(id: Int!): WebhookSubscription!
 
-  triggerUserEmailWebhooks(emailId: Int!): Email! @internal
+  """
+  Triggers user webhooks for an email.
+
+  The result can be null if the user does not have browse access to the
+  archived email. In this case, no webhook will be triggered.
+  """
+  triggerUserEmailWebhooks(emailId: Int!): Email @internal
   triggerListEmailWebhooks(listId: Int!, emailId: Int!): Email! @internal
 
   """

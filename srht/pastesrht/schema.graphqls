@@ -21,6 +21,12 @@ directive @private on FIELD_DEFINITION
 "Used to provide a human-friendly description of an access scope."
 directive @scopehelp(details: String!) on ENUM_VALUE
 
+"""
+This used to decorate fields which are for internal use, and are not
+available to normal API users.
+"""
+directive @internal on FIELD_DEFINITION
+
 enum AccessScope {
   PROFILE @scopehelp(details: "profile information")
   PASTES  @scopehelp(details: "pastes")
@@ -37,7 +43,7 @@ read or write access. For the meta.sr.ht API, you have access to all public
 information without any special permissions - user profile information,
 public keys, and so on.
 """
-directive @access(scope: AccessScope!, kind: AccessKind!) on FIELD_DEFINITION | ENUM_VALUE
+directive @access(scope: AccessScope!, kind: AccessKind!) on FIELD_DEFINITION
 
 enum Visibility {
   "Visible to everyone, listed on your profile"
@@ -115,9 +121,9 @@ type OAuthClient {
 }
 
 enum WebhookEvent {
-  PASTE_CREATED @access(scope: PASTES, kind: RO)
-  PASTE_UPDATED @access(scope: PASTES, kind: RO)
-  PASTE_DELETED @access(scope: PASTES, kind: RO)
+  PASTE_CREATED
+  PASTE_UPDATED
+  PASTE_DELETED
 }
 
 interface WebhookSubscription {
@@ -288,4 +294,9 @@ type Mutation {
   unexpected behavior with the third-party integration.
   """
   deleteUserWebhook(id: Int!): WebhookSubscription!
+
+  """
+  Deletes the authenticated user's account. Internal use only.
+  """
+  deleteUser: Int! @internal
 }
