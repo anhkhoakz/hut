@@ -170,9 +170,9 @@ type OAuthClient {
 }
 
 enum WebhookEvent {
-  REPO_CREATED @access(scope: REPOSITORIES, kind: RO)
-  REPO_UPDATE  @access(scope: REPOSITORIES, kind: RO)
-  REPO_DELETED @access(scope: REPOSITORIES, kind: RO)
+  REPO_CREATED
+  REPO_UPDATE
+  REPO_DELETED
 }
 
 interface WebhookSubscription {
