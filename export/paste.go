@@ -113,7 +113,7 @@ func (ex *PasteExporter) exportFile(ctx context.Context, paste *pastesrht.Paste,
 	defer resp.Body.Close()
 
 	name := paste.Id
-	if file.Filename != nil {
+	if file.Filename != nil && *file.Filename != "" {
 		name = *file.Filename
 	}
 
