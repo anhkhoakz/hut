@@ -439,6 +439,16 @@ func RepositoriesByUser(client *gqlclient.Client, ctx context.Context, username 
 	return respData.User, err
 }
 
+func ExportRepositories(client *gqlclient.Client, ctx context.Context, cursor *Cursor) (repositories *RepositoryCursor, err error) {
+	op := gqlclient.NewOperation("query exportRepositories ($cursor: Cursor) {\n\trepositories(cursor: $cursor) {\n\t\tresults {\n\t\t\tname\n\t\t\towner {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t\tdescription\n\t\t\tvisibility\n\t\t\treadme\n\t\t\tnonPublishing\n\t\t}\n\t\tcursor\n\t}\n}\n")
+	op.Var("cursor", cursor)
+	var respData struct {
+		Repositories *RepositoryCursor
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Repositories, err
+}
+
 func UserWebhooks(client *gqlclient.Client, ctx context.Context, cursor *Cursor) (userWebhooks *WebhookSubscriptionCursor, err error) {
 	op := gqlclient.NewOperation("query userWebhooks ($cursor: Cursor) {\n\tuserWebhooks(cursor: $cursor) {\n\t\tresults {\n\t\t\tid\n\t\t\turl\n\t\t}\n\t\tcursor\n\t}\n}\n")
 	op.Var("cursor", cursor)

@@ -29,8 +29,10 @@ func NewHgExporter(client *gqlclient.Client, baseURL string) *HgExporter {
 // export (i.e. the ones filled in by the GraphQL query)
 type HgRepoInfo struct {
 	Info
-	Description *string           `json:"description"`
-	Visibility  hgsrht.Visibility `json:"visibility"`
+	Description   *string           `json:"description"`
+	Visibility    hgsrht.Visibility `json:"visibility"`
+	Readme        *string           `json:"readme"`
+	NonPublishing bool              `json:"nonPublishing"`
 }
 
 func (ex *HgExporter) Export(ctx context.Context, dir string) error {
@@ -41,7 +43,7 @@ func (ex *HgExporter) Export(ctx context.Context, dir string) error {
 
 	var cursor *hgsrht.Cursor
 	for {
-		repos, err := hgsrht.Repositories(ex.client, ctx, cursor)
+		repos, err := hgsrht.ExportRepositories(ex.client, ctx, cursor)
 		if err != nil {
 			return err
 		}
@@ -73,8 +75,10 @@ func (ex *HgExporter) Export(ctx context.Context, dir string) error {
 					Service: "hg.sr.ht",
 					Name:    repo.Name,
 				},
-				Description: repo.Description,
-				Visibility:  repo.Visibility,
+				Description:   repo.Description,
+				Visibility:    repo.Visibility,
+				Readme:        repo.Readme,
+				NonPublishing: repo.NonPublishing,
 			}
 			if err := writeJSON(infoPath, &repoInfo); err != nil {
 				return err
