@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"strings"
 
 	"git.sr.ht/~emersion/gqlclient"
 
@@ -29,6 +30,8 @@ type GitRepoInfo struct {
 	Info
 	Description *string            `json:"description"`
 	Visibility  gitsrht.Visibility `json:"visibility"`
+	Readme      *string            `json:"readme"`
+	Head        *string            `json:"head"`
 }
 
 func (ex *GitExporter) Export(ctx context.Context, dir string) error {
@@ -45,7 +48,7 @@ func (ex *GitExporter) Export(ctx context.Context, dir string) error {
 
 	var cursor *gitsrht.Cursor
 	for {
-		repos, err := gitsrht.Repositories(ex.client, ctx, cursor)
+		repos, err := gitsrht.ExportRepositories(ex.client, ctx, cursor)
 		if err != nil {
 			return err
 		}
@@ -71,6 +74,12 @@ func (ex *GitExporter) Export(ctx context.Context, dir string) error {
 				return err
 			}
 
+			var head *string
+			if repo.HEAD != nil {
+				h := strings.TrimPrefix(repo.HEAD.Name, "refs/heads/")
+				head = &h
+			}
+
 			repoInfo := GitRepoInfo{
 				Info: Info{
 					Service: "git.sr.ht",
@@ -78,6 +87,8 @@ func (ex *GitExporter) Export(ctx context.Context, dir string) error {
 				},
 				Description: repo.Description,
 				Visibility:  repo.Visibility,
+				Readme:      repo.Readme,
+				Head:        head,
 			}
 			if err := writeJSON(infoPath, &repoInfo); err != nil {
 				return err

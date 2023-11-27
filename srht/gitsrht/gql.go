@@ -675,6 +675,16 @@ func RepositoriesByUser(client *gqlclient.Client, ctx context.Context, username 
 	return respData.User, err
 }
 
+func ExportRepositories(client *gqlclient.Client, ctx context.Context, cursor *Cursor) (repositories *RepositoryCursor, err error) {
+	op := gqlclient.NewOperation("query exportRepositories ($cursor: Cursor) {\n\trepositories(cursor: $cursor) {\n\t\tresults {\n\t\t\tname\n\t\t\towner {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t\tdescription\n\t\t\tvisibility\n\t\t\treadme\n\t\t\tHEAD {\n\t\t\t\tname\n\t\t\t}\n\t\t}\n\t\tcursor\n\t}\n}\n")
+	op.Var("cursor", cursor)
+	var respData struct {
+		Repositories *RepositoryCursor
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Repositories, err
+}
+
 func SshSettings(client *gqlclient.Client, ctx context.Context) (version *Version, err error) {
 	op := gqlclient.NewOperation("query sshSettings {\n\tversion {\n\t\tsettings {\n\t\t\tsshUser\n\t\t}\n\t}\n}\n")
 	var respData struct {

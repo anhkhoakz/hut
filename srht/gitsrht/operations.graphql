@@ -102,10 +102,28 @@ fragment repos on RepositoryCursor {
         description
         visibility
         owner {
-          canonicalName
+            canonicalName
         }
     }
     cursor
+}
+
+query exportRepositories($cursor: Cursor) {
+    repositories(cursor: $cursor) {
+        results {
+            name
+            owner {
+                canonicalName
+            }
+            description
+            visibility
+            readme
+            HEAD {
+                name
+            }
+        }
+        cursor
+    }
 }
 
 query sshSettings {
