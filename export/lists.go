@@ -39,9 +39,10 @@ func NewListsExporter(client *gqlclient.Client, http *http.Client) *ListsExporte
 // export (i.e. the ones filled in by the GraphQL query)
 type MailingListInfo struct {
 	Info
-	Description *string  `json:"description"`
-	PermitMime  []string `json:"permitMime"`
-	RejectMime  []string `json:"rejectMime"`
+	Description *string              `json:"description"`
+	Visibility  listssrht.Visibility `json:"visibility"`
+	PermitMime  []string             `json:"permitMime"`
+	RejectMime  []string             `json:"rejectMime"`
 }
 
 func (ex *ListsExporter) Export(ctx context.Context, dir string) error {
@@ -118,6 +119,7 @@ func (ex *ListsExporter) exportList(ctx context.Context, list listssrht.MailingL
 			Name:    list.Name,
 		},
 		Description: list.Description,
+		Visibility:  list.Visibility,
 		PermitMime:  list.PermitMime,
 		RejectMime:  list.RejectMime,
 	}

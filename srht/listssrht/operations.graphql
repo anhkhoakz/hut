@@ -18,6 +18,7 @@ query exportMailingLists($cursor: Cursor) {
             results {
                 name
                 description
+                visibility
                 permitMime
                 rejectMime
                 archive
