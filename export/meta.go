@@ -78,5 +78,12 @@ func (ex *MetaExporter) Export(ctx context.Context, dir string) error {
 		}
 	}
 
+	if err := writeJSON(path.Join(dir, infoFilename), &Info{
+		Service: "meta.sr.ht",
+		Name:    me.CanonicalName,
+	}); err != nil {
+		return err
+	}
+
 	return nil
 }
