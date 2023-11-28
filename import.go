@@ -42,11 +42,17 @@ func newImportCommand() *cobra.Command {
 			log.Println("Using an SSH agent is advised to avoid unlocking your SSH keys repeatedly during the import.")
 		}
 
-		resources, err := export.FindDirResources(args[0])
-		if err != nil {
-			log.Fatalf("Failed to find resources to import: %v", err)
-		} else if len(resources) == 0 {
-			log.Fatal("No data found in directory")
+		var resources []export.DirResource
+		for _, dir := range args {
+			l, err := export.FindDirResources(dir)
+			if err != nil {
+				log.Fatalf("Failed to find resources to import in %q: %v", dir, err)
+			}
+			resources = append(resources, l...)
+		}
+
+		if len(resources) == 0 {
+			log.Fatal("No data found")
 		}
 
 		ctx := cmd.Context()
@@ -73,9 +79,9 @@ func newImportCommand() *cobra.Command {
 		log.Println("Import complete.")
 	}
 	return &cobra.Command{
-		Use:   "import <directory>",
+		Use:   "import <directory...>",
 		Short: "Imports your account data",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.MinimumNArgs(1),
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return nil, cobra.ShellCompDirectiveFilterDirs
 		},

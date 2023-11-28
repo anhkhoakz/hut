@@ -90,7 +90,7 @@ Additionally, mailing lists can be referred to by their email address.
 	an explicit list of instance services (e.g. "todo.sr.ht") or resources
 	(e.g. "todo.sr.ht/~user/tracker") can be specified.
 
-*import* <directory>
+*import* <directory...>
 	Import account data.
 
 ## builds
