@@ -471,6 +471,17 @@ func CreateRepository(client *gqlclient.Client, ctx context.Context, name string
 	return respData.CreateRepository, err
 }
 
+func UpdateRepository(client *gqlclient.Client, ctx context.Context, id int32, input RepoInput) (updateRepository *Repository, err error) {
+	op := gqlclient.NewOperation("mutation updateRepository ($id: Int!, $input: RepoInput!) {\n\tupdateRepository(id: $id, input: $input) {\n\t\tid\n\t}\n}\n")
+	op.Var("id", id)
+	op.Var("input", input)
+	var respData struct {
+		UpdateRepository *Repository
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.UpdateRepository, err
+}
+
 func DeleteRepository(client *gqlclient.Client, ctx context.Context, id int32) (deleteRepository *Repository, err error) {
 	op := gqlclient.NewOperation("mutation deleteRepository ($id: Int!) {\n\tdeleteRepository(id: $id) {\n\t\tname\n\t}\n}\n")
 	op.Var("id", id)

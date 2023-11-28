@@ -93,3 +93,43 @@ func (ex *HgExporter) Export(ctx context.Context, dir string) error {
 
 	return nil
 }
+
+func (ex *HgExporter) ImportResource(ctx context.Context, dir string) error {
+	baseURL, err := url.Parse(ex.baseURL)
+	if err != nil {
+		panic(err)
+	}
+
+	var info HgRepoInfo
+	if err := readJSON(path.Join(dir, infoFilename), &info); err != nil {
+		return err
+	}
+
+	description := ""
+	if info.Description != nil {
+		description = *info.Description
+	}
+
+	h, err := hgsrht.CreateRepository(ex.client, ctx, info.Name, info.Visibility, description)
+	if err != nil {
+		return fmt.Errorf("failed to create Mercurial repository: %v", err)
+	}
+
+	clonePath := path.Join(dir, hgRepositoryDir)
+	cloneURL := fmt.Sprintf("ssh://hg@%s/%s/%s", baseURL.Host, h.Owner.CanonicalName, info.Name)
+
+	cmd := exec.Command("hg", "push", "--cwd", clonePath, cloneURL)
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to push Mercurial repository: %v", err)
+	}
+
+	if _, err := hgsrht.UpdateRepository(ex.client, ctx, h.Id, hgsrht.RepoInput{
+		Readme:        info.Readme,
+		NonPublishing: &info.NonPublishing,
+	}); err != nil {
+		return fmt.Errorf("failed to update Mercurial repository: %v", err)
+	}
+
+	return nil
+}

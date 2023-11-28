@@ -242,6 +242,7 @@ mutation createRepository(
         description: $description
         cloneUrl: $cloneUrl
     ) {
+        id
         owner {
             canonicalName
         }

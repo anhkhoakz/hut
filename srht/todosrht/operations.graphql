@@ -592,6 +592,22 @@ mutation createTracker(
     }
 }
 
+mutation importTracker(
+    $name: String!
+    $description: String
+    $visibility: Visibility!
+    $dump: Upload!
+) {
+    createTracker(
+        name: $name
+        description: $description
+        visibility: $visibility
+        importUpload: $dump
+    ) {
+        id
+    }
+}
+
 mutation deleteTicket($trackerId: Int!, $ticketId: Int!) {
     deleteTicket(trackerId: $trackerId, ticketId: $ticketId) {
         subject

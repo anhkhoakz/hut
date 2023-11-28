@@ -45,6 +45,7 @@ func main() {
 	cmd.AddCommand(newGitCommand())
 	cmd.AddCommand(newGraphqlCommand())
 	cmd.AddCommand(newHgCommand())
+	cmd.AddCommand(newImportCommand())
 	cmd.AddCommand(newInitCommand())
 	cmd.AddCommand(newListsCommand())
 	cmd.AddCommand(newMetaCommand())

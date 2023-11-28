@@ -1396,6 +1396,19 @@ func CreateTracker(client *gqlclient.Client, ctx context.Context, name string, d
 	return respData.CreateTracker, err
 }
 
+func ImportTracker(client *gqlclient.Client, ctx context.Context, name string, description *string, visibility Visibility, dump gqlclient.Upload) (createTracker *Tracker, err error) {
+	op := gqlclient.NewOperation("mutation importTracker ($name: String!, $description: String, $visibility: Visibility!, $dump: Upload!) {\n\tcreateTracker(name: $name, description: $description, visibility: $visibility, importUpload: $dump) {\n\t\tid\n\t}\n}\n")
+	op.Var("name", name)
+	op.Var("description", description)
+	op.Var("visibility", visibility)
+	op.Var("dump", dump)
+	var respData struct {
+		CreateTracker *Tracker
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.CreateTracker, err
+}
+
 func DeleteTicket(client *gqlclient.Client, ctx context.Context, trackerId int32, ticketId int32) (deleteTicket *Ticket, err error) {
 	op := gqlclient.NewOperation("mutation deleteTicket ($trackerId: Int!, $ticketId: Int!) {\n\tdeleteTicket(trackerId: $trackerId, ticketId: $ticketId) {\n\t\tsubject\n\t}\n}\n")
 	op.Var("trackerId", trackerId)

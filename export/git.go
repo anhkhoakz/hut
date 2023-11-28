@@ -15,6 +15,8 @@ import (
 	"git.sr.ht/~emersion/hut/srht/gitsrht"
 )
 
+const gitRepositoryDir = "repository.git"
+
 type GitExporter struct {
 	client  *gqlclient.Client
 	baseURL string
@@ -57,7 +59,7 @@ func (ex *GitExporter) Export(ctx context.Context, dir string) error {
 		for _, repo := range repos.Results {
 			repoPath := path.Join(dir, repo.Name)
 			infoPath := path.Join(repoPath, infoFilename)
-			clonePath := path.Join(repoPath, "repository.git")
+			clonePath := path.Join(repoPath, gitRepositoryDir)
 			cloneURL := fmt.Sprintf("%s@%s:%s/%s", sshUser, baseURL.Host, repo.Owner.CanonicalName, repo.Name)
 
 			if _, err := os.Stat(clonePath); err == nil {
@@ -99,6 +101,46 @@ func (ex *GitExporter) Export(ctx context.Context, dir string) error {
 		if cursor == nil {
 			break
 		}
+	}
+
+	return nil
+}
+
+func (ex *GitExporter) ImportResource(ctx context.Context, dir string) error {
+	settings, err := gitsrht.SshSettings(ex.client, ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get Git SSH settings: %v", err)
+	}
+	sshUser := settings.Settings.SshUser
+
+	baseURL, err := url.Parse(ex.baseURL)
+	if err != nil {
+		panic(err)
+	}
+
+	var info GitRepoInfo
+	if err := readJSON(path.Join(dir, infoFilename), &info); err != nil {
+		return err
+	}
+
+	g, err := gitsrht.CreateRepository(ex.client, ctx, info.Name, info.Visibility, info.Description, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create Git repository: %v", err)
+	}
+
+	clonePath := path.Join(dir, gitRepositoryDir)
+	cloneURL := fmt.Sprintf("%s@%s:%s/%s", sshUser, baseURL.Host, g.Owner.CanonicalName, info.Name)
+
+	cmd := exec.Command("git", "-C", clonePath, "push", "--mirror", cloneURL)
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to push Git repository: %v", err)
+	}
+
+	if _, err := gitsrht.UpdateRepository(ex.client, ctx, g.Id, gitsrht.RepoInput{
+		Readme: info.Readme,
+		HEAD:   info.Head,
+	}); err != nil {
+		return fmt.Errorf("failed to update Git repository: %v", err)
 	}
 
 	return nil

@@ -16,6 +16,8 @@ import (
 	"git.sr.ht/~emersion/hut/srht/todosrht"
 )
 
+const trackerFilename = "tracker.json.gz"
+
 type TodoExporter struct {
 	client *gqlclient.Client
 	http   *http.Client
@@ -76,7 +78,7 @@ func (ex *TodoExporter) exportTracker(ctx context.Context, tracker todosrht.Trac
 		return nil
 	}
 
-	dataPath := path.Join(base, "tracker.json.gz")
+	dataPath := path.Join(base, trackerFilename)
 	log.Printf("\t%s", tracker.Name)
 	if err := os.MkdirAll(base, 0o755); err != nil {
 		return err
@@ -115,6 +117,34 @@ func (ex *TodoExporter) exportTracker(ctx context.Context, tracker todosrht.Trac
 	}
 	if err := writeJSON(infoPath, &trackerInfo); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (ex *TodoExporter) ImportResource(ctx context.Context, dir string) error {
+	var info TrackerInfo
+	if err := readJSON(path.Join(dir, infoFilename), &info); err != nil {
+		return err
+	}
+
+	return ex.importTracker(ctx, &info, dir)
+}
+
+func (ex *TodoExporter) importTracker(ctx context.Context, tracker *TrackerInfo, base string) error {
+	f, err := os.Open(path.Join(base, trackerFilename))
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	_, err = todosrht.ImportTracker(ex.client, ctx, tracker.Name, tracker.Description, tracker.Visibility, gqlclient.Upload{
+		Filename: trackerFilename,
+		MIMEType: "application/gzip",
+		Body:     f,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to import issue tracker: %v", err)
 	}
 
 	return nil

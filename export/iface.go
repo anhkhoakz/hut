@@ -3,7 +3,9 @@ package export
 import (
 	"context"
 	"encoding/json"
+	"io/fs"
 	"os"
+	"path/filepath"
 )
 
 const infoFilename = "info.json"
@@ -15,6 +17,7 @@ type Info struct {
 
 type Exporter interface {
 	Export(ctx context.Context, dir string) error
+	ImportResource(ctx context.Context, dir string) error
 }
 
 type partialError struct {
@@ -37,4 +40,51 @@ func writeJSON(filename string, v interface{}) error {
 	}
 
 	return f.Close()
+}
+
+func readJSON(filename string, v interface{}) error {
+	f, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	return json.NewDecoder(f).Decode(v)
+}
+
+type DirResource struct {
+	Info
+	Path string
+}
+
+func FindDirResources(dir string) ([]DirResource, error) {
+	var l []DirResource
+	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !d.IsDir() {
+			return nil
+		}
+
+		f, err := os.Open(filepath.Join(path, infoFilename))
+		if os.IsNotExist(err) {
+			return nil
+		} else if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		var info Info
+		if err := json.NewDecoder(f).Decode(&info); err != nil {
+			return err
+		}
+
+		l = append(l, DirResource{
+			Info: info,
+			Path: path,
+		})
+		return filepath.SkipDir
+	})
+	return l, err
 }

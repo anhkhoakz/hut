@@ -16,6 +16,8 @@ import (
 	"git.sr.ht/~emersion/hut/srht/pastesrht"
 )
 
+const pasteFilesDir = "files"
+
 type PasteExporter struct {
 	client *gqlclient.Client
 	http   *http.Client
@@ -75,7 +77,7 @@ func (ex *PasteExporter) exportPaste(ctx context.Context, paste *pastesrht.Paste
 	}
 
 	log.Printf("\t%s", paste.Id)
-	files := path.Join(base, "files")
+	files := path.Join(base, pasteFilesDir)
 	if err := os.MkdirAll(files, 0o755); err != nil {
 		return err
 	}
@@ -132,5 +134,55 @@ func (ex *PasteExporter) exportFile(ctx context.Context, paste *pastesrht.Paste,
 		return err
 	}
 
+	return nil
+}
+
+func (ex *PasteExporter) ImportResource(ctx context.Context, dir string) error {
+	var info PasteInfo
+	if err := readJSON(path.Join(dir, infoFilename), &info); err != nil {
+		return err
+	}
+
+	return ex.importPaste(ctx, &info, dir)
+}
+
+func (ex *PasteExporter) importPaste(ctx context.Context, paste *PasteInfo, base string) error {
+	filesPath := path.Join(base, pasteFilesDir)
+	items, err := os.ReadDir(filesPath)
+	if err != nil {
+		return err
+	}
+
+	var files []gqlclient.Upload
+	for _, item := range items {
+		if item.IsDir() {
+			continue
+		}
+
+		f, err := os.Open(path.Join(filesPath, item.Name()))
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		var name string
+		if item.Name() != paste.Name {
+			name = item.Name()
+		}
+
+		files = append(files, gqlclient.Upload{
+			Filename: name,
+			// MIMEType is not used by the API, except for checking that it is a "text".
+			// Parsing the MIME type from the extension would cause issues: ".json" is parsed as "application/json",
+			// which gets rejected because it is not a "text/".
+			// Since the API does not use the type besides that, always send a dummy text value.
+			MIMEType: "text/plain",
+			Body:     f,
+		})
+	}
+
+	if _, err := pastesrht.CreatePaste(ex.client, ctx, files, paste.Visibility); err != nil {
+		return fmt.Errorf("failed to create paste: %v", err)
+	}
 	return nil
 }

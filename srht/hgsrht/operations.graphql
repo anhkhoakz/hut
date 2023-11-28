@@ -76,7 +76,17 @@ mutation createRepository(
         visibility: $visibility
         description: $description
     ) {
+        id
         name
+        owner {
+            canonicalName
+        }
+    }
+}
+
+mutation updateRepository($id: Int!, $input: RepoInput!) {
+    updateRepository(id: $id, input: $input) {
+        id
     }
 }
 

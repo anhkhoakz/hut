@@ -86,6 +86,9 @@ Additionally, mailing lists can be referred to by their email address.
 *export* <directory>
 	Export account data.
 
+*import* <directory>
+	Import account data.
+
 ## builds
 
 *artifacts* <ID>

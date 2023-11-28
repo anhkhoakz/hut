@@ -16,6 +16,8 @@ import (
 	"git.sr.ht/~emersion/hut/srht/listssrht"
 )
 
+const archiveFilename = "archive.mbox"
+
 type ListsExporter struct {
 	client *gqlclient.Client
 	http   *http.Client
@@ -104,7 +106,7 @@ func (ex *ListsExporter) exportList(ctx context.Context, list listssrht.MailingL
 			list.Name, resp.StatusCode)}
 	}
 
-	archive, err := os.Create(path.Join(base, "archive.mbox"))
+	archive, err := os.Create(path.Join(base, archiveFilename))
 	if err != nil {
 		return err
 	}
@@ -125,6 +127,45 @@ func (ex *ListsExporter) exportList(ctx context.Context, list listssrht.MailingL
 	}
 	if err := writeJSON(infoPath, &listInfo); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (ex *ListsExporter) ImportResource(ctx context.Context, dir string) error {
+	var info MailingListInfo
+	if err := readJSON(path.Join(dir, infoFilename), &info); err != nil {
+		return err
+	}
+
+	return ex.importList(ctx, &info, dir)
+}
+
+func (ex *ListsExporter) importList(ctx context.Context, list *MailingListInfo, base string) error {
+	l, err := listssrht.CreateMailingList(ex.client, ctx, list.Name, list.Description, list.Visibility)
+	if err != nil {
+		return fmt.Errorf("failed to create mailing list: %v", err)
+	}
+
+	if _, err := listssrht.UpdateMailingList(ex.client, ctx, l.Id, listssrht.MailingListInput{
+		PermitMime: list.PermitMime,
+		RejectMime: list.RejectMime,
+	}); err != nil {
+		return fmt.Errorf("failed to update mailing list: %v", err)
+	}
+
+	archive, err := os.Open(path.Join(base, archiveFilename))
+	if err != nil {
+		return err
+	}
+	defer archive.Close()
+
+	if _, err := listssrht.ImportMailingListSpool(ex.client, ctx, l.Id, gqlclient.Upload{
+		Filename: archiveFilename,
+		MIMEType: "application/mbox",
+		Body:     archive,
+	}); err != nil {
+		return fmt.Errorf("failed to import mailing list emails: %v", err)
 	}
 
 	return nil

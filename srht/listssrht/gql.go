@@ -983,7 +983,7 @@ func DeleteACL(client *gqlclient.Client, ctx context.Context, id int32) (deleteA
 }
 
 func CreateMailingList(client *gqlclient.Client, ctx context.Context, name string, description *string, visibility Visibility) (createMailingList *MailingList, err error) {
-	op := gqlclient.NewOperation("mutation createMailingList ($name: String!, $description: String, $visibility: Visibility!) {\n\tcreateMailingList(name: $name, description: $description, visibility: $visibility) {\n\t\tname\n\t}\n}\n")
+	op := gqlclient.NewOperation("mutation createMailingList ($name: String!, $description: String, $visibility: Visibility!) {\n\tcreateMailingList(name: $name, description: $description, visibility: $visibility) {\n\t\tid\n\t\tname\n\t}\n}\n")
 	op.Var("name", name)
 	op.Var("description", description)
 	op.Var("visibility", visibility)
@@ -992,6 +992,28 @@ func CreateMailingList(client *gqlclient.Client, ctx context.Context, name strin
 	}
 	err = client.Execute(ctx, op, &respData)
 	return respData.CreateMailingList, err
+}
+
+func UpdateMailingList(client *gqlclient.Client, ctx context.Context, id int32, input MailingListInput) (updateMailingList *MailingList, err error) {
+	op := gqlclient.NewOperation("mutation updateMailingList ($id: Int!, $input: MailingListInput!) {\n\tupdateMailingList(id: $id, input: $input) {\n\t\tid\n\t}\n}\n")
+	op.Var("id", id)
+	op.Var("input", input)
+	var respData struct {
+		UpdateMailingList *MailingList
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.UpdateMailingList, err
+}
+
+func ImportMailingListSpool(client *gqlclient.Client, ctx context.Context, id int32, spool gqlclient.Upload) (importMailingListSpool bool, err error) {
+	op := gqlclient.NewOperation("mutation importMailingListSpool ($id: Int!, $spool: Upload!) {\n\timportMailingListSpool(listID: $id, spool: $spool)\n}\n")
+	op.Var("id", id)
+	op.Var("spool", spool)
+	var respData struct {
+		ImportMailingListSpool bool
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.ImportMailingListSpool, err
 }
 
 func CreateUserWebhook(client *gqlclient.Client, ctx context.Context, config UserWebhookInput) (createUserWebhook *WebhookSubscription, err error) {

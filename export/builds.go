@@ -167,3 +167,7 @@ func (ex *BuildsExporter) exportTask(ctx context.Context, client *http.Client, j
 
 	return nil
 }
+
+func (ex *BuildsExporter) ImportResource(ctx context.Context, dir string) error {
+	panic("not implemented")
+}

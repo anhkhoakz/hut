@@ -341,8 +341,19 @@ mutation createMailingList(
         description: $description
         visibility: $visibility
     ) {
+        id
         name
     }
+}
+
+mutation updateMailingList($id: Int!, $input: MailingListInput!) {
+    updateMailingList(id: $id, input: $input) {
+        id
+    }
+}
+
+mutation importMailingListSpool($id: Int!, $spool: Upload!) {
+    importMailingListSpool(listID: $id, spool: $spool)
 }
 
 mutation createUserWebhook($config: UserWebhookInput!) {
