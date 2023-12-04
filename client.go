@@ -16,9 +16,8 @@ import (
 type Client struct {
 	*gqlclient.Client
 
-	Hostname string
-	BaseURL  string
-	HTTP     *http.Client
+	BaseURL string
+	HTTP    *http.Client
 }
 
 func createClient(service string, cmd *cobra.Command) *Client {
