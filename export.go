@@ -110,13 +110,9 @@ func newExportCommand() *cobra.Command {
 func writeExportStamp(path string, info *ExportInfo) error {
 	file, err := os.Create(path)
 	if err != nil {
-		log.Fatalf("Failed to create export info: %s", err.Error())
+		return err
 	}
 	defer file.Close()
 
-	err = json.NewEncoder(file).Encode(info)
-	if err != nil {
-		log.Fatalf("Failed to marshal export info: %s", err.Error())
-	}
-	return nil
+	return json.NewEncoder(file).Encode(info)
 }
