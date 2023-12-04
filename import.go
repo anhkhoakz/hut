@@ -4,7 +4,6 @@ import (
 	"github.com/spf13/cobra"
 	"log"
 	"os"
-	"path/filepath"
 
 	"git.sr.ht/~emersion/hut/export"
 )
@@ -71,7 +70,7 @@ func newImportCommand() *cobra.Command {
 			}
 
 			log.Printf("\t%s", res.Name)
-			if err := importer.ImportResource(ctx, filepath.Dir(res.Path)); err != nil {
+			if err := importer.ImportResource(ctx, res.Path); err != nil {
 				log.Printf("Error importing %q: %v", res.Path, err)
 			}
 		}
