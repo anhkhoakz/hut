@@ -675,8 +675,19 @@ func RepositoriesByUser(client *gqlclient.Client, ctx context.Context, username 
 	return respData.User, err
 }
 
+func ExportRepository(client *gqlclient.Client, ctx context.Context, username string, name string) (user *User, err error) {
+	op := gqlclient.NewOperation("query exportRepository ($username: String!, $name: String!) {\n\tuser(username: $username) {\n\t\trepository(name: $name) {\n\t\t\t... repositoryExport\n\t\t}\n\t}\n}\nfragment repositoryExport on Repository {\n\tname\n\towner {\n\t\tcanonicalName\n\t}\n\tdescription\n\tvisibility\n\treadme\n\tHEAD {\n\t\tname\n\t}\n}\n")
+	op.Var("username", username)
+	op.Var("name", name)
+	var respData struct {
+		User *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.User, err
+}
+
 func ExportRepositories(client *gqlclient.Client, ctx context.Context, cursor *Cursor) (repositories *RepositoryCursor, err error) {
-	op := gqlclient.NewOperation("query exportRepositories ($cursor: Cursor) {\n\trepositories(cursor: $cursor) {\n\t\tresults {\n\t\t\tname\n\t\t\towner {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t\tdescription\n\t\t\tvisibility\n\t\t\treadme\n\t\t\tHEAD {\n\t\t\t\tname\n\t\t\t}\n\t\t}\n\t\tcursor\n\t}\n}\n")
+	op := gqlclient.NewOperation("query exportRepositories ($cursor: Cursor) {\n\trepositories(cursor: $cursor) {\n\t\tresults {\n\t\t\t... repositoryExport\n\t\t}\n\t\tcursor\n\t}\n}\nfragment repositoryExport on Repository {\n\tname\n\towner {\n\t\tcanonicalName\n\t}\n\tdescription\n\tvisibility\n\treadme\n\tHEAD {\n\t\tname\n\t}\n}\n")
 	op.Var("cursor", cursor)
 	var respData struct {
 		Repositories *RepositoryCursor

@@ -18,12 +18,16 @@ import (
 const gitRepositoryDir = "repository.git"
 
 type GitExporter struct {
-	client  *gqlclient.Client
-	baseURL string
+	client       *gqlclient.Client
+	baseURL      string
+	baseCloneURL string
 }
 
 func NewGitExporter(client *gqlclient.Client, baseURL string) *GitExporter {
-	return &GitExporter{client, baseURL}
+	return &GitExporter{
+		client:  client,
+		baseURL: baseURL,
+	}
 }
 
 // A subset of gitsrht.Repository which only contains the fields we want to
@@ -37,17 +41,6 @@ type GitRepoInfo struct {
 }
 
 func (ex *GitExporter) Export(ctx context.Context, dir string) error {
-	settings, err := gitsrht.SshSettings(ex.client, ctx)
-	if err != nil {
-		return err
-	}
-	sshUser := settings.Settings.SshUser
-
-	baseURL, err := url.Parse(ex.baseURL)
-	if err != nil {
-		panic(err)
-	}
-
 	var cursor *gitsrht.Cursor
 	for {
 		repos, err := gitsrht.ExportRepositories(ex.client, ctx, cursor)
@@ -55,44 +48,9 @@ func (ex *GitExporter) Export(ctx context.Context, dir string) error {
 			return err
 		}
 
-		// TODO: Should we fetch & store ACLs?
 		for _, repo := range repos.Results {
-			repoPath := path.Join(dir, repo.Name)
-			infoPath := path.Join(repoPath, infoFilename)
-			clonePath := path.Join(repoPath, gitRepositoryDir)
-			cloneURL := fmt.Sprintf("%s@%s:%s/%s", sshUser, baseURL.Host, repo.Owner.CanonicalName, repo.Name)
-
-			if _, err := os.Stat(clonePath); err == nil {
-				log.Printf("\tSkipping %s (already exists)", repo.Name)
-				continue
-			}
-			if err := os.MkdirAll(repoPath, 0o755); err != nil {
-				return err
-			}
-
-			log.Printf("\tCloning %s", repo.Name)
-			cmd := exec.Command("git", "clone", "--mirror", cloneURL, clonePath)
-			if err := cmd.Run(); err != nil {
-				return err
-			}
-
-			var head *string
-			if repo.HEAD != nil {
-				h := strings.TrimPrefix(repo.HEAD.Name, "refs/heads/")
-				head = &h
-			}
-
-			repoInfo := GitRepoInfo{
-				Info: Info{
-					Service: "git.sr.ht",
-					Name:    repo.Name,
-				},
-				Description: repo.Description,
-				Visibility:  repo.Visibility,
-				Readme:      repo.Readme,
-				Head:        head,
-			}
-			if err := writeJSON(infoPath, &repoInfo); err != nil {
+			base := path.Join(dir, repo.Name)
+			if err := ex.exportRepository(ctx, &repo, base); err != nil {
 				return err
 			}
 		}
@@ -102,8 +60,69 @@ func (ex *GitExporter) Export(ctx context.Context, dir string) error {
 			break
 		}
 	}
-
 	return nil
+}
+
+func (ex *GitExporter) ExportResource(ctx context.Context, dir, owner, resource string) error {
+	user, err := gitsrht.ExportRepository(ex.client, ctx, owner, resource)
+	if err != nil {
+		return err
+	}
+	return ex.exportRepository(ctx, user.Repository, dir)
+}
+
+func (ex *GitExporter) exportRepository(ctx context.Context, repo *gitsrht.Repository, base string) error {
+	// Cache base clone URL in exporter.
+	if ex.baseCloneURL == "" {
+		settings, err := gitsrht.SshSettings(ex.client, ctx)
+		if err != nil {
+			return err
+		}
+		sshUser := settings.Settings.SshUser
+
+		baseURL, err := url.Parse(ex.baseURL)
+		if err != nil {
+			panic(err)
+		}
+		ex.baseCloneURL = fmt.Sprintf("%s@%s", sshUser, baseURL.Host)
+	}
+
+	// TODO: Should we fetch & store ACLs?
+	infoPath := path.Join(base, infoFilename)
+	clonePath := path.Join(base, gitRepositoryDir)
+	cloneURL := fmt.Sprintf("%s:%s/%s", ex.baseCloneURL, repo.Owner.CanonicalName, repo.Name)
+
+	if _, err := os.Stat(clonePath); err == nil {
+		log.Printf("\tSkipping %s (already exists)", repo.Name)
+		return nil
+	}
+	if err := os.MkdirAll(base, 0o755); err != nil {
+		return err
+	}
+
+	log.Printf("\tCloning %s", repo.Name)
+	cmd := exec.CommandContext(ctx, "git", "clone", "--mirror", cloneURL, clonePath)
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+
+	var head *string
+	if repo.HEAD != nil {
+		h := strings.TrimPrefix(repo.HEAD.Name, "refs/heads/")
+		head = &h
+	}
+
+	repoInfo := GitRepoInfo{
+		Info: Info{
+			Service: "git.sr.ht",
+			Name:    repo.Name,
+		},
+		Description: repo.Description,
+		Visibility:  repo.Visibility,
+		Readme:      repo.Readme,
+		Head:        head,
+	}
+	return writeJSON(infoPath, &repoInfo)
 }
 
 func (ex *GitExporter) ImportResource(ctx context.Context, dir string) error {

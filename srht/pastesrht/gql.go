@@ -343,13 +343,23 @@ func Pastes(client *gqlclient.Client, ctx context.Context, cursor *Cursor) (past
 }
 
 func PasteContents(client *gqlclient.Client, ctx context.Context, cursor *Cursor) (pastes *PasteCursor, err error) {
-	op := gqlclient.NewOperation("query pasteContents ($cursor: Cursor) {\n\tpastes(cursor: $cursor) {\n\t\tresults {\n\t\t\tid\n\t\t\tcreated\n\t\t\tvisibility\n\t\t\tfiles {\n\t\t\t\tfilename\n\t\t\t\tcontents\n\t\t\t}\n\t\t}\n\t\tcursor\n\t}\n}\n")
+	op := gqlclient.NewOperation("query pasteContents ($cursor: Cursor) {\n\tpastes(cursor: $cursor) {\n\t\tresults {\n\t\t\t... pasteContents\n\t\t}\n\t\tcursor\n\t}\n}\nfragment pasteContents on Paste {\n\tid\n\tcreated\n\tvisibility\n\tfiles {\n\t\tfilename\n\t\tcontents\n\t}\n}\n")
 	op.Var("cursor", cursor)
 	var respData struct {
 		Pastes *PasteCursor
 	}
 	err = client.Execute(ctx, op, &respData)
 	return respData.Pastes, err
+}
+
+func PasteContentsByID(client *gqlclient.Client, ctx context.Context, id string) (paste *Paste, err error) {
+	op := gqlclient.NewOperation("query pasteContentsByID ($id: String!) {\n\tpaste(id: $id) {\n\t\t... pasteContents\n\t}\n}\nfragment pasteContents on Paste {\n\tid\n\tcreated\n\tvisibility\n\tfiles {\n\t\tfilename\n\t\tcontents\n\t}\n}\n")
+	op.Var("id", id)
+	var respData struct {
+		Paste *Paste
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Paste, err
 }
 
 func PasteCompletionList(client *gqlclient.Client, ctx context.Context) (pastes *PasteCursor, err error) {

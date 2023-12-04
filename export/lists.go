@@ -63,7 +63,7 @@ func (ex *ListsExporter) Export(ctx context.Context, dir string) error {
 				return err
 			}
 
-			if err := ex.exportList(ctx, list, base); err != nil {
+			if err := ex.exportList(ctx, &list, base); err != nil {
 				var pe partialError
 				if errors.As(err, &pe) {
 					ret = err
@@ -82,7 +82,15 @@ func (ex *ListsExporter) Export(ctx context.Context, dir string) error {
 	return ret
 }
 
-func (ex *ListsExporter) exportList(ctx context.Context, list listssrht.MailingList, base string) error {
+func (ex *ListsExporter) ExportResource(ctx context.Context, dir, owner, resource string) error {
+	user, err := listssrht.ExportMailingList(ex.client, ctx, owner, resource)
+	if err != nil {
+		return err
+	}
+	return ex.exportList(ctx, user.List, dir)
+}
+
+func (ex *ListsExporter) exportList(ctx context.Context, list *listssrht.MailingList, base string) error {
 	infoPath := path.Join(base, infoFilename)
 	if _, err := os.Stat(infoPath); err == nil {
 		log.Printf("\tSkipping %s (already exists)", list.Name)

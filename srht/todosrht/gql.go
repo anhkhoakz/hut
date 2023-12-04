@@ -937,8 +937,19 @@ func TrackersByUser(client *gqlclient.Client, ctx context.Context, username stri
 	return respData.User, err
 }
 
+func ExportTracker(client *gqlclient.Client, ctx context.Context, username string, name string) (user *User, err error) {
+	op := gqlclient.NewOperation("query exportTracker ($username: String!, $name: String!) {\n\tuser(username: $username) {\n\t\ttracker(name: $name) {\n\t\t\t... trackerExport\n\t\t}\n\t}\n}\nfragment trackerExport on Tracker {\n\tname\n\tdescription\n\tvisibility\n\texport\n}\n")
+	op.Var("username", username)
+	op.Var("name", name)
+	var respData struct {
+		User *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.User, err
+}
+
 func ExportTrackers(client *gqlclient.Client, ctx context.Context, cursor *Cursor) (trackers *TrackerCursor, err error) {
-	op := gqlclient.NewOperation("query exportTrackers ($cursor: Cursor) {\n\ttrackers(cursor: $cursor) {\n\t\tresults {\n\t\t\tname\n\t\t\tdescription\n\t\t\tvisibility\n\t\t\texport\n\t\t}\n\t\tcursor\n\t}\n}\n")
+	op := gqlclient.NewOperation("query exportTrackers ($cursor: Cursor) {\n\ttrackers(cursor: $cursor) {\n\t\tresults {\n\t\t\t... trackerExport\n\t\t}\n\t\tcursor\n\t}\n}\nfragment trackerExport on Tracker {\n\tname\n\tdescription\n\tvisibility\n\texport\n}\n")
 	op.Var("cursor", cursor)
 	var respData struct {
 		Trackers *TrackerCursor

@@ -635,8 +635,18 @@ func JobsByUser(client *gqlclient.Client, ctx context.Context, username string, 
 	return respData.UserByName, err
 }
 
+func ExportJob(client *gqlclient.Client, ctx context.Context, id int32) (job *Job, err error) {
+	op := gqlclient.NewOperation("query exportJob ($id: Int!) {\n\tjob(id: $id) {\n\t\t... jobExport\n\t}\n}\nfragment jobExport on Job {\n\tid\n\tstatus\n\tnote\n\ttags\n\tvisibility\n\tlog {\n\t\tfullURL\n\t}\n\ttasks {\n\t\tname\n\t\tstatus\n\t\tlog {\n\t\t\tfullURL\n\t\t}\n\t}\n}\n")
+	op.Var("id", id)
+	var respData struct {
+		Job *Job
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Job, err
+}
+
 func ExportJobs(client *gqlclient.Client, ctx context.Context, cursor *Cursor) (jobs *JobCursor, err error) {
-	op := gqlclient.NewOperation("query exportJobs ($cursor: Cursor) {\n\tjobs(cursor: $cursor) {\n\t\tresults {\n\t\t\tid\n\t\t\tstatus\n\t\t\tnote\n\t\t\ttags\n\t\t\tvisibility\n\t\t\tlog {\n\t\t\t\tfullURL\n\t\t\t}\n\t\t\ttasks {\n\t\t\t\tname\n\t\t\t\tstatus\n\t\t\t\tlog {\n\t\t\t\t\tfullURL\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\tcursor\n\t}\n}\n")
+	op := gqlclient.NewOperation("query exportJobs ($cursor: Cursor) {\n\tjobs(cursor: $cursor) {\n\t\tresults {\n\t\t\t... jobExport\n\t\t}\n\t\tcursor\n\t}\n}\nfragment jobExport on Job {\n\tid\n\tstatus\n\tnote\n\ttags\n\tvisibility\n\tlog {\n\t\tfullURL\n\t}\n\ttasks {\n\t\tname\n\t\tstatus\n\t\tlog {\n\t\t\tfullURL\n\t\t}\n\t}\n}\n")
 	op.Var("cursor", cursor)
 	var respData struct {
 		Jobs *JobCursor

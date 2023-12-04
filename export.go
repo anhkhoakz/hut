@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -28,8 +31,6 @@ func newExportCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		var exporters []exporter
 
-		// TODO: Allow exporting a subset of all services (maybe meta should
-		// provide a list of services configured for that instance?)
 		mc := createClient("meta", cmd)
 		meta := export.NewMetaExporter(mc.Client)
 		exporters = append(exporters, exporter{meta, "meta.sr.ht", mc.BaseURL})
@@ -66,45 +67,94 @@ func newExportCommand() *cobra.Command {
 		ctx := cmd.Context()
 		log.Println("Exporting account data...")
 
-		for _, ex := range exporters {
-			log.Println(ex.Name)
+		out := args[0]
+		resources := args[1:]
 
-			base := path.Join(args[0], ex.Name)
-			if err := os.MkdirAll(base, 0o755); err != nil {
-				log.Fatalf("Failed to create export directory: %s", err.Error())
-			}
-
-			stamp := path.Join(base, "service.json")
-			if _, err := os.Stat(stamp); err == nil {
-				log.Printf("Skipping %s (already exported)", ex.Name)
-				continue
-			}
-
-			if err := ex.Export(ctx, base); err != nil {
-				log.Printf("Error exporting %s: %s", ex.Name, err.Error())
-				continue
-			}
-
-			info := ExportInfo{
-				Instance: ex.BaseURL,
-				Service:  ex.Name,
-				Date:     time.Now().UTC(),
-			}
-			if err := writeExportStamp(stamp, &info); err != nil {
-				log.Printf("Error writing stamp for %s: %s", ex.Name, err.Error())
+		// Export all services by default
+		if len(resources) == 0 {
+			for _, ex := range exporters {
+				resources = append(resources, ex.BaseURL)
 			}
 		}
+
+		for _, resource := range resources {
+			log.Println(resource)
+
+			var name, owner, instance string
+			if res := stripProtocol(resource); !strings.Contains(res, "/") {
+				instance = res
+			} else {
+				name, owner, instance = parseResourceName(resource)
+				owner = strings.TrimLeft(owner, ownerPrefixes)
+			}
+
+			var ex *exporter
+			for _, e := range exporters {
+				if stripProtocol(e.BaseURL) == instance {
+					ex = &e
+					break
+				}
+			}
+			if ex == nil {
+				log.Fatalf("Unknown resource instance: %s", resource)
+			}
+
+			var err error
+			if name == "" && owner == "" {
+				err = exportService(ctx, out, ex)
+			} else if name != "" && owner != "" {
+				err = exportResource(ctx, out, ex, owner, name)
+			} else {
+				err = fmt.Errorf("unknown resource")
+			}
+			if err != nil {
+				log.Printf("Failed to export %q: %v", resource, err)
+			}
+		}
+
 		log.Println("Export complete.")
 	}
 	return &cobra.Command{
-		Use:   "export <directory>",
+		Use:   "export <directory> [resource|service...]",
 		Short: "Exports your account data",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.MinimumNArgs(1),
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return nil, cobra.ShellCompDirectiveFilterDirs
+			if len(args) <= 1 {
+				return nil, cobra.ShellCompDirectiveFilterDirs
+			}
+			// TODO: completion on export resources
+			return nil, cobra.ShellCompDirectiveNoFileComp
 		},
 		Run: run,
 	}
+}
+
+func exportService(ctx context.Context, out string, ex *exporter) error {
+	base := path.Join(out, ex.Name)
+	if err := os.MkdirAll(base, 0o755); err != nil {
+		return fmt.Errorf("failed to create export directory: %v", err)
+	}
+
+	stamp := path.Join(base, "service.json")
+	if _, err := os.Stat(stamp); err == nil {
+		log.Printf("Skipping %s (already exported)", ex.Name)
+		return nil
+	}
+
+	if err := ex.Export(ctx, base); err != nil {
+		return err
+	}
+
+	info := ExportInfo{
+		Instance: ex.BaseURL,
+		Service:  ex.Name,
+		Date:     time.Now().UTC(),
+	}
+	if err := writeExportStamp(stamp, &info); err != nil {
+		return fmt.Errorf("failed writing stamp: %v", err)
+	}
+
+	return nil
 }
 
 func writeExportStamp(path string, info *ExportInfo) error {
@@ -115,4 +165,13 @@ func writeExportStamp(path string, info *ExportInfo) error {
 	defer file.Close()
 
 	return json.NewEncoder(file).Encode(info)
+}
+
+func exportResource(ctx context.Context, out string, ex *exporter, owner, name string) error {
+	base := path.Join(out, ex.Name, name)
+	if err := os.MkdirAll(base, 0o755); err != nil {
+		return fmt.Errorf("failed to create export directory: %v", err)
+	}
+
+	return ex.ExportResource(ctx, base, owner, name)
 }

@@ -17,6 +17,7 @@ type Info struct {
 
 type Exporter interface {
 	Export(ctx context.Context, dir string) error
+	ExportResource(ctx context.Context, dir, owner, name string) error
 	ImportResource(ctx context.Context, dir string) error
 }
 

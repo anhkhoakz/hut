@@ -12,20 +12,32 @@ query mailingLists($cursor: Cursor) {
     }
 }
 
+query exportMailingList($username: String!, $name: String!) {
+    user(username: $username) {
+        list(name: $name) {
+            ...mailingListExport
+        }
+    }
+}
+
 query exportMailingLists($cursor: Cursor) {
     me {
         lists(cursor: $cursor) {
             results {
-                name
-                description
-                visibility
-                permitMime
-                rejectMime
-                archive
+                ...mailingListExport
             }
             cursor
         }
     }
+}
+
+fragment mailingListExport on MailingList {
+    name
+    description
+    visibility
+    permitMime
+    rejectMime
+    archive
 }
 
 query mailingListsByUser($username: String!, $cursor: Cursor) {

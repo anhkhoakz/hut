@@ -48,15 +48,25 @@ query pastes($cursor: Cursor) {
 query pasteContents($cursor: Cursor) {
     pastes(cursor: $cursor) {
         results {
-            id
-            created
-            visibility
-            files {
-                filename
-                contents
-            }
+            ...pasteContents
         }
         cursor
+    }
+}
+
+query pasteContentsByID($id: String!) {
+    paste(id: $id) {
+        ...pasteContents
+    }
+}
+
+fragment pasteContents on Paste {
+    id
+    created
+    visibility
+    files {
+        filename
+        contents
     }
 }
 

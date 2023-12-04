@@ -10,6 +10,7 @@ import (
 	"os"
 	"path"
 	"strconv"
+	"strings"
 	"time"
 
 	"git.sr.ht/~emersion/gqlclient"
@@ -77,6 +78,19 @@ func (ex *BuildsExporter) Export(ctx context.Context, dir string) error {
 	}
 
 	return ret
+}
+
+func (ex *BuildsExporter) ExportResource(ctx context.Context, dir, owner, resource string) error {
+	resource = strings.TrimPrefix(resource, "job/")
+	id, err := strconv.ParseInt(resource, 10, 64)
+	if err != nil {
+		return fmt.Errorf("failed to parse builds resource %v: %v", resource, err)
+	}
+	job, err := buildssrht.ExportJob(ex.client, ctx, int32(id))
+	if err != nil {
+		return err
+	}
+	return ex.exportJob(ctx, job, dir)
 }
 
 func (ex *BuildsExporter) exportJob(ctx context.Context, job *buildssrht.Job, base string) error {

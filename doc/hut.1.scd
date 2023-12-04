@@ -83,8 +83,12 @@ Additionally, mailing lists can be referred to by their email address.
 *init*
 	Initialize hut's configuration file.
 
-*export* <directory>
+*export* <directory> [resource|service...]
 	Export account data.
+
+	By default, all data of the current user will be exported. Alternatively,
+	an explicit list of instance services (e.g. "todo.sr.ht") or resources
+	(e.g. "todo.sr.ht/~user/tracker") can be specified.
 
 *import* <directory>
 	Import account data.

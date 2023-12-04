@@ -99,26 +99,36 @@ fragment jobs on JobCursor {
     cursor
 }
 
+query exportJob($id: Int!) {
+    job(id: $id) {
+        ...jobExport
+    }
+}
+
 query exportJobs($cursor: Cursor) {
     jobs(cursor: $cursor) {
         results {
-            id
-            status
-            note
-            tags
-            visibility
-            log {
-                fullURL
-            }
-            tasks {
-                name
-                status
-                log {
-                    fullURL
-                }
-            }
+            ...jobExport
         }
         cursor
+    }
+}
+
+fragment jobExport on Job {
+    id
+    status
+    note
+    tags
+    visibility
+    log {
+        fullURL
+    }
+    tasks {
+        name
+        status
+        log {
+            fullURL
+        }
     }
 }
 

@@ -96,6 +96,10 @@ func (ex *MetaExporter) Export(ctx context.Context, dir string) error {
 	return nil
 }
 
+func (ex *MetaExporter) ExportResource(ctx context.Context, dir, owner, resource string) error {
+	return fmt.Errorf("exporting individual meta resources is not supported")
+}
+
 func (ex *MetaExporter) ImportResource(ctx context.Context, dir string) error {
 	sshFile, err := os.Open(path.Join(dir, sshKeysFilename))
 	if err != nil {

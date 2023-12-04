@@ -108,21 +108,33 @@ fragment repos on RepositoryCursor {
     cursor
 }
 
+query exportRepository($username: String!, $name: String!) {
+    user(username: $username) {
+        repository(name: $name) {
+            ...repositoryExport
+        }
+    }
+}
+
 query exportRepositories($cursor: Cursor) {
     repositories(cursor: $cursor) {
         results {
-            name
-            owner {
-                canonicalName
-            }
-            description
-            visibility
-            readme
-            HEAD {
-                name
-            }
+            ...repositoryExport
         }
         cursor
+    }
+}
+
+fragment repositoryExport on Repository {
+    name
+    owner {
+        canonicalName
+    }
+    description
+    visibility
+    readme
+    HEAD {
+        name
     }
 }
 

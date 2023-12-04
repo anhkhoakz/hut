@@ -49,7 +49,8 @@ func (ex *PasteExporter) Export(ctx context.Context, dir string) error {
 		}
 
 		for _, paste := range pastes.Results {
-			if err := ex.exportPaste(ctx, &paste, dir); err != nil {
+			base := path.Join(dir, paste.Id)
+			if err := ex.exportPaste(ctx, &paste, base); err != nil {
 				var pe partialError
 				if errors.As(err, &pe) {
 					ret = err
@@ -68,8 +69,15 @@ func (ex *PasteExporter) Export(ctx context.Context, dir string) error {
 	return ret
 }
 
-func (ex *PasteExporter) exportPaste(ctx context.Context, paste *pastesrht.Paste, dir string) error {
-	base := path.Join(dir, paste.Id)
+func (ex *PasteExporter) ExportResource(ctx context.Context, dir, owner, resource string) error {
+	paste, err := pastesrht.PasteContentsByID(ex.client, ctx, resource)
+	if err != nil {
+		return err
+	}
+	return ex.exportPaste(ctx, paste, dir)
+}
+
+func (ex *PasteExporter) exportPaste(ctx context.Context, paste *pastesrht.Paste, base string) error {
 	infoPath := path.Join(base, infoFilename)
 	if _, err := os.Stat(infoPath); err == nil {
 		log.Printf("\tSkipping %s (already exists)", paste.Id)

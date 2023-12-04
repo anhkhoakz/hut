@@ -21,16 +21,28 @@ fragment trackers on TrackerCursor {
     cursor
 }
 
+query exportTracker($username: String!, $name: String!) {
+    user(username: $username) {
+        tracker(name: $name) {
+            ...trackerExport
+        }
+    }
+}
+
 query exportTrackers($cursor: Cursor) {
     trackers(cursor: $cursor) {
         results {
-            name
-            description
-            visibility
-            export
+            ...trackerExport
         }
         cursor
     }
+}
+
+fragment trackerExport on Tracker {
+    name
+    description
+    visibility
+    export
 }
 
 query trackerIDByName($name: String!) {

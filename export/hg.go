@@ -36,11 +36,6 @@ type HgRepoInfo struct {
 }
 
 func (ex *HgExporter) Export(ctx context.Context, dir string) error {
-	baseURL, err := url.Parse(ex.baseURL)
-	if err != nil {
-		panic(err)
-	}
-
 	var cursor *hgsrht.Cursor
 	for {
 		repos, err := hgsrht.ExportRepositories(ex.client, ctx, cursor)
@@ -48,39 +43,9 @@ func (ex *HgExporter) Export(ctx context.Context, dir string) error {
 			return err
 		}
 
-		// TODO: Should we fetch & store ACLs?
 		for _, repo := range repos.Results {
-			repoPath := path.Join(dir, repo.Name)
-			infoPath := path.Join(repoPath, infoFilename)
-			clonePath := path.Join(repoPath, hgRepositoryDir)
-			cloneURL := fmt.Sprintf("ssh://hg@%s/%s/%s", baseURL.Host, repo.Owner.CanonicalName, repo.Name)
-
-			if _, err := os.Stat(clonePath); err == nil {
-				log.Printf("\tSkipping %s (already exists)", repo.Name)
-				continue
-			}
-			if err := os.MkdirAll(repoPath, 0o755); err != nil {
-				return err
-			}
-
-			log.Printf("\tCloning %s", repo.Name)
-			cmd := exec.Command("hg", "clone", "-U", cloneURL, clonePath)
-			err := cmd.Run()
-			if err != nil {
-				return err
-			}
-
-			repoInfo := HgRepoInfo{
-				Info: Info{
-					Service: "hg.sr.ht",
-					Name:    repo.Name,
-				},
-				Description:   repo.Description,
-				Visibility:    repo.Visibility,
-				Readme:        repo.Readme,
-				NonPublishing: repo.NonPublishing,
-			}
-			if err := writeJSON(infoPath, &repoInfo); err != nil {
+			base := path.Join(dir, repo.Name)
+			if err := ex.exportRepository(ctx, repo, base); err != nil {
 				return err
 			}
 		}
@@ -92,6 +57,51 @@ func (ex *HgExporter) Export(ctx context.Context, dir string) error {
 	}
 
 	return nil
+}
+
+func (ex *HgExporter) ExportResource(ctx context.Context, dir, owner, resource string) error {
+	user, err := hgsrht.ExportRepository(ex.client, ctx, owner, resource)
+	if err != nil {
+		return err
+	}
+	return ex.exportRepository(ctx, user.Repository, dir)
+}
+
+func (ex *HgExporter) exportRepository(ctx context.Context, repo *hgsrht.Repository, base string) error {
+	// TODO: Should we fetch & store ACLs?
+	baseURL, err := url.Parse(ex.baseURL)
+	if err != nil {
+		panic(err)
+	}
+	infoPath := path.Join(base, infoFilename)
+	clonePath := path.Join(base, hgRepositoryDir)
+	cloneURL := fmt.Sprintf("ssh://hg@%s/%s/%s", baseURL.Host, repo.Owner.CanonicalName, repo.Name)
+
+	if _, err := os.Stat(clonePath); err == nil {
+		log.Printf("\tSkipping %s (already exists)", repo.Name)
+		return nil
+	}
+	if err := os.MkdirAll(base, 0o755); err != nil {
+		return err
+	}
+
+	log.Printf("\tCloning %s", repo.Name)
+	cmd := exec.CommandContext(ctx, "hg", "clone", "-U", cloneURL, clonePath)
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+
+	repoInfo := HgRepoInfo{
+		Info: Info{
+			Service: "hg.sr.ht",
+			Name:    repo.Name,
+		},
+		Description:   repo.Description,
+		Visibility:    repo.Visibility,
+		Readme:        repo.Readme,
+		NonPublishing: repo.NonPublishing,
+	}
+	return writeJSON(infoPath, &repoInfo)
 }
 
 func (ex *HgExporter) ImportResource(ctx context.Context, dir string) error {

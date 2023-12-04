@@ -51,8 +51,7 @@ func (ex *TodoExporter) Export(ctx context.Context, dir string) error {
 
 		for _, tracker := range trackers.Results {
 			base := path.Join(dir, tracker.Name)
-
-			if err := ex.exportTracker(ctx, tracker, base); err != nil {
+			if err := ex.exportTracker(ctx, &tracker, base); err != nil {
 				var pe partialError
 				if errors.As(err, &pe) {
 					ret = err
@@ -71,7 +70,15 @@ func (ex *TodoExporter) Export(ctx context.Context, dir string) error {
 	return ret
 }
 
-func (ex *TodoExporter) exportTracker(ctx context.Context, tracker todosrht.Tracker, base string) error {
+func (ex *TodoExporter) ExportResource(ctx context.Context, dir, owner, resource string) error {
+	user, err := todosrht.ExportTracker(ex.client, ctx, owner, resource)
+	if err != nil {
+		return err
+	}
+	return ex.exportTracker(ctx, user.Tracker, dir)
+}
+
+func (ex *TodoExporter) exportTracker(ctx context.Context, tracker *todosrht.Tracker, base string) error {
 	infoPath := path.Join(base, infoFilename)
 	if _, err := os.Stat(infoPath); err == nil {
 		log.Printf("\tSkipping %s (already exists)", tracker.Name)
