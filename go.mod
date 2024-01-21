@@ -3,7 +3,7 @@ module git.sr.ht/~emersion/hut
 go 1.17
 
 require (
-	git.sr.ht/~emersion/go-scfg v0.0.0-20231004133111-9dce55c8d63b
+	git.sr.ht/~emersion/go-scfg v0.0.0-20231211181832-0b4e72d8ec3c
 	git.sr.ht/~emersion/gqlclient v0.0.0-20230820050442-8873fe0204b9
 	github.com/dustin/go-humanize v1.0.1
 	github.com/juju/ansiterm v1.0.0

@@ -18,29 +18,61 @@ import (
 )
 
 type Config struct {
-	Instances []*InstanceConfig
+	Instances []*InstanceConfig `scfg:"instance"`
 }
 
 type InstanceConfig struct {
-	Name string
+	Name string `scfg:",param"`
 
-	AccessToken    string
-	AccessTokenCmd []string
+	AccessToken    string   `scfg:"access-token"`
+	AccessTokenCmd []string `scfg:"access-token-cmd"`
 
-	Origins map[string]string
+	Builds *ServiceConfig `scfg:"builds"`
+	Git    *ServiceConfig `scfg:"git"`
+	Hg     *ServiceConfig `scfg:"hg"`
+	Lists  *ServiceConfig `scfg:"lists"`
+	Meta   *ServiceConfig `scfg:"meta"`
+	Pages  *ServiceConfig `scfg:"pages"`
+	Paste  *ServiceConfig `scfg:"paste"`
+	Todo   *ServiceConfig `scfg:"todo"`
 }
 
-func (instance InstanceConfig) match(name string) bool {
+func (instance *InstanceConfig) match(name string) bool {
 	if instancesEqual(name, instance.Name) {
 		return true
 	}
 
-	for _, origin := range instance.Origins {
-		if stripProtocol(origin) == name {
+	for _, service := range instance.Services() {
+		if service.Origin != "" && stripProtocol(service.Origin) == name {
 			return true
 		}
 	}
 	return false
+}
+
+func (instance *InstanceConfig) Services() map[string]*ServiceConfig {
+	all := map[string]*ServiceConfig{
+		"builds": instance.Builds,
+		"git":    instance.Git,
+		"hg":     instance.Hg,
+		"lists":  instance.Lists,
+		"meta":   instance.Meta,
+		"pages":  instance.Pages,
+		"paste":  instance.Paste,
+		"todo":   instance.Todo,
+	}
+
+	m := make(map[string]*ServiceConfig)
+	for name, service := range all {
+		if service != nil {
+			m[name] = service
+		}
+	}
+	return m
+}
+
+type ServiceConfig struct {
+	Origin string `scfg:"origin"`
 }
 
 func instancesEqual(a, b string) bool {
@@ -48,37 +80,26 @@ func instancesEqual(a, b string) bool {
 }
 
 func loadConfigFile(filename string) (*Config, error) {
-	rootBlock, err := scfg.Load(filename)
+	f, err := os.Open(filename)
 	if err != nil {
 		return nil, err
 	}
+	defer f.Close()
 
 	cfg := new(Config)
+	if err := scfg.NewDecoder(f).Decode(cfg); err != nil {
+		return nil, err
+	}
+
 	instanceNames := make(map[string]struct{})
-	for _, instanceDir := range rootBlock.GetAll("instance") {
-		instance := &InstanceConfig{
-			Origins: make(map[string]string),
-		}
-
-		if err := instanceDir.ParseParams(&instance.Name); err != nil {
-			return nil, err
-		}
-
+	for _, instance := range cfg.Instances {
 		if _, ok := instanceNames[instance.Name]; ok {
 			return nil, fmt.Errorf("duplicate instance name %q", instance.Name)
 		}
 		instanceNames[instance.Name] = struct{}{}
 
-		if dir := instanceDir.Children.Get("access-token"); dir != nil {
-			if err := dir.ParseParams(&instance.AccessToken); err != nil {
-				return nil, err
-			}
-		}
-		if dir := instanceDir.Children.Get("access-token-cmd"); dir != nil {
-			if len(dir.Params) == 0 {
-				return nil, fmt.Errorf("instance %q: missing command name in access-token-cmd directive", instance.Name)
-			}
-			instance.AccessTokenCmd = dir.Params
+		if instance.AccessTokenCmd != nil && len(instance.AccessTokenCmd) == 0 {
+			return nil, fmt.Errorf("instance %q: missing command name in access-token-cmd directive", instance.Name)
 		}
 		if instance.AccessToken == "" && len(instance.AccessTokenCmd) == 0 {
 			return nil, fmt.Errorf("instance %q: missing access-token or access-token-cmd", instance.Name)
@@ -86,27 +107,6 @@ func loadConfigFile(filename string) (*Config, error) {
 		if instance.AccessToken != "" && len(instance.AccessTokenCmd) > 0 {
 			return nil, fmt.Errorf("instance %q: access-token and access-token-cmd can't be both specified", instance.Name)
 		}
-
-		for _, service := range []string{"builds", "git", "hg", "lists", "meta", "pages", "paste", "todo"} {
-			serviceDir := instanceDir.Children.Get(service)
-			if serviceDir == nil {
-				continue
-			}
-
-			originDir := serviceDir.Children.Get("origin")
-			if originDir == nil {
-				continue
-			}
-
-			var origin string
-			if err := originDir.ParseParams(&origin); err != nil {
-				return nil, err
-			}
-
-			instance.Origins[service] = origin
-		}
-
-		cfg.Instances = append(cfg.Instances, instance)
 	}
 
 	return cfg, nil

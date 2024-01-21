@@ -73,7 +73,10 @@ func createClientWithInstance(service string, cmd *cobra.Command, instanceName s
 		token = inst.AccessToken
 	}
 
-	baseURL := inst.Origins[service]
+	var baseURL string
+	if serviceCfg := inst.Services()[service]; serviceCfg != nil {
+		baseURL = serviceCfg.Origin
+	}
 	if baseURL == "" && strings.Contains(inst.Name, ".") && net.ParseIP(inst.Name) == nil {
 		baseURL = fmt.Sprintf("https://%s.%s", service, inst.Name)
 	}
