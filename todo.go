@@ -274,6 +274,7 @@ func newTodoTicketCommand() *cobra.Command {
 	cmd.AddCommand(newTodoTicketShowCommand())
 	cmd.AddCommand(newTodoTicketWebhookCommand())
 	cmd.AddCommand(newTodoTicketCreateCommand())
+	cmd.AddCommand(newTodoTicketEditCommand())
 	cmd.AddCommand(newTodoTicketLabelCommand())
 	cmd.AddCommand(newTodoTicketUnlabelCommand())
 	return cmd
@@ -1537,6 +1538,83 @@ func newTodoTicketCreateCommand() *cobra.Command {
 		Run:   run,
 	}
 	cmd.Flags().BoolVar(&stdin, "stdin", false, "read ticket from stdin")
+	return cmd
+}
+
+func newTodoTicketEditCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		ticketID, name, owner, instance, err := parseTicketResource(ctx, cmd, args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		c := createClientWithInstance("todo", cmd, instance)
+		var (
+			user     *todosrht.User
+			username string
+		)
+
+		if owner != "" {
+			username = strings.TrimLeft(owner, ownerPrefixes)
+			user, err = todosrht.TicketBodyByUser(c.Client, ctx, username, name, ticketID)
+		} else {
+			user, err = todosrht.TicketBodyByName(c.Client, ctx, name, ticketID)
+		}
+		if err != nil {
+			log.Fatal(err)
+		} else if user == nil {
+			log.Fatalf("no such user %q", username)
+		} else if user.Tracker == nil {
+			log.Fatalf("no such tracker %q", name)
+		}
+
+		tracker := user.Tracker
+		ticket := tracker.Ticket
+
+		prefill := ticket.Subject + "\n\n"
+		if ticket.Body != nil {
+			prefill += *ticket.Body
+		}
+		text, err := getInputWithEditor("hut_ticket*.md", prefill)
+		if err != nil {
+			log.Fatalf("failed to read ticket subject and description: %v", err)
+		}
+
+		parts := strings.SplitN(text, "\n", 2)
+		subject := strings.TrimSpace(parts[0])
+		var body string
+		if len(parts) > 1 {
+			body = strings.TrimSpace(parts[1])
+		}
+
+		if subject == "" {
+			log.Println("Aborting due to empty subject.")
+			os.Exit(1)
+		}
+
+		input := todosrht.UpdateTicketInput{
+			Subject: &subject,
+			Body:    &body,
+		}
+		ticket, err = todosrht.UpdateTicket(c.Client, ctx, tracker.Id, ticket.Id, input)
+		if err != nil {
+			log.Fatal(err)
+		} else if ticket == nil {
+			log.Fatal("failed to edit ticket")
+		}
+
+		log.Printf("Updated ticket %v\n", termfmt.DarkYellow.Sprintf("#%v", ticket.Id))
+	}
+
+	cmd := &cobra.Command{
+		Use:               "edit <ID>",
+		Short:             "Edit a ticket",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: completeTicketID,
+		Run:               run,
+	}
 	return cmd
 }
 

@@ -1218,6 +1218,29 @@ func TicketByUser(client *gqlclient.Client, ctx context.Context, username string
 	return respData.User, err
 }
 
+func TicketBodyByName(client *gqlclient.Client, ctx context.Context, name string, id int32) (me *User, err error) {
+	op := gqlclient.NewOperation("query ticketBodyByName ($name: String!, $id: Int!) {\n\tme {\n\t\ttracker(name: $name) {\n\t\t\tid\n\t\t\tticket(id: $id) {\n\t\t\t\t... ticketBody\n\t\t\t}\n\t\t}\n\t}\n}\nfragment ticketBody on Ticket {\n\tid\n\tsubject\n\tbody\n}\n")
+	op.Var("name", name)
+	op.Var("id", id)
+	var respData struct {
+		Me *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Me, err
+}
+
+func TicketBodyByUser(client *gqlclient.Client, ctx context.Context, username string, tracker string, id int32) (user *User, err error) {
+	op := gqlclient.NewOperation("query ticketBodyByUser ($username: String!, $tracker: String!, $id: Int!) {\n\tuser(username: $username) {\n\t\ttracker(name: $tracker) {\n\t\t\tid\n\t\t\tticket(id: $id) {\n\t\t\t\t... ticketBody\n\t\t\t}\n\t\t}\n\t}\n}\nfragment ticketBody on Ticket {\n\tid\n\tsubject\n\tbody\n}\n")
+	op.Var("username", username)
+	op.Var("tracker", tracker)
+	op.Var("id", id)
+	var respData struct {
+		User *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.User, err
+}
+
 func LabelIDByName(client *gqlclient.Client, ctx context.Context, trackerName string, labelName string) (me *User, err error) {
 	op := gqlclient.NewOperation("query labelIDByName ($trackerName: String!, $labelName: String!) {\n\tme {\n\t\ttracker(name: $trackerName) {\n\t\t\tlabel(name: $labelName) {\n\t\t\t\tid\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	op.Var("trackerName", trackerName)
@@ -1527,4 +1550,16 @@ func UnlabelTicket(client *gqlclient.Client, ctx context.Context, trackerId int3
 	}
 	err = client.Execute(ctx, op, &respData)
 	return respData.UnlabelTicket, err
+}
+
+func UpdateTicket(client *gqlclient.Client, ctx context.Context, trackerId int32, ticketId int32, input UpdateTicketInput) (updateTicket *Ticket, err error) {
+	op := gqlclient.NewOperation("mutation updateTicket ($trackerId: Int!, $ticketId: Int!, $input: UpdateTicketInput!) {\n\tupdateTicket(trackerId: $trackerId, ticketId: $ticketId, input: $input) {\n\t\tid\n\t}\n}\n")
+	op.Var("trackerId", trackerId)
+	op.Var("ticketId", ticketId)
+	op.Var("input", input)
+	var respData struct {
+		UpdateTicket *Ticket
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.UpdateTicket, err
 }

@@ -744,6 +744,9 @@ Options are:
 	*-y*, *--yes*
 		Confirm deletion without prompt.
 
+*ticket edit* <ID>
+	Edit a ticket with _$EDITOR_.
+
 *ticket label* <ID> [options...]
 	Add a label to a ticket.
 

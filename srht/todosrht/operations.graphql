@@ -418,6 +418,34 @@ fragment ticket on Ticket {
     }
 }
 
+query ticketBodyByName($name: String!, $id: Int!) {
+    me {
+        tracker(name: $name) {
+            id
+            ticket(id: $id) {
+                ...ticketBody
+            }
+        }
+    }
+}
+
+query ticketBodyByUser($username: String!, $tracker: String!, $id: Int!) {
+    user(username: $username) {
+        tracker(name: $tracker) {
+            id
+            ticket(id: $id) {
+                ...ticketBody
+            }
+        }
+    }
+}
+
+fragment ticketBody on Ticket {
+    id
+    subject
+    body
+}
+
 query labelIDByName($trackerName: String!, $labelName: String!) {
     me {
         tracker(name: $trackerName) {
@@ -693,5 +721,11 @@ mutation unlabelTicket($trackerId: Int!, $ticketId: Int!, $labelId: Int!) {
         ticket {
             subject
         }
+    }
+}
+
+mutation updateTicket($trackerId: Int!, $ticketId: Int!, $input: UpdateTicketInput!) {
+    updateTicket(trackerId: $trackerId, ticketId: $ticketId, input: $input) {
+        id
     }
 }
