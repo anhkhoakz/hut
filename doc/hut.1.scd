@@ -755,8 +755,13 @@ Options are:
 	*-l*, *--label* <name>
 		Name of the label (required).
 
-*ticket list*
+*ticket list* [options...]
 	List tickets.
+
+	Options are:
+
+	*-s*, *--status* <string>
+		Filter by ticket status.
 
 *ticket show* <ID>
 	Display a ticket.

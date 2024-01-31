@@ -281,8 +281,15 @@ func newTodoTicketCommand() *cobra.Command {
 }
 
 func newTodoTicketListCommand() *cobra.Command {
-	// TODO: Filter by ticket status
+	var status string
 	run := func(cmd *cobra.Command, args []string) {
+		if status != "" {
+			_, err := todosrht.ParseTicketStatus(status)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
 		ctx := cmd.Context()
 		name, owner, instance, err := getTrackerName(ctx, cmd)
 		if err != nil {
@@ -315,6 +322,10 @@ func newTodoTicketListCommand() *cobra.Command {
 			}
 
 			for _, ticket := range user.Tracker.Tickets.Results {
+				// TODO: filter with API
+				if status != "" && !strings.EqualFold(status, string(ticket.Status)) {
+					continue
+				}
 				printTicket(p, &ticket)
 			}
 
@@ -330,6 +341,8 @@ func newTodoTicketListCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(0),
 		Run:   run,
 	}
+	cmd.Flags().StringVarP(&status, "status", "s", "", "ticket status")
+	cmd.RegisterFlagCompletionFunc("status", completeTicketStatus)
 	return cmd
 }
 
