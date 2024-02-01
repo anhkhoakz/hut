@@ -15,6 +15,7 @@ import (
 	"unicode"
 
 	"git.sr.ht/~emersion/hut/termfmt"
+	"github.com/google/shlex"
 	"github.com/spf13/cobra"
 )
 
@@ -134,6 +135,11 @@ func getInputWithEditor(pattern, initialText string) (string, error) {
 		return "", errors.New("EDITOR not set")
 	}
 
+	commandSplit, err := shlex.Split(editor)
+	if err != nil {
+		return "", err
+	}
+
 	file, err := os.CreateTemp("", pattern)
 	if err != nil {
 		return "", err
@@ -152,7 +158,8 @@ func getInputWithEditor(pattern, initialText string) (string, error) {
 		return "", err
 	}
 
-	cmd := exec.Command(editor, file.Name())
+	commandSplit = append(commandSplit, file.Name())
+	cmd := exec.Command(commandSplit[0], commandSplit[1:]...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

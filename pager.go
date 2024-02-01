@@ -7,6 +7,7 @@ import (
 	"os/exec"
 
 	"git.sr.ht/~emersion/hut/termfmt"
+	"github.com/google/shlex"
 )
 
 type pager interface {
@@ -24,7 +25,12 @@ func newPager() pager {
 		name = "less"
 	}
 
-	cmd := exec.Command(name)
+	commandSplit, err := shlex.Split(name)
+	if err != nil {
+		log.Fatalf("Failed to parse pager command: %v", err)
+	}
+
+	cmd := exec.Command(commandSplit[0], commandSplit[1:]...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Env = append(os.Environ(), "LESS=FRX")
