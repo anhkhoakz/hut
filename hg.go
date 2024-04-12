@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 	"strings"
 
 	"git.sr.ht/~emersion/hut/srht/hgsrht"
@@ -20,6 +21,7 @@ func newHgCommand() *cobra.Command {
 	cmd.AddCommand(newHgListCommand())
 	cmd.AddCommand(newHgCreateCommand())
 	cmd.AddCommand(newHgDeleteCommand())
+	cmd.AddCommand(newHgUpdateCommand())
 	cmd.AddCommand(newHgUserWebhookCommand())
 	return cmd
 }
@@ -142,6 +144,62 @@ func newHgDeleteCommand() *cobra.Command {
 		Run:               run,
 	}
 	cmd.Flags().BoolVarP(&autoConfirm, "yes", "y", false, "auto confirm")
+	return cmd
+}
+
+func newHgUpdateCommand() *cobra.Command {
+	var readme string
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		name, owner, instance := parseResourceName(args[0])
+
+		c := createClientWithInstance("hg", cmd, instance)
+		id := getHgRepoID(c, ctx, name, owner)
+
+		var input hgsrht.RepoInput
+
+		if readme == "" && cmd.Flags().Changed("readme") {
+			_, err := hgsrht.ClearCustomReadme(c.Client, ctx, id)
+			if err != nil {
+				log.Fatalf("failed to unset custom README: %v", err)
+			}
+		} else if readme != "" {
+			var (
+				b   []byte
+				err error
+			)
+
+			if readme == "-" {
+				b, err = io.ReadAll(os.Stdin)
+			} else {
+				b, err = os.ReadFile(readme)
+			}
+			if err != nil {
+				log.Fatalf("failed to read custom README: %v", err)
+			}
+
+			s := string(b)
+			input.Readme = &s
+		}
+
+		repo, err := hgsrht.UpdateRepository(c.Client, ctx, id, input)
+		if err != nil {
+			log.Fatal(err)
+		} else if repo == nil {
+			log.Fatalf("failed to update repository %q", name)
+		}
+
+		log.Printf("Successfully updated repository %q\n", repo.Name)
+	}
+	cmd := &cobra.Command{
+		Use:               "update <repo>",
+		Short:             "Update a repository",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	cmd.Flags().StringVar(&readme, "readme", "", "update the custom README")
 	return cmd
 }
 

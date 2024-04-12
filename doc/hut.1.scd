@@ -321,6 +321,16 @@ Options are:
 *list* [owner]
 	List repositories.
 
+*update* <repo> [options...]
+	Update a repository.
+
+	Options are:
+
+	*--readme* <file>
+		Update the custom README settings. You can read the HTML from a file or
+		pass "-" as the filename to read from _stdin_.
+		To clear the custom README use an empty string "".
+
 *user-webhook create* [options...]
 	Create a user webhook. When this command is run from a terminal, the query will
 	be read from _$EDITOR_, otherwise it defaults to stdin.
