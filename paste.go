@@ -15,8 +15,8 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
 
-	"git.sr.ht/~emersion/hut/srht/pastesrht"
-	"git.sr.ht/~emersion/hut/termfmt"
+	"git.sr.ht/~xenrox/hut/srht/pastesrht"
+	"git.sr.ht/~xenrox/hut/termfmt"
 )
 
 func newPasteCommand() *cobra.Command {

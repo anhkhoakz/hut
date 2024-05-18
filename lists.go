@@ -17,8 +17,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"git.sr.ht/~emersion/hut/srht/listssrht"
-	"git.sr.ht/~emersion/hut/termfmt"
+	"git.sr.ht/~xenrox/hut/srht/listssrht"
+	"git.sr.ht/~xenrox/hut/termfmt"
 )
 
 func newListsCommand() *cobra.Command {

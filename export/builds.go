@@ -15,7 +15,7 @@ import (
 
 	"git.sr.ht/~emersion/gqlclient"
 
-	"git.sr.ht/~emersion/hut/srht/buildssrht"
+	"git.sr.ht/~xenrox/hut/srht/buildssrht"
 )
 
 type BuildsExporter struct {

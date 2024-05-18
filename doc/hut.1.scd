@@ -903,4 +903,4 @@ instance "sr.ht" {
 
 Maintained by Simon Ser <contact@emersion.fr>, who is assisted by other
 open-source contributors. For more information about hut development, see
-<https://sr.ht/~emersion/hut>.
+<https://sr.ht/~xenrox/hut>.

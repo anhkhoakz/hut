@@ -12,7 +12,7 @@ import (
 
 	"git.sr.ht/~emersion/gqlclient"
 
-	"git.sr.ht/~emersion/hut/srht/gitsrht"
+	"git.sr.ht/~xenrox/hut/srht/gitsrht"
 )
 
 const gitRepositoryDir = "repository.git"

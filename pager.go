@@ -6,7 +6,7 @@ import (
 	"os"
 	"os/exec"
 
-	"git.sr.ht/~emersion/hut/termfmt"
+	"git.sr.ht/~xenrox/hut/termfmt"
 	"github.com/google/shlex"
 )
 

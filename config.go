@@ -13,8 +13,8 @@ import (
 	"git.sr.ht/~emersion/go-scfg"
 	"github.com/spf13/cobra"
 
-	"git.sr.ht/~emersion/hut/srht/metasrht"
-	"git.sr.ht/~emersion/hut/termfmt"
+	"git.sr.ht/~xenrox/hut/srht/metasrht"
+	"git.sr.ht/~xenrox/hut/termfmt"
 )
 
 type Config struct {

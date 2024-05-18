@@ -13,7 +13,7 @@ import (
 
 	"git.sr.ht/~emersion/gqlclient"
 
-	"git.sr.ht/~emersion/hut/srht/listssrht"
+	"git.sr.ht/~xenrox/hut/srht/listssrht"
 )
 
 const archiveFilename = "archive.mbox"

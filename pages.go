@@ -15,8 +15,8 @@ import (
 	"git.sr.ht/~emersion/gqlclient"
 	"github.com/spf13/cobra"
 
-	"git.sr.ht/~emersion/hut/srht/pagessrht"
-	"git.sr.ht/~emersion/hut/termfmt"
+	"git.sr.ht/~xenrox/hut/srht/pagessrht"
+	"git.sr.ht/~xenrox/hut/termfmt"
 )
 
 func newPagesCommand() *cobra.Command {

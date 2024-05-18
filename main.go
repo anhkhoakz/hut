@@ -14,7 +14,7 @@ import (
 	"time"
 	"unicode"
 
-	"git.sr.ht/~emersion/hut/termfmt"
+	"git.sr.ht/~xenrox/hut/termfmt"
 	"github.com/google/shlex"
 	"github.com/spf13/cobra"
 )

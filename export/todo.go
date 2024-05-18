@@ -13,7 +13,7 @@ import (
 
 	"git.sr.ht/~emersion/gqlclient"
 
-	"git.sr.ht/~emersion/hut/srht/todosrht"
+	"git.sr.ht/~xenrox/hut/srht/todosrht"
 )
 
 const trackerFilename = "tracker.json.gz"

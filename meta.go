@@ -14,8 +14,8 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
 
-	"git.sr.ht/~emersion/hut/srht/metasrht"
-	"git.sr.ht/~emersion/hut/termfmt"
+	"git.sr.ht/~xenrox/hut/srht/metasrht"
+	"git.sr.ht/~xenrox/hut/termfmt"
 )
 
 func newMetaCommand() *cobra.Command {

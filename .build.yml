@@ -1,10 +1,10 @@
-image: alpine/latest
+image: archlinux
 packages:
   - go
   - scdoc
   - bmake
 sources:
-  - https://git.sr.ht/~emersion/hut
+  - https://git.xenrox.net/~xenrox/hut
 tasks:
   - build: |
       cd hut

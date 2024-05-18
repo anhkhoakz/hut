@@ -11,7 +11,7 @@ import (
 
 	"git.sr.ht/~emersion/gqlclient"
 
-	"git.sr.ht/~emersion/hut/srht/metasrht"
+	"git.sr.ht/~xenrox/hut/srht/metasrht"
 )
 
 const (

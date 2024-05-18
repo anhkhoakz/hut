@@ -13,7 +13,7 @@ import (
 
 	"git.sr.ht/~emersion/gqlclient"
 
-	"git.sr.ht/~emersion/hut/srht/pastesrht"
+	"git.sr.ht/~xenrox/hut/srht/pastesrht"
 )
 
 const pasteFilesDir = "files"

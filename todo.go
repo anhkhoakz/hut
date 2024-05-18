@@ -11,8 +11,8 @@ import (
 	"os"
 	"strings"
 
-	"git.sr.ht/~emersion/hut/srht/todosrht"
-	"git.sr.ht/~emersion/hut/termfmt"
+	"git.sr.ht/~xenrox/hut/srht/todosrht"
+	"git.sr.ht/~xenrox/hut/termfmt"
 	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
 )

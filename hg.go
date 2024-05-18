@@ -8,8 +8,8 @@ import (
 	"os"
 	"strings"
 
-	"git.sr.ht/~emersion/hut/srht/hgsrht"
-	"git.sr.ht/~emersion/hut/termfmt"
+	"git.sr.ht/~xenrox/hut/srht/hgsrht"
+	"git.sr.ht/~xenrox/hut/termfmt"
 	"github.com/spf13/cobra"
 )
 

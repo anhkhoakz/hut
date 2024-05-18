@@ -12,7 +12,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"git.sr.ht/~emersion/hut/export"
+	"git.sr.ht/~xenrox/hut/export"
 )
 
 type ExportInfo struct {

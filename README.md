@@ -1,6 +1,6 @@
 # [hut]
 
-[![builds.sr.ht status](https://builds.sr.ht/~emersion/hut/commits/master.svg)](https://builds.sr.ht/~emersion/hut/commits/master?)
+[![builds.sr.ht status](https://builds.xenrox.net/~xenrox/hut/commits/master.svg)](https://builds.xenrox.net/~xenrox/hut/commits/master?)
 
 A CLI tool for [sr.ht].
 
@@ -24,7 +24,7 @@ For end users, a `Makefile` is provided:
 
 Send patches to the [mailing list], report bugs on the [issue tracker].
 
-Join the IRC channel: [#emersion on Libera Chat].
+Join the IRC channel: [#hut on Libera Chat].
 
 ## License
 
@@ -32,9 +32,9 @@ AGPLv3 only, see [LICENSE].
 
 Copyright (C) 2021 Simon Ser
 
-[hut]: https://sr.ht/~emersion/hut/
+[hut]: https://sr.ht/~xenrox/hut/
 [sr.ht]: https://sr.ht/~sircmpwn/sourcehut/
-[mailing list]: https://lists.sr.ht/~emersion/hut-dev
-[issue tracker]: https://todo.sr.ht/~emersion/hut
-[#emersion on Libera Chat]: ircs://irc.libera.chat/#emersion
+[mailing list]: https://lists.sr.ht/~xenrox/hut-dev
+[issue tracker]: https://todo.sr.ht/~xenrox/hut
+[#hut on Libera Chat]: ircs://irc.libera.chat/#hut
 [LICENSE]: LICENSE

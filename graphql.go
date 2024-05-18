@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"git.sr.ht/~emersion/gqlclient"
-	"git.sr.ht/~emersion/hut/termfmt"
+	"git.sr.ht/~xenrox/hut/termfmt"
 	"github.com/spf13/cobra"
 )
 

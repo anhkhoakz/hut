@@ -1,4 +1,4 @@
-module git.sr.ht/~emersion/hut
+module git.sr.ht/~xenrox/hut
 
 go 1.17
 

@@ -18,8 +18,8 @@ import (
 	"github.com/juju/ansiterm/tabwriter"
 	"github.com/spf13/cobra"
 
-	"git.sr.ht/~emersion/hut/srht/buildssrht"
-	"git.sr.ht/~emersion/hut/termfmt"
+	"git.sr.ht/~xenrox/hut/srht/buildssrht"
+	"git.sr.ht/~xenrox/hut/termfmt"
 )
 
 func newBuildsCommand() *cobra.Command {

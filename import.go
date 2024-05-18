@@ -1,11 +1,12 @@
 package main
 
 import (
-	"github.com/spf13/cobra"
 	"log"
 	"os"
 
-	"git.sr.ht/~emersion/hut/export"
+	"github.com/spf13/cobra"
+
+	"git.sr.ht/~xenrox/hut/export"
 )
 
 func newImportCommand() *cobra.Command {
