@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"io"
 	"log"
 	"os"
@@ -14,6 +15,8 @@ type pager interface {
 	io.WriteCloser
 	Running() bool
 }
+
+var pagerDone error = errors.New("paging is done")
 
 func newPager() pager {
 	if !termfmt.IsTerminal() {
@@ -55,18 +58,22 @@ func newPager() pager {
 	return &cmdPager{w, done}
 }
 
-type pagerifyFn func(p pager) bool
+type pagerifyFn func(p pager) error
 
-func pagerify(fn pagerifyFn) {
+func pagerify(fn pagerifyFn) error {
 	pager := newPager()
 	defer pager.Close()
 
 	for pager.Running() {
-		shouldStop := fn(pager)
-		if shouldStop {
-			break
+		err := fn(pager)
+		if err == pagerDone {
+			return nil
+		} else if err != nil {
+			return err
 		}
 	}
+
+	return nil
 }
 
 type singleWritePager struct {

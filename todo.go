@@ -46,21 +46,22 @@ func newTodoListCommand() *cobra.Command {
 		if len(args) > 0 {
 			username = strings.TrimLeft(args[0], ownerPrefixes)
 		}
-		pagerify(func(p pager) bool {
+
+		err := pagerify(func(p pager) error {
 			var trackers *todosrht.TrackerCursor
 			if len(username) > 0 {
 				user, err := todosrht.TrackersByUser(c.Client, ctx, username, cursor)
 				if err != nil {
-					log.Fatal(err)
+					return err
 				} else if user == nil {
-					log.Fatal("no such user")
+					return errors.New("no such user")
 				}
 				trackers = user.Trackers
 			} else {
 				var err error
 				trackers, err = todosrht.Trackers(c.Client, ctx, cursor)
 				if err != nil {
-					log.Fatal(err)
+					return err
 				}
 			}
 
@@ -69,8 +70,15 @@ func newTodoListCommand() *cobra.Command {
 			}
 
 			cursor = trackers.Cursor
-			return cursor == nil
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
 		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	cmd := &cobra.Command{
@@ -306,7 +314,7 @@ func newTodoTicketListCommand() *cobra.Command {
 			username = strings.TrimLeft(owner, ownerPrefixes)
 		}
 
-		pagerify(func(p pager) bool {
+		err = pagerify(func(p pager) error {
 			if username != "" {
 				user, err = todosrht.TicketsByUser(c.Client, ctx, username, name, cursor)
 			} else {
@@ -314,11 +322,11 @@ func newTodoTicketListCommand() *cobra.Command {
 			}
 
 			if err != nil {
-				log.Fatal(err)
+				return err
 			} else if user == nil {
-				log.Fatalf("no such user %q", username)
+				return fmt.Errorf("no such user %q", username)
 			} else if user.Tracker == nil {
-				log.Fatalf("no such tracker %q", name)
+				return fmt.Errorf("no such tracker %q", name)
 			}
 
 			for _, ticket := range user.Tracker.Tickets.Results {
@@ -330,8 +338,15 @@ func newTodoTicketListCommand() *cobra.Command {
 			}
 
 			cursor = user.Tracker.Tickets.Cursor
-			return cursor == nil
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
 		})
+		if err != nil {
+			log.Fatal(err)
+		}
 
 	}
 
@@ -886,7 +901,7 @@ func newTodoTicketWebhookListCommand() *cobra.Command {
 			username = strings.TrimLeft(owner, ownerPrefixes)
 		}
 
-		pagerify(func(p pager) bool {
+		err = pagerify(func(p pager) error {
 			if username != "" {
 				user, err = todosrht.TicketWebhooksByUser(c.Client, ctx, username, name, ticketID, cursor)
 			} else {
@@ -894,11 +909,11 @@ func newTodoTicketWebhookListCommand() *cobra.Command {
 			}
 
 			if err != nil {
-				log.Fatal(err)
+				return err
 			} else if user == nil {
-				log.Fatalf("no such user %q", username)
+				return fmt.Errorf("no such user %q", username)
 			} else if user.Tracker == nil {
-				log.Fatalf("no such tracker %q", name)
+				return fmt.Errorf("no such tracker %q", name)
 			}
 
 			for _, webhook := range user.Tracker.Ticket.Webhooks.Results {
@@ -906,8 +921,15 @@ func newTodoTicketWebhookListCommand() *cobra.Command {
 			}
 
 			cursor = user.Tracker.Ticket.Webhooks.Cursor
-			return cursor == nil
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
 		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	cmd := &cobra.Command{
@@ -977,7 +999,7 @@ func newTodoLabelListCommand() *cobra.Command {
 			username = strings.TrimLeft(owner, ownerPrefixes)
 		}
 
-		pagerify(func(p pager) bool {
+		err = pagerify(func(p pager) error {
 			if username != "" {
 				user, err = todosrht.LabelsByUser(c.Client, ctx, username, name, cursor)
 			} else {
@@ -985,11 +1007,11 @@ func newTodoLabelListCommand() *cobra.Command {
 			}
 
 			if err != nil {
-				log.Fatal(err)
+				return err
 			} else if user == nil {
-				log.Fatalf("no such user %q", username)
+				return fmt.Errorf("no such user %q", username)
 			} else if user.Tracker == nil {
-				log.Fatalf("no such tracker %q", name)
+				return fmt.Errorf("no such tracker %q", name)
 			}
 
 			for _, label := range user.Tracker.Labels.Results {
@@ -997,8 +1019,15 @@ func newTodoLabelListCommand() *cobra.Command {
 			}
 
 			cursor = user.Tracker.Labels.Cursor
-			return cursor == nil
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
 		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	cmd := &cobra.Command{
@@ -1118,7 +1147,7 @@ func newTodoACLListCommand() *cobra.Command {
 			username = strings.TrimLeft(owner, ownerPrefixes)
 		}
 
-		pagerify(func(p pager) bool {
+		err = pagerify(func(p pager) error {
 			if username != "" {
 				user, err = todosrht.AclByUser(c.Client, ctx, username, name, cursor)
 			} else {
@@ -1126,11 +1155,11 @@ func newTodoACLListCommand() *cobra.Command {
 			}
 
 			if err != nil {
-				log.Fatal(err)
+				return err
 			} else if user == nil {
-				log.Fatalf("no such user %q", username)
+				return fmt.Errorf("no such user %q", username)
 			} else if user.Tracker == nil {
-				log.Fatalf("no such tracker %q", name)
+				return fmt.Errorf("no such tracker %q", name)
 			}
 
 			if cursor == nil {
@@ -1148,8 +1177,15 @@ func newTodoACLListCommand() *cobra.Command {
 			}
 
 			cursor = user.Tracker.Acls.Cursor
-			return cursor == nil
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
 		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	cmd := &cobra.Command{
@@ -1296,7 +1332,7 @@ func newTodoWebhookListCommand() *cobra.Command {
 			username = strings.TrimLeft(owner, ownerPrefixes)
 		}
 
-		pagerify(func(p pager) bool {
+		err = pagerify(func(p pager) error {
 			if username != "" {
 				user, err = todosrht.TrackerWebhooksByUser(c.Client, ctx, username, name, cursor)
 			} else {
@@ -1304,11 +1340,11 @@ func newTodoWebhookListCommand() *cobra.Command {
 			}
 
 			if err != nil {
-				log.Fatal(err)
+				return err
 			} else if user == nil {
-				log.Fatalf("no such user %q", username)
+				return fmt.Errorf("no such user %q", username)
 			} else if user.Tracker == nil {
-				log.Fatalf("no such tracker %q", name)
+				return fmt.Errorf("no such tracker %q", name)
 			}
 
 			for _, webhook := range user.Tracker.Webhooks.Results {
@@ -1316,8 +1352,15 @@ func newTodoWebhookListCommand() *cobra.Command {
 			}
 
 			cursor = user.Tracker.Webhooks.Cursor
-			return cursor == nil
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
 		})
+		if err != nil {
+			log.Fatal(err)
+		}
 
 	}
 
@@ -1419,10 +1462,10 @@ func newTodoUserWebhookListCommand() *cobra.Command {
 		c := createClient("todo", cmd)
 		var cursor *todosrht.Cursor
 
-		pagerify(func(p pager) bool {
+		err := pagerify(func(p pager) error {
 			webhooks, err := todosrht.UserWebhooks(c.Client, ctx, cursor)
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 
 			for _, webhook := range webhooks.Results {
@@ -1430,8 +1473,15 @@ func newTodoUserWebhookListCommand() *cobra.Command {
 			}
 
 			cursor = webhooks.Cursor
-			return cursor == nil
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
 		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	cmd := &cobra.Command{

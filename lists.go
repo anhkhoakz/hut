@@ -101,21 +101,22 @@ func newListsListCommand() *cobra.Command {
 		if len(args) > 0 {
 			username = strings.TrimLeft(args[0], ownerPrefixes)
 		}
-		pagerify(func(p pager) bool {
+
+		err := pagerify(func(p pager) error {
 			var lists *listssrht.MailingListCursor
 			if len(username) > 0 {
 				user, err := listssrht.MailingListsByUser(c.Client, ctx, username, cursor)
 				if err != nil {
-					log.Fatal(err)
+					return err
 				} else if user == nil {
-					log.Fatal("no such user")
+					return errors.New("no such user")
 				}
 				lists = user.Lists
 			} else {
 				var err error
 				user, err := listssrht.MailingLists(c.Client, ctx, cursor)
 				if err != nil {
-					log.Fatal(err)
+					return err
 				}
 				lists = user.Lists
 			}
@@ -125,8 +126,14 @@ func newListsListCommand() *cobra.Command {
 			}
 
 			cursor = lists.Cursor
-			return cursor == nil
+			if cursor == nil {
+				return pagerDone
+			}
+			return nil
 		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 	return cmd
 }
@@ -390,7 +397,7 @@ func newListsPatchsetListCommand() *cobra.Command {
 			}
 		}
 
-		pagerify(func(p pager) bool {
+		err = pagerify(func(p pager) error {
 			if byUser {
 				if username != "" {
 					user, err = listssrht.PatchesByUser(c.Client, ctx, name, cursor)
@@ -399,9 +406,9 @@ func newListsPatchsetListCommand() *cobra.Command {
 				}
 
 				if err != nil {
-					log.Fatal(err)
+					return err
 				} else if user == nil {
-					log.Fatalf("no such user %q", name)
+					return fmt.Errorf("no such user %q", name)
 				}
 
 				patches = user.Patches
@@ -413,11 +420,11 @@ func newListsPatchsetListCommand() *cobra.Command {
 				}
 
 				if err != nil {
-					log.Fatal(err)
+					return err
 				} else if user == nil {
-					log.Fatalf("no such user %q", username)
+					return fmt.Errorf("no such user %q", username)
 				} else if user.List == nil {
-					log.Fatalf("no such list %q", name)
+					return fmt.Errorf("no such list %q", name)
 				}
 
 				patches = user.List.Patches
@@ -428,8 +435,15 @@ func newListsPatchsetListCommand() *cobra.Command {
 			}
 
 			cursor = patches.Cursor
-			return cursor == nil
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
 		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	cmd := &cobra.Command{
@@ -635,7 +649,7 @@ func newListsACLListCommand() *cobra.Command {
 			username = strings.TrimLeft(owner, ownerPrefixes)
 		}
 
-		pagerify(func(p pager) bool {
+		err = pagerify(func(p pager) error {
 			if username != "" {
 				user, err = listssrht.AclByUser(c.Client, ctx, username, name, cursor)
 			} else {
@@ -643,11 +657,11 @@ func newListsACLListCommand() *cobra.Command {
 			}
 
 			if err != nil {
-				log.Fatal(err)
+				return err
 			} else if user == nil {
-				log.Fatalf("no such user %q", username)
+				return fmt.Errorf("no such user %q", username)
 			} else if user.List == nil {
-				log.Fatalf("no such list %q", name)
+				return fmt.Errorf("no such list %q", name)
 			}
 
 			if cursor == nil {
@@ -665,8 +679,15 @@ func newListsACLListCommand() *cobra.Command {
 			}
 
 			cursor = user.List.Acl.Cursor
-			return cursor == nil
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
 		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	cmd := &cobra.Command{
@@ -778,10 +799,10 @@ func newListsUserWebhookListCommand() *cobra.Command {
 		c := createClient("lists", cmd)
 		var cursor *listssrht.Cursor
 
-		pagerify(func(p pager) bool {
+		err := pagerify(func(p pager) error {
 			webhooks, err := listssrht.UserWebhooks(c.Client, ctx, cursor)
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 
 			for _, webhook := range webhooks.Results {
@@ -789,8 +810,15 @@ func newListsUserWebhookListCommand() *cobra.Command {
 			}
 
 			cursor = webhooks.Cursor
-			return cursor == nil
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
 		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	cmd := &cobra.Command{
@@ -924,7 +952,7 @@ func newListsWebhookListCommand() *cobra.Command {
 			username = strings.TrimLeft(owner, ownerPrefixes)
 		}
 
-		pagerify(func(p pager) bool {
+		err = pagerify(func(p pager) error {
 			if username != "" {
 				user, err = listssrht.MailingListWebhooksByUser(c.Client, ctx, username, name, cursor)
 			} else {
@@ -932,11 +960,11 @@ func newListsWebhookListCommand() *cobra.Command {
 			}
 
 			if err != nil {
-				log.Fatal(err)
+				return err
 			} else if user == nil {
-				log.Fatalf("no such user %q", username)
+				return fmt.Errorf("no such user %q", username)
 			} else if user.List == nil {
-				log.Fatalf("no such mailing list %q", name)
+				return fmt.Errorf("no such mailing list %q", name)
 			}
 
 			for _, webhook := range user.List.Webhooks.Results {
@@ -944,8 +972,15 @@ func newListsWebhookListCommand() *cobra.Command {
 			}
 
 			cursor = user.List.Webhooks.Cursor
-			return cursor == nil
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
 		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	cmd := &cobra.Command{
@@ -992,10 +1027,10 @@ func newListsSubscriptions() *cobra.Command {
 		c := createClient("lists", cmd)
 		var cursor *listssrht.Cursor
 
-		pagerify(func(p pager) bool {
+		err := pagerify(func(p pager) error {
 			subscriptions, err := listssrht.Subscriptions(c.Client, ctx, cursor)
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 
 			for _, sub := range subscriptions.Results {
@@ -1003,8 +1038,15 @@ func newListsSubscriptions() *cobra.Command {
 			}
 
 			cursor = subscriptions.Cursor
-			return cursor == nil
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
 		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	cmd := &cobra.Command{

@@ -82,10 +82,10 @@ func newMetaAuditLogCommand() *cobra.Command {
 		c := createClient("meta", cmd)
 		var cursor *metasrht.Cursor
 
-		pagerify(func(p pager) bool {
+		err := pagerify(func(p pager) error {
 			logs, err := metasrht.AuditLog(c.Client, ctx, cursor)
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 
 			for _, log := range logs.Results {
@@ -93,8 +93,15 @@ func newMetaAuditLogCommand() *cobra.Command {
 			}
 
 			cursor = logs.Cursor
-			return cursor == nil
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
 		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	cmd := &cobra.Command{
@@ -245,7 +252,7 @@ func newMetaSSHKeyListCommand() *cobra.Command {
 			username = strings.TrimLeft(args[0], ownerPrefixes)
 		}
 
-		pagerify(func(p pager) bool {
+		err = pagerify(func(p pager) error {
 			if username != "" {
 				if raw {
 					user, err = metasrht.ListRawSSHKeysByUser(c.Client, ctx, username, cursor)
@@ -261,9 +268,9 @@ func newMetaSSHKeyListCommand() *cobra.Command {
 			}
 
 			if err != nil {
-				log.Fatal(err)
+				return err
 			} else if user == nil {
-				log.Fatalf("no such user %q", username)
+				return fmt.Errorf("no such user %q", username)
 			}
 
 			if raw {
@@ -281,8 +288,15 @@ func newMetaSSHKeyListCommand() *cobra.Command {
 			}
 
 			cursor = user.SshKeys.Cursor
-			return cursor == nil
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
 		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	cmd := &cobra.Command{
@@ -424,7 +438,7 @@ func newMetaPGPKeyListCommand() *cobra.Command {
 			username = strings.TrimLeft(args[0], ownerPrefixes)
 		}
 
-		pagerify(func(p pager) bool {
+		err = pagerify(func(p pager) error {
 			if username != "" {
 				if raw {
 					user, err = metasrht.ListRawPGPKeysByUser(c.Client, ctx, username, cursor)
@@ -440,9 +454,9 @@ func newMetaPGPKeyListCommand() *cobra.Command {
 			}
 
 			if err != nil {
-				log.Fatal(err)
+				return err
 			} else if user == nil {
-				log.Fatalf("no such user %q", username)
+				return fmt.Errorf("no such user %q", username)
 			}
 
 			if raw {
@@ -457,8 +471,15 @@ func newMetaPGPKeyListCommand() *cobra.Command {
 			}
 
 			cursor = user.PgpKeys.Cursor
-			return cursor == nil
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
 		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	cmd := &cobra.Command{
@@ -533,10 +554,10 @@ func newMetaUserWebhookListCommand() *cobra.Command {
 		c := createClient("meta", cmd)
 		var cursor *metasrht.Cursor
 
-		pagerify(func(p pager) bool {
+		err := pagerify(func(p pager) error {
 			webhooks, err := metasrht.UserWebhooks(c.Client, ctx, cursor)
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 
 			for _, webhook := range webhooks.Results {
@@ -544,8 +565,15 @@ func newMetaUserWebhookListCommand() *cobra.Command {
 			}
 
 			cursor = webhooks.Cursor
-			return cursor == nil
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
 		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	cmd := &cobra.Command{

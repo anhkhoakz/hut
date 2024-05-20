@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -117,16 +118,17 @@ func newGitListCommand() *cobra.Command {
 		if len(args) > 0 {
 			owner, instance = parseOwnerName(args[0])
 		}
-		pagerify(func(p pager) bool {
+
+		err := pagerify(func(p pager) error {
 			var repos *gitsrht.RepositoryCursor
 			if len(owner) > 0 {
 				c := createClientWithInstance("git", cmd, instance)
 				username := strings.TrimLeft(owner, ownerPrefixes)
 				user, err := gitsrht.RepositoriesByUser(c.Client, ctx, username, cursor)
 				if err != nil {
-					log.Fatal(err)
+					return err
 				} else if user == nil {
-					log.Fatal("no such user")
+					return errors.New("no such user")
 				}
 				repos = user.Repositories
 			} else {
@@ -134,7 +136,7 @@ func newGitListCommand() *cobra.Command {
 				var err error
 				repos, err = gitsrht.Repositories(c.Client, ctx, cursor)
 				if err != nil {
-					log.Fatal(err)
+					return err
 				}
 			}
 
@@ -143,8 +145,15 @@ func newGitListCommand() *cobra.Command {
 			}
 
 			cursor = repos.Cursor
-			return cursor == nil
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
 		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	cmd := &cobra.Command{
@@ -385,7 +394,7 @@ func newGitACLListCommand() *cobra.Command {
 			username = strings.TrimLeft(owner, ownerPrefixes)
 		}
 
-		pagerify(func(p pager) bool {
+		err = pagerify(func(p pager) error {
 			if username != "" {
 				user, err = gitsrht.AclByUser(c.Client, ctx, username, name, cursor)
 			} else {
@@ -393,11 +402,11 @@ func newGitACLListCommand() *cobra.Command {
 			}
 
 			if err != nil {
-				log.Fatal(err)
+				return err
 			} else if user == nil {
-				log.Fatal("no such user")
+				return errors.New("no such user")
 			} else if user.Repository == nil {
-				log.Fatalf("no such repository %q", name)
+				return fmt.Errorf("no such repository %q", name)
 			}
 
 			for _, acl := range user.Repository.Acls.Results {
@@ -405,8 +414,15 @@ func newGitACLListCommand() *cobra.Command {
 			}
 
 			cursor = user.Repository.Acls.Cursor
-			return cursor == nil
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
 		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	cmd := &cobra.Command{
@@ -652,10 +668,10 @@ func newGitUserWebhookListCommand() *cobra.Command {
 		c := createClient("git", cmd)
 		var cursor *gitsrht.Cursor
 
-		pagerify(func(p pager) bool {
+		err := pagerify(func(p pager) error {
 			webhooks, err := gitsrht.UserWebhooks(c.Client, ctx, cursor)
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 
 			for _, webhook := range webhooks.Results {
@@ -663,8 +679,15 @@ func newGitUserWebhookListCommand() *cobra.Command {
 			}
 
 			cursor = webhooks.Cursor
-			return cursor == nil
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
 		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	cmd := &cobra.Command{

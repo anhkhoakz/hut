@@ -138,10 +138,10 @@ func newPasteListCommand() *cobra.Command {
 		c := createClient("paste", cmd)
 		var cursor *pastesrht.Cursor
 
-		pagerify(func(p pager) bool {
+		err := pagerify(func(p pager) error {
 			pastes, err := pastesrht.Pastes(c.Client, ctx, cursor)
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 
 			for _, paste := range pastes.Results {
@@ -150,8 +150,15 @@ func newPasteListCommand() *cobra.Command {
 			}
 
 			cursor = pastes.Cursor
-			return cursor == nil
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
 		})
+		if err != nil {
+			log.Fatal(err)
+		}
 
 	}
 
@@ -323,10 +330,10 @@ func newPasteUserWebhookListCommand() *cobra.Command {
 		c := createClient("paste", cmd)
 		var cursor *pastesrht.Cursor
 
-		pagerify(func(p pager) bool {
+		err := pagerify(func(p pager) error {
 			webhooks, err := pastesrht.UserWebhooks(c.Client, ctx, cursor)
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 
 			for _, webhook := range webhooks.Results {
@@ -334,8 +341,15 @@ func newPasteUserWebhookListCommand() *cobra.Command {
 			}
 
 			cursor = webhooks.Cursor
-			return cursor == nil
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
 		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	cmd := &cobra.Command{

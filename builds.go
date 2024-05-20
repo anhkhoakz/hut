@@ -365,21 +365,21 @@ func newBuildsListCommand() *cobra.Command {
 			username = strings.TrimLeft(args[0], ownerPrefixes)
 		}
 
-		pagerify(func(p pager) bool {
+		err := pagerify(func(p pager) error {
 			var jobs *buildssrht.JobCursor
 			if len(username) > 0 {
 				user, err := buildssrht.JobsByUser(c.Client, ctx, username, cursor)
 				if err != nil {
-					log.Fatal(err)
+					return err
 				} else if user == nil {
-					log.Fatal("no such user")
+					return errors.New("no such user")
 				}
 				jobs = user.Jobs
 			} else {
 				var err error
 				jobs, err = buildssrht.Jobs(c.Client, ctx, cursor)
 				if err != nil {
-					log.Fatal(err)
+					return err
 				}
 			}
 
@@ -388,8 +388,16 @@ func newBuildsListCommand() *cobra.Command {
 			}
 
 			cursor = jobs.Cursor
-			return cursor == nil
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
 		})
+
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	cmd := &cobra.Command{
@@ -543,10 +551,10 @@ func newBuildsUserWebhookListCommand() *cobra.Command {
 		c := createClient("builds", cmd)
 		var cursor *buildssrht.Cursor
 
-		pagerify(func(p pager) bool {
+		err := pagerify(func(p pager) error {
 			webhooks, err := buildssrht.UserWebhooks(c.Client, ctx, cursor)
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 
 			for _, webhook := range webhooks.Results {
@@ -554,8 +562,15 @@ func newBuildsUserWebhookListCommand() *cobra.Command {
 			}
 
 			cursor = webhooks.Cursor
-			return cursor == nil
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
 		})
+		if err != nil {
+			log.Fatal(err)
+		}
 
 	}
 
@@ -641,10 +656,10 @@ func newBuildsSecretListCommand() *cobra.Command {
 		c := createClient("builds", cmd)
 		var cursor *buildssrht.Cursor
 
-		pagerify(func(p pager) bool {
+		err := pagerify(func(p pager) error {
 			secrets, err := buildssrht.Secrets(c.Client, ctx, cursor)
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 
 			for i, secret := range secrets.Results {
@@ -655,8 +670,15 @@ func newBuildsSecretListCommand() *cobra.Command {
 			}
 
 			cursor = secrets.Cursor
-			return cursor == nil
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
 		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	cmd := &cobra.Command{
