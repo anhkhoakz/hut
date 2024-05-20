@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -35,21 +36,22 @@ func newHgListCommand() *cobra.Command {
 		if len(args) > 0 {
 			username = strings.TrimLeft(args[0], ownerPrefixes)
 		}
-		pagerify(func(p pager) bool {
+
+		err := pagerify(func(p pager) error {
 			var repos *hgsrht.RepositoryCursor
 			if len(username) > 0 {
 				user, err := hgsrht.RepositoriesByUser(c.Client, ctx, username, cursor)
 				if err != nil {
-					log.Fatal(err)
+					return err
 				} else if user == nil {
-					log.Fatal("no such user")
+					return errors.New("no such user")
 				}
 				repos = user.Repositories
 			} else {
 				var err error
 				repos, err = hgsrht.Repositories(c.Client, ctx, cursor)
 				if err != nil {
-					log.Fatal(err)
+					return err
 				}
 			}
 
@@ -58,8 +60,15 @@ func newHgListCommand() *cobra.Command {
 			}
 
 			cursor = repos.Cursor
-			return cursor == nil
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
 		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	cmd := &cobra.Command{
@@ -263,10 +272,10 @@ func newHgUserWebhookListCommand() *cobra.Command {
 		c := createClient("hg", cmd)
 		var cursor *hgsrht.Cursor
 
-		pagerify(func(p pager) bool {
+		err := pagerify(func(p pager) error {
 			webhooks, err := hgsrht.UserWebhooks(c.Client, ctx, cursor)
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 
 			for _, webhook := range webhooks.Results {
@@ -274,8 +283,15 @@ func newHgUserWebhookListCommand() *cobra.Command {
 			}
 
 			cursor = webhooks.Cursor
-			return cursor == nil
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
 		})
+		if err != nil {
+			log.Fatal(err)
+		}
 
 	}
 

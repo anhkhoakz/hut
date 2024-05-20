@@ -241,10 +241,10 @@ func newPagesListCommand() *cobra.Command {
 		c := createClient("pages", cmd)
 		var cursor *pagessrht.Cursor
 
-		pagerify(func(p pager) bool {
+		err := pagerify(func(p pager) error {
 			sites, err := pagessrht.Sites(c.Client, ctx, cursor)
 			if err != nil {
-				log.Fatalf("failed to list sites: %v", err)
+				return fmt.Errorf("failed to list sites: %v", err)
 			}
 
 			for _, site := range sites.Results {
@@ -252,8 +252,15 @@ func newPagesListCommand() *cobra.Command {
 			}
 
 			cursor = sites.Cursor
-			return cursor == nil
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
 		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	cmd := &cobra.Command{
@@ -324,10 +331,10 @@ func newPagesUserWebhookListCommand() *cobra.Command {
 		c := createClient("pages", cmd)
 		var cursor *pagessrht.Cursor
 
-		pagerify(func(p pager) bool {
+		err := pagerify(func(p pager) error {
 			webhooks, err := pagessrht.UserWebhooks(c.Client, ctx, cursor)
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 
 			for _, webhook := range webhooks.Results {
@@ -335,8 +342,15 @@ func newPagesUserWebhookListCommand() *cobra.Command {
 			}
 
 			cursor = webhooks.Cursor
-			return cursor == nil
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
 		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	cmd := &cobra.Command{
