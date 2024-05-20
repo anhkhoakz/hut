@@ -128,9 +128,10 @@ type OAuthGrant struct {
 }
 
 type OAuthGrantRegistration struct {
-	Grant  *OAuthGrant `json:"grant"`
-	Grants string      `json:"grants"`
-	Secret string      `json:"secret"`
+	Grant        *OAuthGrant `json:"grant"`
+	Grants       string      `json:"grants"`
+	Secret       string      `json:"secret"`
+	RefreshToken string      `json:"refreshToken"`
 }
 
 type OAuthPersonalToken struct {
@@ -208,6 +209,7 @@ type SSHKey struct {
 	Key         string         `json:"key"`
 	Fingerprint string         `json:"fingerprint"`
 	Comment     *string        `json:"comment,omitempty"`
+	Username    string         `json:"username"`
 }
 
 // A cursor for enumerating a list of SSH keys

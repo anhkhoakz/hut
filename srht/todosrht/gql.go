@@ -431,6 +431,7 @@ type SubmitCommentEmailInput struct {
 	Cmd        *EmailCmd         `json:"cmd,omitempty"`
 	Resolution *TicketResolution `json:"resolution,omitempty"`
 	LabelIds   []int32           `json:"labelIds,omitempty"`
+	MessageId  string            `json:"messageId"`
 }
 
 // You may omit the status or resolution fields to leave them unchanged (or if

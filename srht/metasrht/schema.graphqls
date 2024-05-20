@@ -112,6 +112,9 @@ type SSHKey {
   key: String!
   fingerprint: String!
   comment: String
+
+  # TODO: replace with user.username
+  username: String! @anoninternal
 }
 
 type PGPKey {
@@ -143,6 +146,7 @@ type OAuthGrantRegistration {
   grant: OAuthGrant!
   grants: String!
   secret: String!
+  refreshToken: String!
 }
 
 type OAuthClient {
@@ -409,6 +413,9 @@ type Query {
   should not be trusted. Client ID is optional for personal access tokens.
   """
   tokenRevocationStatus(hash: String!, clientId: String): Boolean! @internal
+
+  # TODO: replace with sshKeyByFingerprint
+  sshKeyByFingerprintInternal(fingerprint: String!): SSHKey @anoninternal
 }
 
 """
@@ -443,9 +450,9 @@ type Mutation {
   deleteSSHKey(id: Int!): SSHKey @access(scope: SSH_KEYS, kind: RW)
 
   """
-  Causes the "last used" time of this SSH key to be updated.
+  Causes the "last used" time of this SSH key to be set to the current time.
   """
-  updateSSHKey(id: Int!): SSHKey! @access(scope: SSH_KEYS, kind: RO)
+  updateSSHKeyLastUsed(id: Int!): SSHKey! @access(scope: SSH_KEYS, kind: RO) @internal
 
   """
   Creates a new user profile webhook subscription. When an event from the
@@ -520,6 +527,13 @@ type Mutation {
     clientSecret: String!, redirectUri: String): OAuthGrantRegistration @internal
 
   """
+  Refreshes an existing OAuth 2.0 grant. This invalidates the previous grant
+  and returns a new one.
+  """
+  refreshOAuthGrant(refreshToken: String!, clientUUID: String!,
+    clientSecret: String!, grants: String): OAuthGrantRegistration @internal
+
+  """
   Send a notification email.
 
   The 'address' parameter must be a single RFC 5322 address (e.g. "Barry Gibbs
@@ -532,6 +546,11 @@ type Mutation {
   settings.
   """
   sendEmail(address: String!, message: String!): Boolean! @anoninternal
+
+  """
+  Re-sends the account confirmation email to this user.
+  """
+  resendConfirmation(username: String!): String! @internal
 
   """
   Deletes the authenticated user's account.

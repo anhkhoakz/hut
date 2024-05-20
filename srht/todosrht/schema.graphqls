@@ -770,6 +770,7 @@ input SubmitCommentEmailInput {
   cmd: EmailCmd
   resolution: TicketResolution
   labelIds: [Int!]
+  messageId: String!
 }
 
 """
