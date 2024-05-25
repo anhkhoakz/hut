@@ -218,7 +218,11 @@ func newPagesUnpublishCommand() *cobra.Command {
 			log.Fatalf("failed to unpublish site: %v", err)
 		}
 
-		log.Printf("Unpublished site at %s\n", site.Domain)
+		if site == nil {
+			log.Printf("This site does not exist")
+		} else {
+			log.Printf("Unpublished site at %s\n", site.Domain)
+		}
 	}
 
 	cmd := &cobra.Command{
