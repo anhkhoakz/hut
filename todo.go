@@ -516,8 +516,6 @@ func newTodoTicketStatusCommand() *cobra.Command {
 		event, err := todosrht.UpdateTicketStatus(c.Client, ctx, trackerID, ticketID, input)
 		if err != nil {
 			log.Fatal(err)
-		} else if event == nil {
-			log.Fatalf("failed to update status of ticket with ID %d", ticketID)
 		}
 
 		log.Printf("Updated status of %s\n", event.Ticket.Subject)
@@ -1664,8 +1662,6 @@ func newTodoTicketEditCommand() *cobra.Command {
 		ticket, err = todosrht.UpdateTicket(c.Client, ctx, tracker.Id, ticket.Id, input)
 		if err != nil {
 			log.Fatal(err)
-		} else if ticket == nil {
-			log.Fatal("failed to edit ticket")
 		}
 
 		log.Printf("Updated ticket %v\n", termfmt.DarkYellow.Sprintf("#%v", ticket.Id))
