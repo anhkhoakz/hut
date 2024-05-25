@@ -219,7 +219,7 @@ func newPagesUnpublishCommand() *cobra.Command {
 		}
 
 		if site == nil {
-			log.Printf("This site does not exist")
+			log.Printf("This site does not exist\n")
 		} else {
 			log.Printf("Unpublished site at %s\n", site.Domain)
 		}
