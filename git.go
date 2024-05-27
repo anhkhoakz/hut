@@ -68,19 +68,20 @@ func newGitCreateCommand() *cobra.Command {
 
 		log.Printf("Created repository %s\n", repo.Name)
 
+		ver, err := gitsrht.SshSettings(c.Client, ctx)
+		if err != nil {
+			log.Fatalf("failed to retrieve settings: %v", err)
+		}
+
+		u, err := url.Parse(c.BaseURL)
+		if err != nil {
+			log.Fatalf("failed to parse base URL: %v", err)
+		}
+
+		cloneURL := fmt.Sprintf("%s@%s:%s/%s", ver.Settings.SshUser, u.Hostname(),
+			repo.Owner.CanonicalName, repo.Name)
+
 		if clone {
-			ver, err := gitsrht.SshSettings(c.Client, ctx)
-			if err != nil {
-				log.Fatalf("failed to retrieve settings: %v", err)
-			}
-
-			u, err := url.Parse(c.BaseURL)
-			if err != nil {
-				log.Fatalf("failed to parse base URL: %v", err)
-			}
-
-			cloneURL := fmt.Sprintf("%s@%s:%s/%s", ver.Settings.SshUser, u.Hostname(),
-				repo.Owner.CanonicalName, repo.Name)
 			cloneCmd := exec.Command("git", "clone", cloneURL)
 			cloneCmd.Stdin = os.Stdin
 			cloneCmd.Stdout = os.Stdout
@@ -90,6 +91,8 @@ func newGitCreateCommand() *cobra.Command {
 			if err != nil {
 				log.Fatal(err)
 			}
+		} else {
+			fmt.Printf("%s\n", cloneURL)
 		}
 	}
 

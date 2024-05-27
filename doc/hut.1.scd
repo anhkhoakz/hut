@@ -226,7 +226,8 @@ Options are:
 		Revision tag. Defaults to the last Git tag.
 
 *create* <name> [options...]
-	Create a repository.
+	Create a repository. If *--clone* is not used, the remote URL will be
+	printed to _stdout_.
 
 	Options are:
 
