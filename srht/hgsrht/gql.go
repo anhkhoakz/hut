@@ -470,6 +470,15 @@ func UserWebhooks(client *gqlclient.Client, ctx context.Context, cursor *Cursor)
 	return respData.UserWebhooks, err
 }
 
+func SshSettings(client *gqlclient.Client, ctx context.Context) (version *Version, err error) {
+	op := gqlclient.NewOperation("query sshSettings {\n\tversion {\n\t\tsettings {\n\t\t\tsshUser\n\t\t}\n\t}\n}\n")
+	var respData struct {
+		Version *Version
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Version, err
+}
+
 func CreateRepository(client *gqlclient.Client, ctx context.Context, name string, visibility Visibility, description string) (createRepository *Repository, err error) {
 	op := gqlclient.NewOperation("mutation createRepository ($name: String!, $visibility: Visibility!, $description: String!) {\n\tcreateRepository(name: $name, visibility: $visibility, description: $description) {\n\t\tid\n\t\tname\n\t\towner {\n\t\t\tcanonicalName\n\t\t}\n\t}\n}\n")
 	op.Var("name", name)

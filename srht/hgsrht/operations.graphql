@@ -78,6 +78,14 @@ query userWebhooks($cursor: Cursor) {
     }
 }
 
+query sshSettings {
+    version {
+        settings {
+            sshUser
+        }
+    }
+}
+
 mutation createRepository(
     $name: String!
     $visibility: Visibility!

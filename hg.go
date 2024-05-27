@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/url"
 	"os"
 	"strings"
 
@@ -107,6 +108,20 @@ func newHgCreateCommand() *cobra.Command {
 		}
 
 		log.Printf("Created repository %s\n", repo.Name)
+
+		ver, err := hgsrht.SshSettings(c.Client, ctx)
+		if err != nil {
+			log.Fatalf("failed to retrieve settings: %v", err)
+		}
+
+		u, err := url.Parse(c.BaseURL)
+		if err != nil {
+			log.Fatalf("failed to parse base URL: %v", err)
+		}
+
+		cloneURL := fmt.Sprintf("ssh://%s@%s/%s/%s", ver.Settings.SshUser, u.Hostname(),
+			repo.Owner.CanonicalName, repo.Name)
+		fmt.Printf("%s\n", cloneURL)
 	}
 
 	cmd := &cobra.Command{

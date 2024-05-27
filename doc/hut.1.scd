@@ -301,7 +301,7 @@ Options are:
 ## hg
 
 *create* <name> [options...]
-	Create a repository.
+	Create a repository. The remote URL will be printed to _stdout_.
 
 	Options are:
 
