@@ -535,6 +535,15 @@ func UserWebhooks(client *gqlclient.Client, ctx context.Context, cursor *Cursor)
 	return respData.ProfileWebhooks, err
 }
 
+func PersonalAccessTokens(client *gqlclient.Client, ctx context.Context) (personalAccessTokens []OAuthPersonalToken, err error) {
+	op := gqlclient.NewOperation("query personalAccessTokens {\n\tpersonalAccessTokens {\n\t\tissued\n\t\texpires\n\t\tcomment\n\t\tgrants\n\t}\n}\n")
+	var respData struct {
+		PersonalAccessTokens []OAuthPersonalToken
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.PersonalAccessTokens, err
+}
+
 func CreateSSHKey(client *gqlclient.Client, ctx context.Context, key string) (createSSHKey *SSHKey, err error) {
 	op := gqlclient.NewOperation("mutation createSSHKey ($key: String!) {\n\tcreateSSHKey(key: $key) {\n\t\tfingerprint\n\t\tcomment\n\t}\n}\n")
 	op.Var("key", key)

@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/dustin/go-humanize"
+	"github.com/juju/ansiterm/tabwriter"
 	"github.com/spf13/cobra"
 
 	"git.sr.ht/~xenrox/hut/srht/metasrht"
@@ -28,6 +29,7 @@ func newMetaCommand() *cobra.Command {
 	cmd.AddCommand(newMetaSSHKeyCommand())
 	cmd.AddCommand(newMetaPGPKeyCommand())
 	cmd.AddCommand(newMetaUserWebhookCommand())
+	cmd.AddCommand(newMetaOAuthCommand())
 	return cmd
 }
 
@@ -609,6 +611,59 @@ func newMetaUserWebhookDeleteCommand() *cobra.Command {
 		Args:              cobra.ExactArgs(1),
 		ValidArgsFunction: completeMetaUserWebhookID,
 		Run:               run,
+	}
+	return cmd
+}
+
+func newMetaOAuthCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "oauth",
+		Short: "List OAuth credentials",
+	}
+	cmd.AddCommand(newMetaOAuthTokensCommand())
+	return cmd
+}
+
+func newMetaOAuthTokensCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("meta", cmd)
+
+		tokens, err := metasrht.PersonalAccessTokens(c.Client, ctx)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		tw := tabwriter.NewWriter(os.Stdout, 0, 2, 2, ' ', 0)
+		defer tw.Flush()
+
+		fmt.Fprint(tw, termfmt.Bold.String("Comment\tIssued\tExpires\tGrant\n"))
+		for _, token := range tokens {
+			var s string
+			if token.Comment != nil {
+				s = fmt.Sprintf("%s\t", *token.Comment)
+			} else {
+				s = "\t"
+			}
+
+			issued := humanize.Time(token.Issued.Time)
+			expires := humanize.Time(token.Expires.Time)
+
+			s += fmt.Sprintf("%s\t%s\t", issued, expires)
+
+			if token.Grants != nil {
+				s += *token.Grants
+			}
+
+			fmt.Fprintln(tw, s)
+		}
+	}
+
+	cmd := &cobra.Command{
+		Use:   "tokens",
+		Short: "List personal access tokens",
+		Args:  cobra.ExactArgs(0),
+		Run:   run,
 	}
 	return cmd
 }

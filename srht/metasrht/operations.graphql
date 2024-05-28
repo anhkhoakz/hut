@@ -127,6 +127,15 @@ query userWebhooks($cursor: Cursor) {
     }
 }
 
+query personalAccessTokens {
+    personalAccessTokens {
+        issued
+        expires
+        comment
+        grants
+    }
+}
+
 mutation createSSHKey($key: String!) {
     createSSHKey(key: $key) {
         fingerprint

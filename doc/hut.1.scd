@@ -481,6 +481,9 @@ Options are:
 *audit-log*
 	Display your audit log.
 
+*oauth tokens*
+	List personal access tokens.
+
 *pgp-key create* [path]
 	Upload a PGP public key and associate it with your account.
 
