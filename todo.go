@@ -754,7 +754,8 @@ func newTodoTicketShowCommand() *cobra.Command {
 		}
 
 		ticket := user.Tracker.Ticket
-		fmt.Printf("%s\n\n", termfmt.Bold.String(ticket.Subject))
+		fmt.Printf("%s\n", termfmt.Bold.String(ticket.Subject))
+		fmt.Printf("%s/%s/%s/%d\n\n", c.BaseURL, owner, name, ticketID)
 
 		fmt.Printf("Status: %s\n", termfmt.Green.Sprintf("%s %s", ticket.Status, ticket.Resolution))
 		fmt.Printf("Submitter: %s\n", ticket.Submitter.CanonicalName)
