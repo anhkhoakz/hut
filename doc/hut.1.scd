@@ -301,9 +301,13 @@ Options are:
 ## hg
 
 *create* <name> [options...]
-	Create a repository. The remote URL will be printed to _stdout_.
+	Create a repository. If *--clone* is not used, the remote URL will be
+	printed to _stdout_.
 
 	Options are:
+
+	*-c*, *--clone*
+		Clone repository to _CWD_.
 
 	*-d*, *--description* <string>
 		Description of the repository.

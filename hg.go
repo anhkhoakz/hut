@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"os/exec"
 	"strings"
 
 	"git.sr.ht/~xenrox/hut/srht/hgsrht"
@@ -91,6 +92,7 @@ func printHgRepo(w io.Writer, repo *hgsrht.Repository) {
 
 func newHgCreateCommand() *cobra.Command {
 	var visibility, desc string
+	var clone bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("hg", cmd)
@@ -121,7 +123,20 @@ func newHgCreateCommand() *cobra.Command {
 
 		cloneURL := fmt.Sprintf("ssh://%s@%s/%s/%s", ver.Settings.SshUser, u.Hostname(),
 			repo.Owner.CanonicalName, repo.Name)
-		fmt.Printf("%s\n", cloneURL)
+
+		if clone {
+			cloneCmd := exec.Command("hg", "clone", cloneURL)
+			cloneCmd.Stdin = os.Stdin
+			cloneCmd.Stdout = os.Stdout
+			cloneCmd.Stderr = os.Stderr
+
+			err = cloneCmd.Run()
+			if err != nil {
+				log.Fatal(err)
+			}
+		} else {
+			fmt.Printf("%s\n", cloneURL)
+		}
 	}
 
 	cmd := &cobra.Command{
@@ -135,6 +150,7 @@ func newHgCreateCommand() *cobra.Command {
 	cmd.RegisterFlagCompletionFunc("visibility", completeVisibility)
 	cmd.Flags().StringVarP(&desc, "description", "d", "", "repo description")
 	cmd.RegisterFlagCompletionFunc("description", cobra.NoFileCompletions)
+	cmd.Flags().BoolVarP(&clone, "clone", "c", false, "autoclone repo")
 	return cmd
 }
 
