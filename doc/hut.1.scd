@@ -331,10 +331,16 @@ Options are:
 
 	Options are:
 
+	*-d*, *--description* <description>
+		Set one-line repository description.
+
 	*--readme* <file>
 		Update the custom README settings. You can read the HTML from a file or
 		pass "-" as the filename to read from _stdin_.
 		To clear the custom README use an empty string "".
+
+	*-v*, *--visibility* <string>
+		Visibility to use (public, unlisted, private).
 
 *user-webhook create* [options...]
 	Create a user webhook. When this command is run from a terminal, the query will

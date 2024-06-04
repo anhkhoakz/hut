@@ -188,7 +188,7 @@ func newHgDeleteCommand() *cobra.Command {
 }
 
 func newHgUpdateCommand() *cobra.Command {
-	var readme string
+	var description, readme, visibility string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
@@ -198,6 +198,10 @@ func newHgUpdateCommand() *cobra.Command {
 		id := getHgRepoID(c, ctx, name, owner)
 
 		var input hgsrht.RepoInput
+
+		if cmd.Flags().Changed("description") {
+			input.Description = &description
+		}
 
 		if readme == "" && cmd.Flags().Changed("readme") {
 			_, err := hgsrht.ClearCustomReadme(c.Client, ctx, id)
@@ -223,6 +227,14 @@ func newHgUpdateCommand() *cobra.Command {
 			input.Readme = &s
 		}
 
+		if visibility != "" {
+			repoVisibility, err := hgsrht.ParseVisibility(visibility)
+			if err != nil {
+				log.Fatal(err)
+			}
+			input.Visibility = &repoVisibility
+		}
+
 		repo, err := hgsrht.UpdateRepository(c.Client, ctx, id, input)
 		if err != nil {
 			log.Fatal(err)
@@ -239,7 +251,11 @@ func newHgUpdateCommand() *cobra.Command {
 		ValidArgsFunction: completeHgRepo,
 		Run:               run,
 	}
+	cmd.Flags().StringVarP(&description, "description", "d", "", "repository description")
+	cmd.RegisterFlagCompletionFunc("description", cobra.NoFileCompletions)
 	cmd.Flags().StringVar(&readme, "readme", "", "update the custom README")
+	cmd.Flags().StringVarP(&visibility, "visibility", "v", "", "repository visibility")
+	cmd.RegisterFlagCompletionFunc("visibility", completeVisibility)
 	return cmd
 }
 
