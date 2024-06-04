@@ -724,7 +724,11 @@ mutation unlabelTicket($trackerId: Int!, $ticketId: Int!, $labelId: Int!) {
     }
 }
 
-mutation updateTicket($trackerId: Int!, $ticketId: Int!, $input: UpdateTicketInput!) {
+mutation updateTicket(
+    $trackerId: Int!
+    $ticketId: Int!
+    $input: UpdateTicketInput!
+) {
     updateTicket(trackerId: $trackerId, ticketId: $ticketId, input: $input) {
         id
     }

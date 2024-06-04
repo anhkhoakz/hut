@@ -42,15 +42,19 @@ mutation shareSecret($uuid: String!, $user: String!) {
 }
 
 query monitor($id: Int!) {
-	job(id: $id) {
-		status
-		log { fullURL }
-		tasks {
-			name
-			status
-			log { fullURL }
-		}
-	}
+    job(id: $id) {
+        status
+        log {
+            fullURL
+        }
+        tasks {
+            name
+            status
+            log {
+                fullURL
+            }
+        }
+    }
 }
 
 query manifest($id: Int!) {
