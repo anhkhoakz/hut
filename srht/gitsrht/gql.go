@@ -705,8 +705,8 @@ func SshSettings(client *gqlclient.Client, ctx context.Context) (version *Versio
 	return respData.Version, err
 }
 
-func RepoNames(client *gqlclient.Client, ctx context.Context) (repositories *RepositoryCursor, err error) {
-	op := gqlclient.NewOperation("query repoNames {\n\trepositories {\n\t\tresults {\n\t\t\tname\n\t\t}\n\t}\n}\n")
+func CompleteRepositories(client *gqlclient.Client, ctx context.Context) (repositories *RepositoryCursor, err error) {
+	op := gqlclient.NewOperation("query completeRepositories {\n\trepositories {\n\t\tresults {\n\t\t\tname\n\t\t}\n\t}\n}\n")
 	var respData struct {
 		Repositories *RepositoryCursor
 	}

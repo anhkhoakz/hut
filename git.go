@@ -938,7 +938,7 @@ func completeRepo(cmd *cobra.Command, args []string, toComplete string) ([]strin
 	c := createClient("git", cmd)
 	var repoList []string
 
-	repos, err := gitsrht.RepoNames(c.Client, ctx)
+	repos, err := gitsrht.CompleteRepositories(c.Client, ctx)
 	if err != nil {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
