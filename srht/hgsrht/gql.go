@@ -479,6 +479,15 @@ func SshSettings(client *gqlclient.Client, ctx context.Context) (version *Versio
 	return respData.Version, err
 }
 
+func CompleteRepositories(client *gqlclient.Client, ctx context.Context) (repositories *RepositoryCursor, err error) {
+	op := gqlclient.NewOperation("query completeRepositories {\n\trepositories {\n\t\tresults {\n\t\t\tname\n\t\t}\n\t}\n}\n")
+	var respData struct {
+		Repositories *RepositoryCursor
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Repositories, err
+}
+
 func CreateRepository(client *gqlclient.Client, ctx context.Context, name string, visibility Visibility, description string) (createRepository *Repository, err error) {
 	op := gqlclient.NewOperation("mutation createRepository ($name: String!, $visibility: Visibility!, $description: String!) {\n\tcreateRepository(name: $name, visibility: $visibility, description: $description) {\n\t\tid\n\t\tname\n\t\towner {\n\t\t\tcanonicalName\n\t\t}\n\t}\n}\n")
 	op.Var("name", name)

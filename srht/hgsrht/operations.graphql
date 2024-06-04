@@ -86,6 +86,14 @@ query sshSettings {
     }
 }
 
+query completeRepositories {
+    repositories {
+        results {
+            name
+        }
+    }
+}
+
 mutation createRepository(
     $name: String!
     $visibility: Visibility!

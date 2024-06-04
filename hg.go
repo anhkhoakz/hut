@@ -164,7 +164,7 @@ func newHgDeleteCommand() *cobra.Command {
 		Use:               "delete <repo>",
 		Short:             "Delete a repository",
 		Args:              cobra.ExactArgs(1),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction: completeHgRepo,
 		Run:               run,
 	}
 	cmd.Flags().BoolVarP(&autoConfirm, "yes", "y", false, "auto confirm")
@@ -220,7 +220,7 @@ func newHgUpdateCommand() *cobra.Command {
 		Use:               "update <repo>",
 		Short:             "Update a repository",
 		Args:              cobra.ExactArgs(1),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction: completeHgRepo,
 		Run:               run,
 	}
 	cmd.Flags().StringVar(&readme, "readme", "", "update the custom README")
@@ -397,4 +397,21 @@ func completeHgUserWebhookID(cmd *cobra.Command, args []string, toComplete strin
 	}
 
 	return webhookList, cobra.ShellCompDirectiveNoFileComp
+}
+
+func completeHgRepo(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	ctx := cmd.Context()
+	c := createClient("hg", cmd)
+	var repoList []string
+
+	repos, err := hgsrht.CompleteRepositories(c.Client, ctx)
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	for _, repo := range repos.Results {
+		repoList = append(repoList, repo.Name)
+	}
+
+	return repoList, cobra.ShellCompDirectiveNoFileComp
 }
