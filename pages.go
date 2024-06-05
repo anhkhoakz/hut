@@ -32,7 +32,7 @@ func newPagesCommand() *cobra.Command {
 }
 
 func newPagesPublishCommand() *cobra.Command {
-	var domain, protocol, subdirectory, notFound, siteConfigFile string
+	var domain, protocol, subdirectory, siteConfigFile string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
@@ -53,10 +53,6 @@ func newPagesPublishCommand() *cobra.Command {
 				log.Fatalf("failed to read site-config: %v", err)
 			}
 			siteConfig = *config
-		}
-
-		if notFound != "" {
-			siteConfig.NotFound = &notFound
 		}
 
 		c := createClient("pages", cmd)
@@ -115,8 +111,6 @@ func newPagesPublishCommand() *cobra.Command {
 		"protocol (HTTPS or GEMINI)")
 	cmd.RegisterFlagCompletionFunc("protocol", completeProtocol)
 	cmd.Flags().StringVarP(&subdirectory, "subdirectory", "s", "/", "subdirectory")
-	cmd.Flags().StringVar(&notFound, "not-found", "", "path to serve for page not found responses")
-	cmd.Flags().MarkDeprecated("not-found", "use site-config instead")
 	cmd.Flags().StringVar(&siteConfigFile, "site-config", "", "path to site configuration file (for e.g. cache-control)")
 	cmd.RegisterFlagCompletionFunc("site-config", cobra.FixedCompletions([]string{"json"}, cobra.ShellCompDirectiveFilterFileExt))
 	return cmd
