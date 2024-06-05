@@ -26,6 +26,8 @@ func newHgCommand() *cobra.Command {
 	cmd.AddCommand(newHgDeleteCommand())
 	cmd.AddCommand(newHgUpdateCommand())
 	cmd.AddCommand(newHgUserWebhookCommand())
+	cmd.PersistentFlags().StringP("repo", "r", "", "name of repository")
+	cmd.RegisterFlagCompletionFunc("repo", completeHgRepo)
 	return cmd
 }
 
@@ -159,7 +161,16 @@ func newHgDeleteCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
-		name, owner, instance := parseResourceName(args[0])
+		var name, owner, instance string
+		if len(args) > 0 {
+			name, owner, instance = parseResourceName(args[0])
+		} else {
+			var err error
+			name, owner, instance, err = getHgRepoName(ctx, cmd)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
 
 		c := createClientWithInstance("hg", cmd, instance)
 		id := getHgRepoID(c, ctx, name, owner)
@@ -177,9 +188,9 @@ func newHgDeleteCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:               "delete <repo>",
+		Use:               "delete [repo]",
 		Short:             "Delete a repository",
-		Args:              cobra.ExactArgs(1),
+		Args:              cobra.MaximumNArgs(1),
 		ValidArgsFunction: completeHgRepo,
 		Run:               run,
 	}
@@ -192,7 +203,16 @@ func newHgUpdateCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
-		name, owner, instance := parseResourceName(args[0])
+		var name, owner, instance string
+		if len(args) > 0 {
+			name, owner, instance = parseResourceName(args[0])
+		} else {
+			var err error
+			name, owner, instance, err = getHgRepoName(ctx, cmd)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
 
 		c := createClientWithInstance("hg", cmd, instance)
 		id := getHgRepoID(c, ctx, name, owner)
@@ -245,9 +265,9 @@ func newHgUpdateCommand() *cobra.Command {
 		log.Printf("Successfully updated repository %q\n", repo.Name)
 	}
 	cmd := &cobra.Command{
-		Use:               "update <repo>",
+		Use:               "update [repo]",
 		Short:             "Update a repository",
-		Args:              cobra.ExactArgs(1),
+		Args:              cobra.MaximumNArgs(1),
 		ValidArgsFunction: completeHgRepo,
 		Run:               run,
 	}
@@ -377,6 +397,61 @@ func newHgUserWebhookDeleteCommand() *cobra.Command {
 		Run:               run,
 	}
 	return cmd
+}
+
+func getHgRepoName(ctx context.Context, cmd *cobra.Command) (repoName, owner, instance string, err error) {
+	repoName, err = cmd.Flags().GetString("repo")
+	if err != nil {
+		return "", "", "", err
+	} else if repoName != "" {
+		repoName, owner, instance = parseResourceName(repoName)
+		return repoName, owner, instance, nil
+	}
+	return guessHgRepoName(ctx, cmd)
+}
+
+func guessHgRepoName(ctx context.Context, cmd *cobra.Command) (repoName, owner, instance string, err error) {
+	remoteURL, err := hgRemoteUrl(ctx)
+	if err != nil {
+		return "", "", "", err
+	}
+
+	parts := strings.Split(strings.Trim(remoteURL.Path, "/"), "/")
+	if len(parts) != 2 {
+		return "", "", "", fmt.Errorf("failed to parse Hg URL %q: expected 2 path components", remoteURL)
+	}
+	owner, repoName = parts[0], parts[1]
+
+	// TODO: ignore port in host
+	return repoName, owner, remoteURL.Host, nil
+}
+
+func hgRemoteUrl(ctx context.Context) (*url.URL, error) {
+	out, err := exec.CommandContext(ctx, "hg", "paths", "default").Output()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get remote URL: %v", err)
+	}
+
+	raw := strings.TrimSpace(string(out))
+	switch {
+	case strings.Contains(raw, "://"):
+		return url.Parse(raw)
+	case strings.HasPrefix(raw, "/"):
+		return &url.URL{Scheme: "file", Path: raw}, nil
+	default:
+		i := strings.Index(raw, ":")
+		if i < 0 {
+			return nil, fmt.Errorf("invalid scp-like Hg URL %q: missing colon", raw)
+		}
+		host, path := raw[:i], raw[i+1:]
+
+		// Strip optional user
+		if i := strings.Index(host, "@"); i >= 0 {
+			host = host[i+1:]
+		}
+
+		return &url.URL{Scheme: "ssh", Host: host, Path: path}, nil
+	}
 }
 
 func getHgRepoID(c *Client, ctx context.Context, name, owner string) int32 {

@@ -258,7 +258,7 @@ Options are:
 	Display information about a repository.
 
 *update* [repo] [options...]
-	Update a repository.
+	Update a repository. By default the current repo will be updated.
 
 	Options are:
 
@@ -300,6 +300,11 @@ Options are:
 
 ## hg
 
+Options are:
+
+	*-r*, *--repo* <string>
+		Name of repository.
+
 *create* <name> [options...]
 	Create a repository. If *--clone* is not used, the remote URL will be
 	printed to _stdout_.
@@ -315,8 +320,8 @@ Options are:
 	*-v*, *--visibility* <string>
 		Visibility to use (public, unlisted, private). Defaults to public.
 
-*delete* <repo> [options...]
-	Delete a repository.
+*delete* [repo] [options...]
+	Delete a repository. By default the current repo will be deleted.
 
 	Options are:
 
@@ -326,8 +331,8 @@ Options are:
 *list* [owner]
 	List repositories.
 
-*update* <repo> [options...]
-	Update a repository.
+*update* [repo] [options...]
+	Update a repository. By default the current repo will be updated.
 
 	Options are:
 
