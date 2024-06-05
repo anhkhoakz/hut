@@ -34,7 +34,7 @@ func newGitCommand() *cobra.Command {
 	cmd.AddCommand(newGitUserWebhookCommand())
 	cmd.AddCommand(newGitUpdateCommand())
 	cmd.PersistentFlags().StringP("repo", "r", "", "name of repository")
-	cmd.RegisterFlagCompletionFunc("repo", completeRepo)
+	cmd.RegisterFlagCompletionFunc("repo", completeGitRepo)
 	return cmd
 }
 
@@ -187,7 +187,7 @@ func newGitDeleteCommand() *cobra.Command {
 			name, owner, instance = parseResourceName(args[0])
 		} else {
 			var err error
-			name, owner, instance, err = getRepoName(ctx, cmd)
+			name, owner, instance, err = getGitRepoName(ctx, cmd)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -212,7 +212,7 @@ func newGitDeleteCommand() *cobra.Command {
 		Use:               "delete [repo]",
 		Short:             "Delete a repository",
 		Args:              cobra.MaximumNArgs(1),
-		ValidArgsFunction: completeRepo,
+		ValidArgsFunction: completeGitRepo,
 		Run:               run,
 	}
 	cmd.Flags().BoolVarP(&autoConfirm, "yes", "y", false, "auto confirm")
@@ -234,7 +234,7 @@ func newGitArtifactUploadCommand() *cobra.Command {
 	var rev string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		repoName, owner, instance, err := getRepoName(ctx, cmd)
+		repoName, owner, instance, err := getGitRepoName(ctx, cmd)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -284,7 +284,7 @@ func newGitArtifactListCommand() *cobra.Command {
 
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		repoName, owner, instance, err := getRepoName(ctx, cmd)
+		repoName, owner, instance, err := getGitRepoName(ctx, cmd)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -380,7 +380,7 @@ func newGitACLListCommand() *cobra.Command {
 			name, owner, instance = parseResourceName(args[0])
 		} else {
 			var err error
-			name, owner, instance, err = getRepoName(ctx, cmd)
+			name, owner, instance, err = getGitRepoName(ctx, cmd)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -463,7 +463,7 @@ func newGitACLUpdateCommand() *cobra.Command {
 			log.Fatal("user must be in canonical form")
 		}
 
-		name, owner, instance, err := getRepoName(ctx, cmd)
+		name, owner, instance, err := getGitRepoName(ctx, cmd)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -531,7 +531,7 @@ func newGitShowCommand() *cobra.Command {
 			name, owner, instance = parseResourceName(args[0])
 		} else {
 			var err error
-			name, owner, instance, err = getRepoName(ctx, cmd)
+			name, owner, instance, err = getGitRepoName(ctx, cmd)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -604,7 +604,7 @@ func newGitShowCommand() *cobra.Command {
 		Use:               "show [repo]",
 		Short:             "Shows a repository",
 		Args:              cobra.MaximumNArgs(1),
-		ValidArgsFunction: completeRepo,
+		ValidArgsFunction: completeGitRepo,
 		Run:               run,
 	}
 
@@ -740,7 +740,7 @@ func newGitUpdateCommand() *cobra.Command {
 			name, owner, instance = parseResourceName(args[0])
 		} else {
 			var err error
-			name, owner, instance, err = getRepoName(ctx, cmd)
+			name, owner, instance, err = getGitRepoName(ctx, cmd)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -803,7 +803,7 @@ func newGitUpdateCommand() *cobra.Command {
 		Use:               "update [repo]",
 		Short:             "Update a repository",
 		Args:              cobra.MaximumNArgs(1),
-		ValidArgsFunction: completeRepo,
+		ValidArgsFunction: completeGitRepo,
 		Run:               run,
 	}
 	cmd.Flags().StringVarP(&visibility, "visibility", "v", "", "repository visibility")
@@ -816,7 +816,7 @@ func newGitUpdateCommand() *cobra.Command {
 	return cmd
 }
 
-func getRepoName(ctx context.Context, cmd *cobra.Command) (repoName, owner, instance string, err error) {
+func getGitRepoName(ctx context.Context, cmd *cobra.Command) (repoName, owner, instance string, err error) {
 	repoName, err = cmd.Flags().GetString("repo")
 	if err != nil {
 		return "", "", "", err
@@ -933,7 +933,7 @@ func guessRev() (string, error) {
 	return strings.TrimSpace(string(out)), nil
 }
 
-func completeRepo(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func completeGitRepo(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	ctx := cmd.Context()
 	c := createClient("git", cmd)
 	var repoList []string
@@ -977,7 +977,7 @@ var completeAccessMode = cobra.FixedCompletions([]string{"RO", "RW"}, cobra.Shel
 
 func completeArtifacts(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	ctx := cmd.Context()
-	repoName, owner, instance, err := getRepoName(ctx, cmd)
+	repoName, owner, instance, err := getGitRepoName(ctx, cmd)
 	if err != nil {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
@@ -1039,7 +1039,7 @@ func completeGitUserWebhookID(cmd *cobra.Command, args []string, toComplete stri
 
 func completeBranches(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	ctx := cmd.Context()
-	repoName, owner, instace, err := getRepoName(ctx, cmd)
+	repoName, owner, instace, err := getGitRepoName(ctx, cmd)
 	if err != nil {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
