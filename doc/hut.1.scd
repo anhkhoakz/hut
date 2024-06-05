@@ -339,6 +339,9 @@ Options are:
 	*-d*, *--description* <description>
 		Set one-line repository description.
 
+	*--non-publishing* <boolean>
+		Controls whether this repository is a non-publishing repository.
+
 	*--readme* <file>
 		Update the custom README settings. You can read the HTML from a file or
 		pass "-" as the filename to read from _stdin_.

@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 
 	"git.sr.ht/~xenrox/hut/srht/hgsrht"
@@ -199,7 +200,7 @@ func newHgDeleteCommand() *cobra.Command {
 }
 
 func newHgUpdateCommand() *cobra.Command {
-	var description, readme, visibility string
+	var description, nonPublishing, readme, visibility string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
@@ -221,6 +222,14 @@ func newHgUpdateCommand() *cobra.Command {
 
 		if cmd.Flags().Changed("description") {
 			input.Description = &description
+		}
+
+		if nonPublishing != "" {
+			b, err := strconv.ParseBool(nonPublishing)
+			if err != nil {
+				log.Fatalf("failure with %q: %v", "non-publishing", err)
+			}
+			input.NonPublishing = &b
 		}
 
 		if readme == "" && cmd.Flags().Changed("readme") {
@@ -273,6 +282,8 @@ func newHgUpdateCommand() *cobra.Command {
 	}
 	cmd.Flags().StringVarP(&description, "description", "d", "", "repository description")
 	cmd.RegisterFlagCompletionFunc("description", cobra.NoFileCompletions)
+	cmd.Flags().StringVar(&nonPublishing, "non-publishing", "", "non-publishing repository")
+	cmd.RegisterFlagCompletionFunc("non-publishing", completeBoolean)
 	cmd.Flags().StringVar(&readme, "readme", "", "update the custom README")
 	cmd.Flags().StringVarP(&visibility, "visibility", "v", "", "repository visibility")
 	cmd.RegisterFlagCompletionFunc("visibility", completeVisibility)

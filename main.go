@@ -61,6 +61,8 @@ func main() {
 
 var completeVisibility = cobra.FixedCompletions([]string{"public", "unlisted", "private"}, cobra.ShellCompDirectiveNoFileComp)
 
+var completeBoolean = cobra.FixedCompletions([]string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp)
+
 func getConfirmation(msg string) bool {
 	reader := bufio.NewReader(os.Stdin)
 
