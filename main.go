@@ -40,6 +40,7 @@ func main() {
 	cmd.PersistentFlags().String("instance", "", "sr.ht instance to use")
 	cmd.RegisterFlagCompletionFunc("instance", cobra.NoFileCompletions)
 	cmd.PersistentFlags().String("config", "", "config file to use")
+	cmd.PersistentFlags().Bool("debug", false, "display GraphQL request")
 
 	cmd.AddCommand(newBuildsCommand())
 	cmd.AddCommand(newExportCommand())
