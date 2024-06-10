@@ -308,6 +308,14 @@ Options are:
 *acl list* [repo]
 	List ACL entries of a repo. Defaults to current repo.
 
+*acl update* <user> [options...]
+	Update or add an ACL entry for user.
+
+	Options are:
+
+	*-m*, *--mode* <string>
+		Access mode to set (RW, RO).
+
 *create* <name> [options...]
 	Create a repository. If *--clone* is not used, the remote URL will be
 	printed to _stdout_.

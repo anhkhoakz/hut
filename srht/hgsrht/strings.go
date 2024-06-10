@@ -53,3 +53,14 @@ func ParseUserEvents(events []string) ([]WebhookEvent, error) {
 
 	return whEvents, nil
 }
+
+func ParseAccessMode(s string) (AccessMode, error) {
+	switch strings.ToLower(s) {
+	case "ro":
+		return AccessModeRo, nil
+	case "rw":
+		return AccessModeRw, nil
+	default:
+		return "", fmt.Errorf("invalid access mode: %s", s)
+	}
+}

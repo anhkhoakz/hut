@@ -487,7 +487,7 @@ func newGitACLUpdateCommand() *cobra.Command {
 		Run:               run,
 	}
 	cmd.Flags().StringVarP(&mode, "mode", "m", "", "access mode")
-	cmd.RegisterFlagCompletionFunc("mode", completeAccessMode)
+	cmd.RegisterFlagCompletionFunc("mode", completeRepoAccessMode)
 	cmd.MarkFlagRequired("mode")
 	return cmd
 }
@@ -972,8 +972,6 @@ func completeRev(cmd *cobra.Command, args []string, toComplete string) ([]string
 	revs := strings.Split(string(output), "\n")
 	return revs, cobra.ShellCompDirectiveNoFileComp
 }
-
-var completeAccessMode = cobra.FixedCompletions([]string{"RO", "RW"}, cobra.ShellCompDirectiveNoFileComp)
 
 func completeArtifacts(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	ctx := cmd.Context()

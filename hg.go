@@ -298,6 +298,7 @@ func newHgACLCommand() *cobra.Command {
 		Short: "Manage access-control lists",
 	}
 	cmd.AddCommand(newHgACLListCommand())
+	cmd.AddCommand(newHgACLUpdateCommand())
 	return cmd
 }
 
@@ -376,6 +377,49 @@ func printHgACLEntry(w io.Writer, acl *hgsrht.ACL) {
 	created := termfmt.Dim.String(humanize.Time(acl.Created.Time))
 	fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", termfmt.DarkYellow.Sprintf("#%d", acl.Id),
 		acl.Entity.CanonicalName, mode, created)
+}
+
+func newHgACLUpdateCommand() *cobra.Command {
+	var mode string
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		accessMode, err := hgsrht.ParseAccessMode(mode)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if strings.IndexAny(args[0], ownerPrefixes) != 0 {
+			log.Fatal("user must be in canonical form")
+		}
+
+		name, owner, instance, err := getHgRepoName(ctx, cmd)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		c := createClientWithInstance("hg", cmd, instance)
+		id := getHgRepoID(c, ctx, name, owner)
+
+		acl, err := hgsrht.UpdateACL(c.Client, ctx, id, accessMode, args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		log.Printf("Updated access rights for %s\n", acl.Entity.CanonicalName)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "update <user>",
+		Short:             "Update/add ACL entries",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	cmd.Flags().StringVarP(&mode, "mode", "m", "", "access mode")
+	cmd.RegisterFlagCompletionFunc("mode", completeRepoAccessMode)
+	cmd.MarkFlagRequired("mode")
+	return cmd
 }
 
 func newHgUserWebhookCommand() *cobra.Command {

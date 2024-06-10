@@ -63,6 +63,8 @@ var completeVisibility = cobra.FixedCompletions([]string{"public", "unlisted", "
 
 var completeBoolean = cobra.FixedCompletions([]string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp)
 
+var completeRepoAccessMode = cobra.FixedCompletions([]string{"RO", "RW"}, cobra.ShellCompDirectiveNoFileComp)
+
 func getConfirmation(msg string) bool {
 	reader := bufio.NewReader(os.Stdin)
 

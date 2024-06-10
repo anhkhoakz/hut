@@ -573,3 +573,15 @@ func DeleteUserWebhook(client *gqlclient.Client, ctx context.Context, id int32) 
 	err = client.Execute(ctx, op, &respData)
 	return respData.DeleteUserWebhook, err
 }
+
+func UpdateACL(client *gqlclient.Client, ctx context.Context, repoId int32, mode AccessMode, entity string) (updateACL *ACL, err error) {
+	op := gqlclient.NewOperation("mutation updateACL ($repoId: Int!, $mode: AccessMode!, $entity: ID!) {\n\tupdateACL(repoId: $repoId, mode: $mode, entity: $entity) {\n\t\tentity {\n\t\t\tcanonicalName\n\t\t}\n\t}\n}\n")
+	op.Var("repoId", repoId)
+	op.Var("mode", mode)
+	op.Var("entity", entity)
+	var respData struct {
+		UpdateACL *ACL
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.UpdateACL, err
+}

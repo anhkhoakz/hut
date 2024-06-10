@@ -169,3 +169,11 @@ mutation deleteUserWebhook($id: Int!) {
         id
     }
 }
+
+mutation updateACL($repoId: Int!, $mode: AccessMode!, $entity: ID!) {
+    updateACL(repoId: $repoId, mode: $mode, entity: $entity) {
+        entity {
+            canonicalName
+        }
+    }
+}
