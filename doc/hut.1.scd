@@ -305,6 +305,9 @@ Options are:
 	*-r*, *--repo* <string>
 		Name of repository.
 
+*acl delete* <ID>
+	Delete an ACL entry.
+
 *acl list* [repo]
 	List ACL entries of a repo. Defaults to current repo.
 

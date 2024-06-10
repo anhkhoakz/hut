@@ -299,6 +299,7 @@ func newHgACLCommand() *cobra.Command {
 	}
 	cmd.AddCommand(newHgACLListCommand())
 	cmd.AddCommand(newHgACLUpdateCommand())
+	cmd.AddCommand(newHgACLDeleteCommand())
 	return cmd
 }
 
@@ -419,6 +420,36 @@ func newHgACLUpdateCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&mode, "mode", "m", "", "access mode")
 	cmd.RegisterFlagCompletionFunc("mode", completeRepoAccessMode)
 	cmd.MarkFlagRequired("mode")
+	return cmd
+}
+
+func newHgACLDeleteCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("hg", cmd)
+
+		id, err := parseInt32(args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		acl, err := hgsrht.DeleteACL(c.Client, ctx, id)
+		if err != nil {
+			log.Fatal(err)
+		} else if acl == nil {
+			log.Fatalf("failed to delete ACL entry with ID %d", id)
+		}
+
+		log.Printf("Deleted ACL entry for %s in repository %s\n", acl.Entity.CanonicalName, acl.Repository.Name)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "delete <ID>",
+		Short:             "Delete an ACL entry",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
 	return cmd
 }
 
