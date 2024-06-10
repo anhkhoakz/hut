@@ -194,7 +194,7 @@ func newGitDeleteCommand() *cobra.Command {
 		}
 
 		c := createClientWithInstance("git", cmd, instance)
-		id := getRepoID(c, ctx, name, owner)
+		id := getGitRepoID(c, ctx, name, owner)
 
 		if !autoConfirm && !getConfirmation(fmt.Sprintf("Do you really want to delete the repo %s", name)) {
 			log.Println("Aborted")
@@ -241,7 +241,7 @@ func newGitArtifactUploadCommand() *cobra.Command {
 
 		c := createClientWithInstance("git", cmd, instance)
 		c.HTTP.Timeout = fileTransferTimeout
-		repoID := getRepoID(c, ctx, repoName, owner)
+		repoID := getGitRepoID(c, ctx, repoName, owner)
 
 		if rev == "" {
 			var err error
@@ -469,7 +469,7 @@ func newGitACLUpdateCommand() *cobra.Command {
 		}
 
 		c := createClientWithInstance("git", cmd, instance)
-		id := getRepoID(c, ctx, name, owner)
+		id := getGitRepoID(c, ctx, name, owner)
 
 		acl, err := gitsrht.UpdateACL(c.Client, ctx, id, accessMode, args[0])
 		if err != nil {
@@ -747,7 +747,7 @@ func newGitUpdateCommand() *cobra.Command {
 		}
 
 		c := createClientWithInstance("git", cmd, instance)
-		id := getRepoID(c, ctx, name, owner)
+		id := getGitRepoID(c, ctx, name, owner)
 		var input gitsrht.RepoInput
 
 		if visibility != "" {
@@ -863,7 +863,7 @@ func guessGitRepoName(ctx context.Context, cmd *cobra.Command) (repoName, owner,
 	return "", "", "", fmt.Errorf("no sr.ht Git repository found in current directory")
 }
 
-func getRepoID(c *Client, ctx context.Context, name, owner string) int32 {
+func getGitRepoID(c *Client, ctx context.Context, name, owner string) int32 {
 	var (
 		user     *gitsrht.User
 		username string
