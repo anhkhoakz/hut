@@ -14,6 +14,7 @@ import (
 
 	"git.sr.ht/~xenrox/hut/srht/hgsrht"
 	"git.sr.ht/~xenrox/hut/termfmt"
+	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
 )
 
@@ -26,6 +27,7 @@ func newHgCommand() *cobra.Command {
 	cmd.AddCommand(newHgCreateCommand())
 	cmd.AddCommand(newHgDeleteCommand())
 	cmd.AddCommand(newHgUpdateCommand())
+	cmd.AddCommand(newHgACLCommand())
 	cmd.AddCommand(newHgUserWebhookCommand())
 	cmd.PersistentFlags().StringP("repo", "r", "", "name of repository")
 	cmd.RegisterFlagCompletionFunc("repo", completeHgRepo)
@@ -288,6 +290,92 @@ func newHgUpdateCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&visibility, "visibility", "v", "", "repository visibility")
 	cmd.RegisterFlagCompletionFunc("visibility", completeVisibility)
 	return cmd
+}
+
+func newHgACLCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "acl",
+		Short: "Manage access-control lists",
+	}
+	cmd.AddCommand(newHgACLListCommand())
+	return cmd
+}
+
+func newHgACLListCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		var name, owner, instance string
+		if len(args) > 0 {
+			name, owner, instance = parseResourceName(args[0])
+		} else {
+			var err error
+			name, owner, instance, err = getHgRepoName(ctx, cmd)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
+		c := createClientWithInstance("hg", cmd, instance)
+		var (
+			cursor   *hgsrht.Cursor
+			user     *hgsrht.User
+			username string
+			err      error
+		)
+		if owner != "" {
+			username = strings.TrimLeft(owner, ownerPrefixes)
+		}
+
+		err = pagerify(func(p pager) error {
+			if username != "" {
+				user, err = hgsrht.AclByUser(c.Client, ctx, username, name, cursor)
+			} else {
+				user, err = hgsrht.AclByRepoName(c.Client, ctx, name, cursor)
+			}
+
+			if err != nil {
+				return err
+			} else if user == nil {
+				return errors.New("no such user")
+			} else if user.Repository == nil {
+				return fmt.Errorf("no such repository %q", name)
+			}
+
+			for _, acl := range user.Repository.AccessControlList.Results {
+				printHgACLEntry(p, acl)
+			}
+
+			cursor = user.Repository.AccessControlList.Cursor
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	cmd := &cobra.Command{
+		Use:               "list [repo]",
+		Short:             "List ACL entries",
+		Args:              cobra.MaximumNArgs(1),
+		ValidArgsFunction: completeHgRepo,
+		Run:               run,
+	}
+	return cmd
+}
+
+func printHgACLEntry(w io.Writer, acl *hgsrht.ACL) {
+	var mode string
+	if acl.Mode != nil {
+		mode = string(*acl.Mode)
+	}
+
+	created := termfmt.Dim.String(humanize.Time(acl.Created.Time))
+	fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", termfmt.DarkYellow.Sprintf("#%d", acl.Id),
+		acl.Entity.CanonicalName, mode, created)
 }
 
 func newHgUserWebhookCommand() *cobra.Command {

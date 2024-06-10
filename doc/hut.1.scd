@@ -305,6 +305,9 @@ Options are:
 	*-r*, *--repo* <string>
 		Name of repository.
 
+*acl list* [repo]
+	List ACL entries of a repo. Defaults to current repo.
+
 *create* <name> [options...]
 	Create a repository. If *--clone* is not used, the remote URL will be
 	printed to _stdout_.

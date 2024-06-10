@@ -488,6 +488,29 @@ func CompleteRepositories(client *gqlclient.Client, ctx context.Context) (reposi
 	return respData.Repositories, err
 }
 
+func AclByRepoName(client *gqlclient.Client, ctx context.Context, name string, cursor *Cursor) (me *User, err error) {
+	op := gqlclient.NewOperation("query aclByRepoName ($name: String!, $cursor: Cursor) {\n\tme {\n\t\t... acl\n\t}\n}\nfragment acl on User {\n\trepository(name: $name) {\n\t\taccessControlList(cursor: $cursor) {\n\t\t\tresults {\n\t\t\t\tid\n\t\t\t\tcreated\n\t\t\t\tentity {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t\tmode\n\t\t\t}\n\t\t\tcursor\n\t\t}\n\t}\n}\n")
+	op.Var("name", name)
+	op.Var("cursor", cursor)
+	var respData struct {
+		Me *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Me, err
+}
+
+func AclByUser(client *gqlclient.Client, ctx context.Context, username string, name string, cursor *Cursor) (user *User, err error) {
+	op := gqlclient.NewOperation("query aclByUser ($username: String!, $name: String!, $cursor: Cursor) {\n\tuser(username: $username) {\n\t\t... acl\n\t}\n}\nfragment acl on User {\n\trepository(name: $name) {\n\t\taccessControlList(cursor: $cursor) {\n\t\t\tresults {\n\t\t\t\tid\n\t\t\t\tcreated\n\t\t\t\tentity {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t\tmode\n\t\t\t}\n\t\t\tcursor\n\t\t}\n\t}\n}\n")
+	op.Var("username", username)
+	op.Var("name", name)
+	op.Var("cursor", cursor)
+	var respData struct {
+		User *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.User, err
+}
+
 func CreateRepository(client *gqlclient.Client, ctx context.Context, name string, visibility Visibility, description string) (createRepository *Repository, err error) {
 	op := gqlclient.NewOperation("mutation createRepository ($name: String!, $visibility: Visibility!, $description: String!) {\n\tcreateRepository(name: $name, visibility: $visibility, description: $description) {\n\t\tid\n\t\tname\n\t\towner {\n\t\t\tcanonicalName\n\t\t}\n\t}\n}\n")
 	op.Var("name", name)

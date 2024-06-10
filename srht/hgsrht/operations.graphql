@@ -94,6 +94,34 @@ query completeRepositories {
     }
 }
 
+query aclByRepoName($name: String!, $cursor: Cursor) {
+    me {
+        ...acl
+    }
+}
+
+query aclByUser($username: String!, $name: String!, $cursor: Cursor) {
+    user(username: $username) {
+        ...acl
+    }
+}
+
+fragment acl on User {
+    repository(name: $name) {
+        accessControlList(cursor: $cursor) {
+            results {
+                id
+                created
+                entity {
+                    canonicalName
+                }
+                mode
+            }
+            cursor
+        }
+    }
+}
+
 mutation createRepository(
     $name: String!
     $visibility: Visibility!
