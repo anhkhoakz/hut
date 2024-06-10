@@ -201,7 +201,7 @@ func newInitCommand() *cobra.Command {
 
 		config := fmt.Sprintf("instance %q {\n	access-token %q\n}\n", instance, token)
 
-		c := createClientWithToken(baseURL, token)
+		c := createClientWithToken(baseURL, token, false)
 		user, err := metasrht.FetchMe(c.Client, ctx)
 		if err != nil {
 			log.Fatalf("failed to check OAuth2 token: %v", err)

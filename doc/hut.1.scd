@@ -33,6 +33,9 @@ Additionally, mailing lists can be referred to by their email address.
 	Explicitly select a configuration file that should be used over
 	the default configuration.
 
+*--debug*
+	Display the command's underlying GraphQL request.
+
 *--instance*
 	Select which sr.ht instance from the config file should be used.
 	By default the first one will be selected.

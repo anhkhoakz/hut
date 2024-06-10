@@ -83,13 +83,19 @@ func createClientWithInstance(service string, cmd *cobra.Command, instanceName s
 	if baseURL == "" {
 		log.Fatalf("failed to get origin for service %q in instance %q", service, inst.Name)
 	}
-	return createClientWithToken(baseURL, token)
+
+	debug, err := cmd.Flags().GetBool("debug")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return createClientWithToken(baseURL, token, debug)
 }
 
-func createClientWithToken(baseURL, token string) *Client {
+func createClientWithToken(baseURL, token string, debug bool) *Client {
 	gqlEndpoint := baseURL + "/query"
 	httpClient := &http.Client{
-		Transport: &httpTransport{accessToken: token},
+		Transport: &httpTransport{accessToken: token, logRequest: debug},
 		Timeout:   30 * time.Second,
 	}
 	return &Client{
@@ -101,10 +107,14 @@ func createClientWithToken(baseURL, token string) *Client {
 
 type httpTransport struct {
 	accessToken string
+	logRequest  bool
 }
 
 func (tr *httpTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	req.Header.Set("User-Agent", "hut")
 	req.Header.Set("Authorization", "Bearer "+tr.accessToken)
+	if tr.logRequest {
+		log.Println(req.Body)
+	}
 	return http.DefaultTransport.RoundTrip(req)
 }
