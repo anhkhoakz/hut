@@ -429,10 +429,10 @@ func newGitACLListCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:               "list",
+		Use:               "list [repo]",
 		Short:             "List ACL entries",
 		Args:              cobra.MaximumNArgs(1),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction: completeGitRepo,
 		Run:               run,
 	}
 	return cmd
