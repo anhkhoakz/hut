@@ -552,6 +552,12 @@ mutation createLabel(
     }
 }
 
+mutation updateLabel($id: Int!, $input: UpdateLabelInput!) {
+    updateLabel(id: $id, input: $input) {
+        name
+    }
+}
+
 mutation deleteACL($id: Int!) {
     deleteACL(id: $id) {
         tracker {

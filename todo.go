@@ -977,6 +977,7 @@ func newTodoLabelCommand() *cobra.Command {
 	cmd.AddCommand(newTodoLabelListCommand())
 	cmd.AddCommand(newTodoLabelDeleteCommand())
 	cmd.AddCommand(newTodoLabelCreateCommand())
+	cmd.AddCommand(newTodoLabelUpdateCommand())
 	return cmd
 }
 
@@ -1067,6 +1068,56 @@ func newTodoLabelDeleteCommand() *cobra.Command {
 		ValidArgsFunction: completeLabel,
 		Run:               run,
 	}
+	return cmd
+}
+
+func newTodoLabelUpdateCommand() *cobra.Command {
+	var bg, fg, name string
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		trackerName, owner, instance, err := getTrackerName(ctx, cmd)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		c := createClientWithInstance("todo", cmd, instance)
+		id, err := getLabelID(c, ctx, trackerName, args[0], owner)
+		if err != nil {
+			log.Fatalf("failed to get label ID: %v", err)
+		}
+
+		var input todosrht.UpdateLabelInput
+		if fg != "" {
+			input.ForegroundColor = &fg
+		}
+		if bg != "" {
+			input.ForegroundColor = &bg
+		}
+		if name != "" {
+			input.Name = &name
+		}
+
+		label, err := todosrht.UpdateLabel(c.Client, ctx, id, input)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		log.Printf("Updated label %s\n", label.Name)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "update <name>",
+		Short:             "Update a label",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: completeLabel,
+		Run:               run,
+	}
+	cmd.Flags().StringVarP(&fg, "foreground", "f", "", "foreground color")
+	cmd.RegisterFlagCompletionFunc("foreground", completeLabelColor)
+	cmd.Flags().StringVarP(&bg, "background", "b", "", "background color")
+	cmd.RegisterFlagCompletionFunc("background", completeLabelColor)
+	cmd.Flags().StringVarP(&name, "name", "n", "", "label name")
+	cmd.RegisterFlagCompletionFunc("name", cobra.NoFileCompletions)
 	return cmd
 }
 

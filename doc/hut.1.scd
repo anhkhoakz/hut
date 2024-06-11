@@ -740,6 +740,20 @@ Options are:
 *label list*
 	List labels.
 
+*label update* <name> [options...]
+	Update a label.
+
+	Options are:
+
+	*-b*, *--background*
+		Background color in hex format.
+
+	*-f*, *--foreground*
+		Foreground color in hex format.
+
+	*-n*, *--name*
+		New label name.
+
 *list* [owner]
 	List trackers.
 
