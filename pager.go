@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 
-	"git.sr.ht/~xenrox/hut/termfmt"
 	"github.com/google/shlex"
 )
 
@@ -19,7 +18,7 @@ type pager interface {
 var pagerDone error = errors.New("paging is done")
 
 func newPager() pager {
-	if !termfmt.IsTerminal() {
+	if !isStdoutTerminal {
 		return &singleWritePager{os.Stdout, true}
 	}
 

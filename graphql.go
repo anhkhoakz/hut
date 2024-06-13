@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"git.sr.ht/~emersion/gqlclient"
-	"git.sr.ht/~xenrox/hut/termfmt"
 	"github.com/spf13/cobra"
 )
 
@@ -28,11 +27,6 @@ func newGraphqlCommand() *cobra.Command {
 
 		ctx := cmd.Context()
 		c := createClient(service, cmd)
-
-		// Disable $EDITOR support when not in interactive terminal
-		if !termfmt.IsTerminal() {
-			stdin = true
-		}
 
 		var query string
 		if stdin {
@@ -100,7 +94,7 @@ func newGraphqlCommand() *cobra.Command {
 	}
 	cmd.Flags().StringSliceVarP(&stringVars, "var", "v", nil, "set string variable")
 	cmd.Flags().StringSliceVar(&fileVars, "file", nil, "set file variable")
-	cmd.Flags().BoolVar(&stdin, "stdin", false, "read query from stdin")
+	cmd.Flags().BoolVar(&stdin, "stdin", !isStdinTerminal, "read query from stdin")
 	// TODO: JSON variable
 	return cmd
 }

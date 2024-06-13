@@ -262,7 +262,7 @@ func newTodoCreateCommand() *cobra.Command {
 	}
 	cmd.Flags().StringVarP(&visibility, "visibility", "v", "public", "tracker visibility")
 	cmd.RegisterFlagCompletionFunc("visibility", completeVisibility)
-	cmd.Flags().BoolVar(&stdin, "stdin", false, "read tracker from stdin")
+	cmd.Flags().BoolVar(&stdin, "stdin", !isStdinTerminal, "read tracker from stdin")
 	return cmd
 }
 
@@ -464,7 +464,7 @@ func newTodoTicketCommentCommand() *cobra.Command {
 		ValidArgsFunction: completeTicketID,
 		Run:               run,
 	}
-	cmd.Flags().BoolVar(&stdin, "stdin", false, "read comment from stdin")
+	cmd.Flags().BoolVar(&stdin, "stdin", !isStdinTerminal, "read comment from stdin")
 	cmd.Flags().StringVarP(&status, "status", "s", "", "ticket status")
 	cmd.RegisterFlagCompletionFunc("status", completeTicketStatus)
 	cmd.Flags().StringVarP(&resolution, "resolution", "r", "", "ticket resolution")
@@ -874,7 +874,7 @@ func newTodoTicketWebhookCreateCommand() *cobra.Command {
 	cmd.Flags().StringSliceVarP(&events, "events", "e", nil, "webhook events")
 	cmd.RegisterFlagCompletionFunc("events", completeTicketWebhookEvents)
 	cmd.MarkFlagRequired("events")
-	cmd.Flags().BoolVar(&stdin, "stdin", false, "read webhook query from stdin")
+	cmd.Flags().BoolVar(&stdin, "stdin", !isStdinTerminal, "read webhook query from stdin")
 	cmd.Flags().StringVarP(&url, "url", "u", "", "payload url")
 	cmd.RegisterFlagCompletionFunc("url", cobra.NoFileCompletions)
 	cmd.MarkFlagRequired("url")
@@ -1348,7 +1348,7 @@ func newTodoWebhookCreateCommand() *cobra.Command {
 	cmd.Flags().StringSliceVarP(&events, "events", "e", nil, "webhook events")
 	cmd.RegisterFlagCompletionFunc("events", completeTrackerWebhookEvents)
 	cmd.MarkFlagRequired("events")
-	cmd.Flags().BoolVar(&stdin, "stdin", false, "read webhook query from stdin")
+	cmd.Flags().BoolVar(&stdin, "stdin", !isStdinTerminal, "read webhook query from stdin")
 	cmd.Flags().StringVarP(&url, "url", "u", "", "payload url")
 	cmd.RegisterFlagCompletionFunc("url", cobra.NoFileCompletions)
 	cmd.MarkFlagRequired("url")
@@ -1499,7 +1499,7 @@ func newTodoUserWebhookCreateCommand() *cobra.Command {
 	cmd.Flags().StringSliceVarP(&events, "events", "e", nil, "webhook events")
 	cmd.RegisterFlagCompletionFunc("events", completeTodoUserWebhookEvents)
 	cmd.MarkFlagRequired("events")
-	cmd.Flags().BoolVar(&stdin, "stdin", false, "read webhook query from stdin")
+	cmd.Flags().BoolVar(&stdin, "stdin", !isStdinTerminal, "read webhook query from stdin")
 	cmd.Flags().StringVarP(&url, "url", "u", "", "payload url")
 	cmd.RegisterFlagCompletionFunc("url", cobra.NoFileCompletions)
 	cmd.MarkFlagRequired("url")
@@ -1650,7 +1650,7 @@ func newTodoTicketCreateCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(0),
 		Run:   run,
 	}
-	cmd.Flags().BoolVar(&stdin, "stdin", false, "read ticket from stdin")
+	cmd.Flags().BoolVar(&stdin, "stdin", !isStdinTerminal, "read ticket from stdin")
 	return cmd
 }
 

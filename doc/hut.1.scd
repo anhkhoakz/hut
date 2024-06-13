@@ -23,6 +23,18 @@ be referred to via:
 
 Additionally, mailing lists can be referred to by their email address.
 
+_hut_ commands that read input, like *hut graphql* or *hut builds user-webhook
+create* read input depending on whether their stdin is on a terminal or not:
+
+- If stdin is not on a terminal, for example, because stdin is redirected from a
+  file or from a pipe, _hut_ reads input from stdin.
+
+- Otherwise, if option *--stdin* is specified to the command, _hut_ reads input
+  from stdin.
+
+- Otherwise, _hut_ assumes to run in a terminal and starts the command provided
+  by environment variable _$EDITOR_ to read input.
+
 # OPTIONS
 
 *-h*, *--help*
@@ -48,8 +60,7 @@ Additionally, mailing lists can be referred to by their email address.
 *graphql* <service>
 	Write a GraphQL query and execute it. The JSON response is written to
 	stdout. _service_ is the sr.ht service to execute the query on (for instance
-	"meta" or "builds"). When this command is run from a terminal, the query
-	will be read from _$EDITOR_, otherwise it defaults to stdin.
+	"meta" or "builds").
 
 	A tool like *jq*(1) can be used to prettify the output and process the
 	data. Example:
@@ -173,8 +184,7 @@ Additionally, mailing lists can be referred to by their email address.
 		Visibility to use (public, unlisted, private). Defaults to unlisted.
 
 *user-webhook create* [options...]
-	Create a user webhook. When this command is run from a terminal, the query will
-	be read from _$EDITOR_, otherwise it defaults to stdin.
+	Create a user webhook.
 
 	Options are:
 
@@ -280,8 +290,7 @@ Options are:
 		Visibility to use (public, unlisted, private).
 
 *user-webhook create* [options...]
-	Create a user webhook. When this command is run from a terminal, the query will
-	be read from _$EDITOR_, otherwise it defaults to stdin.
+	Create a user webhook.
 
 	Options are:
 
@@ -368,8 +377,7 @@ Options are:
 		Visibility to use (public, unlisted, private).
 
 *user-webhook create* [options...]
-	Create a user webhook. When this command is run from a terminal, the query will
-	be read from _$EDITOR_, otherwise it defaults to stdin.
+	Create a user webhook.
 
 	Options are:
 
@@ -468,8 +476,7 @@ Options are:
 	Unsubscribe from a mailing list.
 
 *user-webhook create* [options...]
-	Create a user webhook. When this command is run from a terminal, the query will
-	be read from _$EDITOR_, otherwise it defaults to stdin.
+	Create a user webhook.
 
 	Options are:
 
@@ -560,8 +567,7 @@ Options are:
 		Only print raw public key
 
 *user-webhook create* [options...]
-	Create a user webhook. When this command is run from a terminal, the query will
-	be read from _$EDITOR_, otherwise it defaults to stdin.
+	Create a user webhook.
 
 	Options are:
 
@@ -620,8 +626,7 @@ Options are:
 		Protocol to use (either HTTPS or GEMINI; defaults to HTTPS)
 
 *user-webhook create* [options...]
-	Create a user webhook. When this command is run from a terminal, the query will
-	be read from _$EDITOR_, otherwise it defaults to stdin.
+	Create a user webhook.
 
 	Options are:
 
@@ -672,8 +677,7 @@ Options are:
 		Visibility to use (public, unlisted, private)
 
 *user-webhook create* [options...]
-	Create a user webhook. When this command is run from a terminal, the query will
-	be read from _$EDITOR_, otherwise it defaults to stdin.
+	Create a user webhook.
 
 	Options are:
 
@@ -772,7 +776,7 @@ Options are:
 		Username of the new assignee (required).
 
 *ticket comment* <ID> [options...]
-	Comment on a ticket with _$EDITOR_.
+	Comment on a ticket.
 
 	Options are:
 
@@ -788,7 +792,7 @@ Options are:
 		Read comment from _stdin_.
 
 *ticket create* [options...]
-	Create a new ticket with _$EDITOR_.
+	Create a new ticket.
 
 	Options are:
 
@@ -804,7 +808,7 @@ Options are:
 		Confirm deletion without prompt.
 
 *ticket edit* <ID>
-	Edit a ticket with _$EDITOR_.
+	Edit a ticket.
 
 *ticket label* <ID> [options...]
 	Add a label to a ticket.
@@ -884,8 +888,7 @@ Options are:
 	Unsubscribe from a tracker.
 
 *user-webhook create* [options...]
-	Create a user webhook. When this command is run from a terminal, the query will
-	be read from _$EDITOR_, otherwise it defaults to stdin.
+	Create a user webhook.
 
 	Options are:
 

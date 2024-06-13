@@ -6,11 +6,13 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 
 	"golang.org/x/term"
 )
 
-var isTerminal = term.IsTerminal(int(os.Stdout.Fd()))
+var initIsTerminal sync.Once
+var isTerminal bool
 
 type Style string
 
@@ -31,7 +33,7 @@ const (
 )
 
 func (style Style) String(s string) string {
-	if !isTerminal {
+	if !IsTerminal() {
 		return s
 	}
 
@@ -56,7 +58,7 @@ func (style Style) String(s string) string {
 }
 
 func HexString(s string, fg string, bg string) string {
-	if !isTerminal {
+	if !IsTerminal() {
 		return s
 	}
 
@@ -64,7 +66,7 @@ func HexString(s string, fg string, bg string) string {
 }
 
 func RGBString(s string, fg, bg RGB) string {
-	if !isTerminal {
+	if !IsTerminal() {
 		return s
 	}
 
@@ -106,18 +108,27 @@ func HexToRGB(hex string) RGB {
 }
 
 func ReplaceLine() string {
-	if !isTerminal {
+	if !IsTerminal() {
 		return "\n"
 	}
 	return "\x1b[1K\r"
 }
 
+func InitIsTerminal(b bool) {
+	initIsTerminal.Do(func() {
+		isTerminal = b
+	})
+}
+
 func IsTerminal() bool {
+	initIsTerminal.Do(func() {
+		isTerminal = term.IsTerminal(int(os.Stdout.Fd()))
+	})
 	return isTerminal
 }
 
 func Bell() {
-	if isTerminal {
+	if IsTerminal() {
 		fmt.Print("\a")
 	}
 }

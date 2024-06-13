@@ -17,6 +17,7 @@ import (
 	"git.sr.ht/~xenrox/hut/termfmt"
 	"github.com/google/shlex"
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 )
 
 // ownerPrefixes is the set of characters used to prefix sr.ht owners. "~" is
@@ -27,7 +28,15 @@ const dateLayout = "Mon, 02 Jan 2006 15:04:05 -0700"
 
 const fileTransferTimeout = 10 * time.Minute
 
+// use these in the main program to decide on how to process input or output.
+// Use the less explicit termfmt.IsTerminal() only when the decision is about
+// how to print something.
+var isStdinTerminal = term.IsTerminal(int(os.Stdin.Fd()))
+var isStdoutTerminal = term.IsTerminal(int(os.Stdout.Fd()))
+
 func main() {
+	termfmt.InitIsTerminal(isStdoutTerminal)
+
 	log.SetFlags(0) // disable date/time prefix
 
 	ctx := context.Background()
@@ -212,11 +221,6 @@ func hasCmdArg(cmd *cobra.Command, arg string) bool {
 
 func readWebhookQuery(stdin bool) string {
 	var query string
-
-	// Disable $EDITOR support when not in interactive terminal
-	if !termfmt.IsTerminal() {
-		stdin = true
-	}
 
 	if stdin {
 		b, err := io.ReadAll(os.Stdin)

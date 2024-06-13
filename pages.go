@@ -316,7 +316,7 @@ func newPagesUserWebhookCreateCommand() *cobra.Command {
 	cmd.Flags().StringSliceVarP(&events, "events", "e", nil, "webhook events")
 	cmd.RegisterFlagCompletionFunc("events", completePagesUserWebhookEvents)
 	cmd.MarkFlagRequired("events")
-	cmd.Flags().BoolVar(&stdin, "stdin", false, "read webhook query from stdin")
+	cmd.Flags().BoolVar(&stdin, "stdin", !isStdinTerminal, "read webhook query from stdin")
 	cmd.Flags().StringVarP(&url, "url", "u", "", "payload url")
 	cmd.RegisterFlagCompletionFunc("url", cobra.NoFileCompletions)
 	cmd.MarkFlagRequired("url")

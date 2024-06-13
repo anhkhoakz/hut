@@ -270,7 +270,7 @@ func newListsCreateCommand() *cobra.Command {
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
-	cmd.Flags().BoolVar(&stdin, "stdin", false, "read mailing list from stdin")
+	cmd.Flags().BoolVar(&stdin, "stdin", !isStdinTerminal, "read mailing list from stdin")
 	cmd.Flags().StringVarP(&visibility, "visibility", "v", "public", "mailing list visibility")
 	cmd.RegisterFlagCompletionFunc("visibility", completeVisibility)
 	return cmd
@@ -786,7 +786,7 @@ func newListsUserWebhookCreateCommand() *cobra.Command {
 	cmd.Flags().StringSliceVarP(&events, "events", "e", nil, "webhook events")
 	cmd.RegisterFlagCompletionFunc("events", completeListsUserWebhookEvents)
 	cmd.MarkFlagRequired("events")
-	cmd.Flags().BoolVar(&stdin, "stdin", false, "read webhook query from stdin")
+	cmd.Flags().BoolVar(&stdin, "stdin", !isStdinTerminal, "read webhook query from stdin")
 	cmd.Flags().StringVarP(&url, "url", "u", "", "payload url")
 	cmd.RegisterFlagCompletionFunc("url", cobra.NoFileCompletions)
 	cmd.MarkFlagRequired("url")
@@ -918,7 +918,7 @@ func newListsWebhookCreateCommand() *cobra.Command {
 	cmd.Flags().StringSliceVarP(&events, "events", "e", nil, "webhook events")
 	cmd.RegisterFlagCompletionFunc("events", completeMailingListWebhookEvents)
 	cmd.MarkFlagRequired("events")
-	cmd.Flags().BoolVar(&stdin, "stdin", false, "read webhook query from stdin")
+	cmd.Flags().BoolVar(&stdin, "stdin", !isStdinTerminal, "read webhook query from stdin")
 	cmd.Flags().StringVarP(&url, "url", "u", "", "payload url")
 	cmd.RegisterFlagCompletionFunc("url", cobra.NoFileCompletions)
 	cmd.MarkFlagRequired("url")
