@@ -293,7 +293,6 @@ func newListsArchiveCommand() *cobra.Command {
 		}
 
 		c := createClientWithInstance("lists", cmd, instance)
-		c.HTTP.Timeout = fileTransferTimeout
 
 		var (
 			user     *listssrht.User
@@ -322,6 +321,7 @@ func newListsArchiveCommand() *cobra.Command {
 			url = fmt.Sprintf("%s?since=%d", url, days)
 		}
 
+		c.HTTP.Timeout = fileTransferTimeout
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, string(url), nil)
 		if err != nil {
 			log.Fatalf("Failed to create request to fetch archive: %v", err)
