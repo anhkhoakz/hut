@@ -947,6 +947,7 @@ instance "sr.ht" {
 
 # AUTHORS
 
-Maintained by Simon Ser <contact@emersion.fr>, who is assisted by other
-open-source contributors. For more information about hut development, see
+Originally written by Simon Ser <contact@emersion.fr>. Currently maintained
+by Thorben Günther <admin@xenrox.net>, who is assisted by other open-source
+contributors. For more information about hut development, see
 <https://sr.ht/~xenrox/hut>.
