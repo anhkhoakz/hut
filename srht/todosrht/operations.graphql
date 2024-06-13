@@ -494,6 +494,42 @@ query completeLabelByUser($username: String!, $name: String!) {
     }
 }
 
+query completeTicketLabel($name: String!, $id: Int!) {
+    me {
+        tracker(name: $name) {
+            labels {
+                results {
+                    name
+                }
+            }
+
+            ticket(id: $id) {
+                labels {
+                    name
+                }
+            }
+        }
+    }
+}
+
+query completeTicketLabelByUser($username: String!, $name: String!, $id: Int!) {
+    user(username: $username) {
+        tracker(name: $name) {
+            labels {
+                results {
+                    name
+                }
+            }
+
+            ticket(id: $id) {
+                labels {
+                    name
+                }
+            }
+        }
+    }
+}
+
 mutation deleteTracker($id: Int!) {
     deleteTracker(id: $id) {
         name

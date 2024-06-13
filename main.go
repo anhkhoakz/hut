@@ -237,3 +237,12 @@ func readWebhookQuery(stdin bool) string {
 	}
 	return query
 }
+
+func sliceContains(s []string, v string) bool {
+	for i := range s {
+		if v == s[i] {
+			return true
+		}
+	}
+	return false
+}

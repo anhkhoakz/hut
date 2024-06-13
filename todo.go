@@ -1764,8 +1764,7 @@ func newTodoTicketLabelCommand() *cobra.Command {
 	}
 	cmd.Flags().StringVarP(&labelName, "label", "l", "", "label name")
 	cmd.MarkFlagRequired("label")
-	// TODO: complete unassigned labels
-	cmd.RegisterFlagCompletionFunc("label", cobra.NoFileCompletions)
+	cmd.RegisterFlagCompletionFunc("label", completeTicketLabel)
 	return cmd
 }
 
@@ -2214,6 +2213,48 @@ func completeLabel(cmd *cobra.Command, args []string, toComplete string) ([]stri
 
 	for _, label := range user.Tracker.Labels.Results {
 		labelList = append(labelList, label.Name)
+	}
+
+	return labelList, cobra.ShellCompDirectiveNoFileComp
+}
+
+func completeTicketLabel(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	// display all labels if no ticket is specified
+	if len(args) == 0 {
+		return completeLabel(cmd, args, toComplete)
+	}
+
+	ctx := cmd.Context()
+	ticketID, name, owner, instance, err := parseTicketResource(ctx, cmd, args[0])
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	c := createClientWithInstance("todo", cmd, instance)
+	var (
+		user *todosrht.User
+	)
+
+	if owner != "" {
+		username := strings.TrimLeft(owner, ownerPrefixes)
+		user, err = todosrht.CompleteTicketLabelByUser(c.Client, ctx, username, name, ticketID)
+	} else {
+		user, err = todosrht.CompleteTicketLabel(c.Client, ctx, name, ticketID)
+	}
+	if err != nil || user == nil || user.Tracker == nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	var ticketLabels []string
+	for _, label := range user.Tracker.Ticket.Labels {
+		ticketLabels = append(ticketLabels, label.Name)
+	}
+
+	var labelList []string
+	for _, label := range user.Tracker.Labels.Results {
+		if !sliceContains(ticketLabels, label.Name) {
+			labelList = append(labelList, label.Name)
+		}
 	}
 
 	return labelList, cobra.ShellCompDirectiveNoFileComp

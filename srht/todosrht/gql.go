@@ -1286,6 +1286,29 @@ func CompleteLabelByUser(client *gqlclient.Client, ctx context.Context, username
 	return respData.User, err
 }
 
+func CompleteTicketLabel(client *gqlclient.Client, ctx context.Context, name string, id int32) (me *User, err error) {
+	op := gqlclient.NewOperation("query completeTicketLabel ($name: String!, $id: Int!) {\n\tme {\n\t\ttracker(name: $name) {\n\t\t\tlabels {\n\t\t\t\tresults {\n\t\t\t\t\tname\n\t\t\t\t}\n\t\t\t}\n\t\t\tticket(id: $id) {\n\t\t\t\tlabels {\n\t\t\t\t\tname\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op.Var("name", name)
+	op.Var("id", id)
+	var respData struct {
+		Me *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Me, err
+}
+
+func CompleteTicketLabelByUser(client *gqlclient.Client, ctx context.Context, username string, name string, id int32) (user *User, err error) {
+	op := gqlclient.NewOperation("query completeTicketLabelByUser ($username: String!, $name: String!, $id: Int!) {\n\tuser(username: $username) {\n\t\ttracker(name: $name) {\n\t\t\tlabels {\n\t\t\t\tresults {\n\t\t\t\t\tname\n\t\t\t\t}\n\t\t\t}\n\t\t\tticket(id: $id) {\n\t\t\t\tlabels {\n\t\t\t\t\tname\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n")
+	op.Var("username", username)
+	op.Var("name", name)
+	op.Var("id", id)
+	var respData struct {
+		User *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.User, err
+}
+
 func DeleteTracker(client *gqlclient.Client, ctx context.Context, id int32) (deleteTracker *Tracker, err error) {
 	op := gqlclient.NewOperation("mutation deleteTracker ($id: Int!) {\n\tdeleteTracker(id: $id) {\n\t\tname\n\t}\n}\n")
 	op.Var("id", id)
