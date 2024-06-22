@@ -26,6 +26,7 @@ func newMetaCommand() *cobra.Command {
 	}
 	cmd.AddCommand(newMetaShowCommand())
 	cmd.AddCommand(newMetaAuditLogCommand())
+	cmd.AddCommand(newMetaUpdateCommand())
 	cmd.AddCommand(newMetaSSHKeyCommand())
 	cmd.AddCommand(newMetaPGPKeyCommand())
 	cmd.AddCommand(newMetaUserWebhookCommand())
@@ -125,6 +126,51 @@ func printAuditLog(w io.Writer, log *metasrht.AuditLogEntry) {
 	s += termfmt.Dim.String(humanize.Time(log.Created.Time))
 
 	fmt.Fprintln(w, s)
+}
+
+func newMetaUpdateCommand() *cobra.Command {
+	var email, location, url string
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("meta", cmd)
+		var input metasrht.UserInput
+
+		if cmd.Flags().Changed("email") {
+			input.Email = &email
+		}
+
+		if cmd.Flags().Changed("location") {
+			input.Location = &location
+		}
+
+		if cmd.Flags().Changed("url") {
+			input.Url = &url
+		}
+
+		_, err := metasrht.UpdateUser(c.Client, ctx, &input)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		log.Println("Successfully updated account")
+		if cmd.Flags().Changed("email") {
+			log.Printf("An email has been sent to %q to confirm the change\n", email)
+		}
+	}
+	cmd := &cobra.Command{
+		Use:               "update",
+		Short:             "Update account",
+		Args:              cobra.ExactArgs(0),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	cmd.Flags().StringVar(&email, "email", "", "email")
+	cmd.RegisterFlagCompletionFunc("email", cobra.NoFileCompletions)
+	cmd.Flags().StringVar(&location, "location", "", "location")
+	cmd.RegisterFlagCompletionFunc("location", cobra.NoFileCompletions)
+	cmd.Flags().StringVar(&url, "url", "", "URL")
+	cmd.RegisterFlagCompletionFunc("url", cobra.NoFileCompletions)
+	return cmd
 }
 
 func newMetaSSHKeyCommand() *cobra.Command {

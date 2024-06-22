@@ -172,3 +172,9 @@ mutation deleteUserWebhook($id: Int!) {
         id
     }
 }
+
+mutation updateUser($input: UserInput) {
+    updateUser(input: $input) {
+        canonicalName
+    }
+}

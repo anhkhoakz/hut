@@ -603,3 +603,13 @@ func DeleteUserWebhook(client *gqlclient.Client, ctx context.Context, id int32) 
 	err = client.Execute(ctx, op, &respData)
 	return respData.DeleteWebhook, err
 }
+
+func UpdateUser(client *gqlclient.Client, ctx context.Context, input *UserInput) (updateUser *User, err error) {
+	op := gqlclient.NewOperation("mutation updateUser ($input: UserInput) {\n\tupdateUser(input: $input) {\n\t\tcanonicalName\n\t}\n}\n")
+	op.Var("input", input)
+	var respData struct {
+		UpdateUser *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.UpdateUser, err
+}

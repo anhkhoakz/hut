@@ -566,6 +566,20 @@ Options are:
 	*-r*, *--raw*
 		Only print raw public key
 
+*update* [options...]
+	Update account.
+
+	Options are:
+
+	*--email* <string>
+		Set Email address.
+
+	*--location* <string>
+		Set location.
+
+	*--url* <string>
+		Set URL.
+
 *user-webhook create* [options...]
 	Create a user webhook.
 
