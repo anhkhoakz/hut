@@ -613,3 +613,21 @@ func UpdateUser(client *gqlclient.Client, ctx context.Context, input *UserInput)
 	err = client.Execute(ctx, op, &respData)
 	return respData.UpdateUser, err
 }
+
+func ClearUserLocation(client *gqlclient.Client, ctx context.Context) (updateUser *User, err error) {
+	op := gqlclient.NewOperation("mutation clearUserLocation {\n\tupdateUser(input: {location:null}) {\n\t\tcanonicalName\n\t}\n}\n")
+	var respData struct {
+		UpdateUser *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.UpdateUser, err
+}
+
+func ClearUserURL(client *gqlclient.Client, ctx context.Context) (updateUser *User, err error) {
+	op := gqlclient.NewOperation("mutation clearUserURL {\n\tupdateUser(input: {url:null}) {\n\t\tcanonicalName\n\t}\n}\n")
+	var respData struct {
+		UpdateUser *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.UpdateUser, err
+}

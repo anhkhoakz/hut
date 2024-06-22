@@ -139,11 +139,25 @@ func newMetaUpdateCommand() *cobra.Command {
 		}
 
 		if cmd.Flags().Changed("location") {
-			input.Location = &location
+			if location == "" {
+				_, err := metasrht.ClearUserLocation(c.Client, ctx)
+				if err != nil {
+					log.Fatalf("failed to clear location: %v", err)
+				}
+			} else {
+				input.Location = &location
+			}
 		}
 
 		if cmd.Flags().Changed("url") {
-			input.Url = &url
+			if url == "" {
+				_, err := metasrht.ClearUserURL(c.Client, ctx)
+				if err != nil {
+					log.Fatalf("failed to clear URL: %v", err)
+				}
+			} else {
+				input.Url = &url
+			}
 		}
 
 		_, err := metasrht.UpdateUser(c.Client, ctx, &input)

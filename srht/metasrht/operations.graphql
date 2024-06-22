@@ -178,3 +178,15 @@ mutation updateUser($input: UserInput) {
         canonicalName
     }
 }
+
+mutation clearUserLocation {
+    updateUser(input: { location: null }) {
+        canonicalName
+    }
+}
+
+mutation clearUserURL {
+    updateUser(input: { url: null }) {
+        canonicalName
+    }
+}
