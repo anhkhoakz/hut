@@ -581,10 +581,10 @@ func getHgRepoName(ctx context.Context, cmd *cobra.Command) (repoName, owner, in
 		repoName, owner, instance = parseResourceName(repoName)
 		return repoName, owner, instance, nil
 	}
-	return guessHgRepoName(ctx, cmd)
+	return guessHgRepoName(ctx)
 }
 
-func guessHgRepoName(ctx context.Context, cmd *cobra.Command) (repoName, owner, instance string, err error) {
+func guessHgRepoName(ctx context.Context) (repoName, owner, instance string, err error) {
 	remoteURL, err := hgRemoteUrl(ctx)
 	if err != nil {
 		return "", "", "", err

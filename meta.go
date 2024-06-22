@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -381,7 +380,7 @@ func newMetaPGPKeyCreateCommand() *cobra.Command {
 		if len(args) > 0 {
 			keyBytes, err = os.ReadFile(args[0])
 		} else {
-			keyBytes, err = exportDefaultPGPKey(ctx)
+			keyBytes, err = exportDefaultPGPKey()
 		}
 		if err != nil {
 			log.Fatal(err)
@@ -408,7 +407,7 @@ func newMetaPGPKeyCreateCommand() *cobra.Command {
 	}
 }
 
-func exportDefaultPGPKey(ctx context.Context) ([]byte, error) {
+func exportDefaultPGPKey() ([]byte, error) {
 	out, err := exec.Command("gpg", "--list-secret-keys", "--with-colons").Output()
 	if err != nil {
 		return nil, fmt.Errorf("failed to list keys in GPG keyring: %v", err)
