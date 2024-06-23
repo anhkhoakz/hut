@@ -127,12 +127,54 @@ func printAuditLog(w io.Writer, log *metasrht.AuditLogEntry) {
 	fmt.Fprintln(w, s)
 }
 
+const metaBioPrefill = `
+<!--
+Please write the Markdown biography above.
+-->`
+
 func newMetaUpdateCommand() *cobra.Command {
 	var email, location, url string
+	var bio, clearBio bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("meta", cmd)
 		var input metasrht.UserInput
+
+		if bio {
+			if !isStdinTerminal {
+				b, err := io.ReadAll(os.Stdin)
+				if err != nil {
+					log.Fatalf("failed to read bio: %v", err)
+				}
+				biography := string(b)
+				input.Bio = &biography
+			} else {
+				me, err := metasrht.Bio(c.Client, ctx)
+				if err != nil {
+					log.Fatalf("failed to fetch bio: %v", err)
+				}
+
+				prefill := metaBioPrefill
+				if me.Bio != nil {
+					prefill = fmt.Sprintf("%s\n%s", *me.Bio, prefill)
+				}
+
+				text, err := getInputWithEditor("hut_bio*.md", prefill)
+				if err != nil {
+					log.Fatalf("failed to read bio: %v", err)
+				}
+
+				text = dropComment(text, metaBioPrefill)
+				input.Bio = &text
+			}
+		}
+
+		if clearBio {
+			_, err := metasrht.ClearBio(c.Client, ctx)
+			if err != nil {
+				log.Fatalf("failed to clear bio: %v", err)
+			}
+		}
 
 		if cmd.Flags().Changed("email") {
 			input.Email = &email
@@ -177,6 +219,9 @@ func newMetaUpdateCommand() *cobra.Command {
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
+	cmd.Flags().BoolVar(&bio, "bio", false, "edit biography")
+	cmd.Flags().BoolVar(&clearBio, "clear-bio", false, "clear biography")
+	cmd.MarkFlagsMutuallyExclusive("bio", "clear-bio")
 	cmd.Flags().StringVar(&email, "email", "", "email")
 	cmd.RegisterFlagCompletionFunc("email", cobra.NoFileCompletions)
 	cmd.Flags().StringVar(&location, "location", "", "location")

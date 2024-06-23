@@ -136,6 +136,12 @@ query personalAccessTokens {
     }
 }
 
+query bio {
+    me {
+        bio
+    }
+}
+
 mutation createSSHKey($key: String!) {
     createSSHKey(key: $key) {
         fingerprint
@@ -187,6 +193,12 @@ mutation clearUserLocation {
 
 mutation clearUserURL {
     updateUser(input: { url: null }) {
+        canonicalName
+    }
+}
+
+mutation clearBio {
+    updateUser(input: { bio: null }) {
         canonicalName
     }
 }

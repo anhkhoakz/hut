@@ -544,6 +544,15 @@ func PersonalAccessTokens(client *gqlclient.Client, ctx context.Context) (person
 	return respData.PersonalAccessTokens, err
 }
 
+func Bio(client *gqlclient.Client, ctx context.Context) (me *User, err error) {
+	op := gqlclient.NewOperation("query bio {\n\tme {\n\t\tbio\n\t}\n}\n")
+	var respData struct {
+		Me *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Me, err
+}
+
 func CreateSSHKey(client *gqlclient.Client, ctx context.Context, key string) (createSSHKey *SSHKey, err error) {
 	op := gqlclient.NewOperation("mutation createSSHKey ($key: String!) {\n\tcreateSSHKey(key: $key) {\n\t\tfingerprint\n\t\tcomment\n\t}\n}\n")
 	op.Var("key", key)
@@ -625,6 +634,15 @@ func ClearUserLocation(client *gqlclient.Client, ctx context.Context) (updateUse
 
 func ClearUserURL(client *gqlclient.Client, ctx context.Context) (updateUser *User, err error) {
 	op := gqlclient.NewOperation("mutation clearUserURL {\n\tupdateUser(input: {url:null}) {\n\t\tcanonicalName\n\t}\n}\n")
+	var respData struct {
+		UpdateUser *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.UpdateUser, err
+}
+
+func ClearBio(client *gqlclient.Client, ctx context.Context) (updateUser *User, err error) {
+	op := gqlclient.NewOperation("mutation clearBio {\n\tupdateUser(input: {bio:null}) {\n\t\tcanonicalName\n\t}\n}\n")
 	var respData struct {
 		UpdateUser *User
 	}
