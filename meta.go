@@ -127,14 +127,9 @@ func printAuditLog(w io.Writer, log *metasrht.AuditLogEntry) {
 	fmt.Fprintln(w, s)
 }
 
-const metaBioPrefill = `
-<!--
-Please write the Markdown biography above.
--->`
-
 func newMetaUpdateCommand() *cobra.Command {
 	var email, location, url string
-	var bio, clearBio bool
+	var bio bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("meta", cmd)
@@ -154,9 +149,9 @@ func newMetaUpdateCommand() *cobra.Command {
 					log.Fatalf("failed to fetch bio: %v", err)
 				}
 
-				prefill := metaBioPrefill
+				var prefill string
 				if me.Bio != nil {
-					prefill = fmt.Sprintf("%s\n%s", *me.Bio, prefill)
+					prefill = *me.Bio
 				}
 
 				text, err := getInputWithEditor("hut_bio*.md", prefill)
@@ -164,15 +159,14 @@ func newMetaUpdateCommand() *cobra.Command {
 					log.Fatalf("failed to read bio: %v", err)
 				}
 
-				text = dropComment(text, metaBioPrefill)
-				input.Bio = &text
-			}
-		}
-
-		if clearBio {
-			_, err := metasrht.ClearBio(c.Client, ctx)
-			if err != nil {
-				log.Fatalf("failed to clear bio: %v", err)
+				if strings.TrimSpace(text) == "" {
+					_, err := metasrht.ClearBio(c.Client, ctx)
+					if err != nil {
+						log.Fatalf("failed to clear bio: %v", err)
+					}
+				} else {
+					input.Bio = &text
+				}
 			}
 		}
 
@@ -220,8 +214,6 @@ func newMetaUpdateCommand() *cobra.Command {
 		Run:               run,
 	}
 	cmd.Flags().BoolVar(&bio, "bio", false, "edit biography")
-	cmd.Flags().BoolVar(&clearBio, "clear-bio", false, "clear biography")
-	cmd.MarkFlagsMutuallyExclusive("bio", "clear-bio")
 	cmd.Flags().StringVar(&email, "email", "", "email")
 	cmd.RegisterFlagCompletionFunc("email", cobra.NoFileCompletions)
 	cmd.Flags().StringVar(&location, "location", "", "location")

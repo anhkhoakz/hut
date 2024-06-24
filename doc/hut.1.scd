@@ -574,9 +574,6 @@ Options are:
 	*--bio*
 		Edit biography.
 
-	*--clear-biography*
-		Clear biography.
-
 	*--email* <string>
 		Set Email address.
 
