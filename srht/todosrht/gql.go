@@ -1332,6 +1332,27 @@ func CompleteTicketUnlabelByUser(client *gqlclient.Client, ctx context.Context, 
 	return respData.User, err
 }
 
+func TrackerDescription(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
+	op := gqlclient.NewOperation("query trackerDescription ($name: String!) {\n\tme {\n\t\ttracker(name: $name) {\n\t\t\tdescription\n\t\t}\n\t}\n}\n")
+	op.Var("name", name)
+	var respData struct {
+		Me *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Me, err
+}
+
+func TrackerDescriptionByUser(client *gqlclient.Client, ctx context.Context, username string, name string) (user *User, err error) {
+	op := gqlclient.NewOperation("query trackerDescriptionByUser ($username: String!, $name: String!) {\n\tuser(username: $username) {\n\t\ttracker(name: $name) {\n\t\t\tdescription\n\t\t}\n\t}\n}\n")
+	op.Var("username", username)
+	op.Var("name", name)
+	var respData struct {
+		User *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.User, err
+}
+
 func DeleteTracker(client *gqlclient.Client, ctx context.Context, id int32) (deleteTracker *Tracker, err error) {
 	op := gqlclient.NewOperation("mutation deleteTracker ($id: Int!) {\n\tdeleteTracker(id: $id) {\n\t\tname\n\t}\n}\n")
 	op.Var("id", id)
@@ -1620,4 +1641,25 @@ func UpdateTicket(client *gqlclient.Client, ctx context.Context, trackerId int32
 	}
 	err = client.Execute(ctx, op, &respData)
 	return respData.UpdateTicket, err
+}
+
+func UpdateTracker(client *gqlclient.Client, ctx context.Context, id int32, input TrackerInput) (updateTracker *Tracker, err error) {
+	op := gqlclient.NewOperation("mutation updateTracker ($id: Int!, $input: TrackerInput!) {\n\tupdateTracker(id: $id, input: $input) {\n\t\tname\n\t}\n}\n")
+	op.Var("id", id)
+	op.Var("input", input)
+	var respData struct {
+		UpdateTracker *Tracker
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.UpdateTracker, err
+}
+
+func ClearDescription(client *gqlclient.Client, ctx context.Context, id int32) (updateTracker *Tracker, err error) {
+	op := gqlclient.NewOperation("mutation clearDescription ($id: Int!) {\n\tupdateTracker(id: $id, input: {description:null}) {\n\t\tname\n\t}\n}\n")
+	op.Var("id", id)
+	var respData struct {
+		UpdateTracker *Tracker
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.UpdateTracker, err
 }

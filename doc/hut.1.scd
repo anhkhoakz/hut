@@ -907,6 +907,17 @@ Options are:
 *unsubscribe* [tracker]
 	Unsubscribe from a tracker.
 
+*update* <tracker> [options...]
+	Update a tracker.
+
+	Options are:
+
+	*--description*
+		Edit description.
+
+	*-v*, *--visibility* <string>
+		Visibility to use (public, unlisted, private).
+
 *user-webhook create* [options...]
 	Create a user webhook.
 

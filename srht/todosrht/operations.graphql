@@ -558,6 +558,22 @@ query completeTicketUnlabelByUser(
     }
 }
 
+query trackerDescription($name: String!) {
+    me {
+        tracker(name: $name) {
+            description
+        }
+    }
+}
+
+query trackerDescriptionByUser($username: String!, $name: String!) {
+    user(username: $username) {
+        tracker(name: $name) {
+            description
+        }
+    }
+}
+
 mutation deleteTracker($id: Int!) {
     deleteTracker(id: $id) {
         name
@@ -801,5 +817,17 @@ mutation updateTicket(
 ) {
     updateTicket(trackerId: $trackerId, ticketId: $ticketId, input: $input) {
         id
+    }
+}
+
+mutation updateTracker($id: Int!, $input: TrackerInput!) {
+    updateTracker(id: $id, input: $input) {
+        name
+    }
+}
+
+mutation clearDescription($id: Int!) {
+    updateTracker(id: $id, input: { description: null }) {
+        name
     }
 }

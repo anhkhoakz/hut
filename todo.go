@@ -24,6 +24,7 @@ func newTodoCommand() *cobra.Command {
 	}
 	cmd.AddCommand(newTodoListCommand())
 	cmd.AddCommand(newTodoDeleteCommand())
+	cmd.AddCommand(newTodoUpdateCommand())
 	cmd.AddCommand(newTodoSubscribeCommand())
 	cmd.AddCommand(newTodoUnsubscribeCommand())
 	cmd.AddCommand(newTodoCreateCommand())
@@ -130,6 +131,95 @@ func newTodoDeleteCommand() *cobra.Command {
 		Run:               run,
 	}
 	cmd.Flags().BoolVarP(&autoConfirm, "yes", "y", false, "auto confirm")
+	return cmd
+}
+
+func newTodoUpdateCommand() *cobra.Command {
+	var visibility string
+	var description bool
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		name, owner, instance := parseResourceName(args[0])
+		c := createClientWithInstance("todo", cmd, instance)
+		id := getTrackerID(c, ctx, name, owner)
+		var input todosrht.TrackerInput
+
+		if visibility != "" {
+			trackerVisibility, err := todosrht.ParseVisibility(visibility)
+			if err != nil {
+				log.Fatal(err)
+			}
+			input.Visibility = &trackerVisibility
+		}
+
+		if description {
+			if !isStdinTerminal {
+				b, err := io.ReadAll(os.Stdin)
+				if err != nil {
+					log.Fatalf("failed to read description: %v", err)
+				}
+				description := string(b)
+				input.Description = &description
+			} else {
+				var (
+					err      error
+					user     *todosrht.User
+					username string
+				)
+
+				if owner != "" {
+					username = strings.TrimLeft(owner, ownerPrefixes)
+					user, err = todosrht.TrackerDescriptionByUser(c.Client, ctx, username, name)
+				} else {
+					user, err = todosrht.TrackerDescription(c.Client, ctx, name)
+				}
+
+				if err != nil {
+					log.Fatalf("failed to fetch description: %v", err)
+				} else if user == nil {
+					log.Fatalf("no such user %q", username)
+				} else if user.Tracker == nil {
+					log.Fatalf("no such tracker %q", name)
+				}
+
+				var prefill string
+				if user.Tracker.Description != nil {
+					prefill = *user.Tracker.Description
+				}
+
+				text, err := getInputWithEditor("hut_description*.md", prefill)
+				if err != nil {
+					log.Fatalf("failed to read description: %v", err)
+				}
+
+				if strings.TrimSpace(text) == "" {
+					_, err := todosrht.ClearDescription(c.Client, ctx, id)
+					if err != nil {
+						log.Fatalf("failed to clear description: %v", err)
+					}
+				} else {
+					input.Description = &text
+				}
+			}
+		}
+
+		tracker, err := todosrht.UpdateTracker(c.Client, ctx, id, input)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Printf("Updated tracker %q\n", tracker.Name)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "update <tracker>",
+		Short:             "Update a tracker",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: completeTracker,
+		Run:               run,
+	}
+	cmd.Flags().StringVarP(&visibility, "visibility", "v", "", "tracker visibility")
+	cmd.RegisterFlagCompletionFunc("visibility", completeVisibility)
+	cmd.Flags().BoolVar(&description, "description", false, "edit description")
 	return cmd
 }
 
