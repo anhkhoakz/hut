@@ -10,6 +10,7 @@ import (
 
 type projectConfig struct {
 	Tracker string `scfg:"tracker"`
+	DevList string `scfg:"development-mailing-list"`
 }
 
 func loadProjectConfig() (*projectConfig, error) {
