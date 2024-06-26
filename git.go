@@ -29,6 +29,7 @@ func newGitCommand() *cobra.Command {
 	cmd.AddCommand(newGitCreateCommand())
 	cmd.AddCommand(newGitListCommand())
 	cmd.AddCommand(newGitDeleteCommand())
+	cmd.AddCommand(newGitCloneCommand())
 	cmd.AddCommand(newGitACLCommand())
 	cmd.AddCommand(newGitShowCommand())
 	cmd.AddCommand(newGitUserWebhookCommand())
@@ -216,6 +217,58 @@ func newGitDeleteCommand() *cobra.Command {
 		Run:               run,
 	}
 	cmd.Flags().BoolVarP(&autoConfirm, "yes", "y", false, "auto confirm")
+	return cmd
+}
+
+func newGitCloneCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		cloneCmd := exec.Command("git", "clone", args[0])
+		cloneCmd.Stdin = os.Stdin
+		cloneCmd.Stdout = os.Stdout
+		cloneCmd.Stderr = os.Stderr
+
+		err := cloneCmd.Run()
+		if err != nil {
+			log.Fatalf("failed to clone repo: %v", err)
+		}
+
+		s := strings.Split(args[0], "/")
+		dir, err := os.Getwd()
+		if err != nil {
+			log.Fatalf("failed to get current directory: %v", err)
+		}
+
+		err = os.Chdir(filepath.Join(dir, s[len(s)-1]))
+		if err != nil {
+			log.Fatalf("failed to change current working directory: %v", err)
+		}
+
+		cfg, err := loadProjectConfig()
+		if err != nil {
+			log.Fatalf("failed to load project config: %v", err)
+		}
+
+		if cfg != nil {
+			if cfg.DevList != "" {
+				sendemailCmd := exec.Command("git", "config", "sendemail.to", cfg.DevList)
+				sendemailCmd.Stdin = os.Stdin
+				sendemailCmd.Stdout = os.Stdout
+				sendemailCmd.Stderr = os.Stderr
+
+				err = sendemailCmd.Run()
+				if err != nil {
+					log.Fatalf("failed to set %q: %v", "git config sendemail.to", err)
+				}
+			}
+		}
+	}
+	cmd := &cobra.Command{
+		Use:               "clone <URL>",
+		Short:             "Clone a repository",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
 	return cmd
 }
 

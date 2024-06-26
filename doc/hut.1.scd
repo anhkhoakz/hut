@@ -238,6 +238,10 @@ Options are:
 	*--rev* <string>
 		Revision tag. Defaults to the last Git tag.
 
+*clone* <URL>
+	This will clone the repository to _CWD_ and try to configure it for 
+	_git send-email_ if possible.
+
 *create* <name> [options...]
 	Create a repository. If *--clone* is not used, the remote URL will be
 	printed to _stdout_.
