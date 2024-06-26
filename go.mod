@@ -8,8 +8,8 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/juju/ansiterm v1.0.0
-	github.com/spf13/cobra v1.8.0
-	golang.org/x/term v0.20.0
+	github.com/spf13/cobra v1.8.1
+	golang.org/x/term v0.21.0
 )
 
 require (
@@ -20,5 +20,5 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/testify v1.7.0 // indirect
 	github.com/vektah/gqlparser/v2 v2.5.8 // indirect
-	golang.org/x/sys v0.20.0 // indirect
+	golang.org/x/sys v0.21.0 // indirect
 )
