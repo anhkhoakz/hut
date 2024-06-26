@@ -952,6 +952,27 @@ func Subscriptions(client *gqlclient.Client, ctx context.Context, cursor *Cursor
 	return respData.Subscriptions, err
 }
 
+func MailingListDescription(client *gqlclient.Client, ctx context.Context, name string) (me *User, err error) {
+	op := gqlclient.NewOperation("query mailingListDescription ($name: String!) {\n\tme {\n\t\tlist(name: $name) {\n\t\t\tdescription\n\t\t}\n\t}\n}\n")
+	op.Var("name", name)
+	var respData struct {
+		Me *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Me, err
+}
+
+func MailingListDescriptionByUser(client *gqlclient.Client, ctx context.Context, username string, name string) (user *User, err error) {
+	op := gqlclient.NewOperation("query mailingListDescriptionByUser ($username: String!, $name: String!) {\n\tuser(username: $username) {\n\t\tlist(name: $name) {\n\t\t\tdescription\n\t\t}\n\t}\n}\n")
+	op.Var("username", username)
+	op.Var("name", name)
+	var respData struct {
+		User *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.User, err
+}
+
 func MailingListSubscribe(client *gqlclient.Client, ctx context.Context, listID int32) (mailingListSubscribe *MailingListSubscription, err error) {
 	op := gqlclient.NewOperation("mutation mailingListSubscribe ($listID: Int!) {\n\tmailingListSubscribe(listID: $listID) {\n\t\tlist {\n\t\t\tname\n\t\t\towner {\n\t\t\t\tcanonicalName\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	op.Var("listID", listID)
@@ -1009,6 +1030,16 @@ func UpdateMailingList(client *gqlclient.Client, ctx context.Context, id int32, 
 	op := gqlclient.NewOperation("mutation updateMailingList ($id: Int!, $input: MailingListInput!) {\n\tupdateMailingList(id: $id, input: $input) {\n\t\tid\n\t}\n}\n")
 	op.Var("id", id)
 	op.Var("input", input)
+	var respData struct {
+		UpdateMailingList *MailingList
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.UpdateMailingList, err
+}
+
+func ClearDescription(client *gqlclient.Client, ctx context.Context, id int32) (updateMailingList *MailingList, err error) {
+	op := gqlclient.NewOperation("mutation clearDescription ($id: Int!) {\n\tupdateMailingList(id: $id, input: {description:null}) {\n\t\tid\n\t}\n}\n")
+	op.Var("id", id)
 	var respData struct {
 		UpdateMailingList *MailingList
 	}

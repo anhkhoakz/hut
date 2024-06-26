@@ -301,6 +301,22 @@ query subscriptions($cursor: Cursor) {
     }
 }
 
+query mailingListDescription($name: String!) {
+    me {
+        list(name: $name) {
+            description
+        }
+    }
+}
+
+query mailingListDescriptionByUser($username: String!, $name: String!) {
+    user(username: $username) {
+        list(name: $name) {
+            description
+        }
+    }
+}
+
 mutation mailingListSubscribe($listID: Int!) {
     mailingListSubscribe(listID: $listID) {
         list {
@@ -360,6 +376,12 @@ mutation createMailingList(
 
 mutation updateMailingList($id: Int!, $input: MailingListInput!) {
     updateMailingList(id: $id, input: $input) {
+        id
+    }
+}
+
+mutation clearDescription($id: Int!) {
+    updateMailingList(id: $id, input: { description: null }) {
         id
     }
 }

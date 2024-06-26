@@ -28,6 +28,7 @@ func newListsCommand() *cobra.Command {
 	}
 	cmd.AddCommand(newListsDeleteCommand())
 	cmd.AddCommand(newListsListCommand())
+	cmd.AddCommand(newListsUpdateCommand())
 	cmd.AddCommand(newListsSubscribeCommand())
 	cmd.AddCommand(newListsUnsubscribeCommand())
 	cmd.AddCommand(newListsCreateCommand())
@@ -143,6 +144,106 @@ func printList(w io.Writer, list *listssrht.MailingList) {
 	if list.Description != nil && *list.Description != "" {
 		fmt.Fprintln(w, "\n"+indent(*list.Description, "  ")+"\n")
 	}
+}
+
+func newListsUpdateCommand() *cobra.Command {
+	var visibility string
+	var description bool
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		var name, owner, instance string
+		if len(args) > 0 {
+			name, owner, instance = parseMailingListName(args[0])
+		} else {
+			var err error
+			name, owner, instance, err = getMailingListName(ctx, cmd)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
+		c := createClientWithInstance("lists", cmd, instance)
+		id := getMailingListID(c, ctx, name, owner)
+		// TODO: Support permitMime, rejectMime
+		var input listssrht.MailingListInput
+
+		if visibility != "" {
+			listVisibility, err := listssrht.ParseVisibility(visibility)
+			if err != nil {
+				log.Fatal(err)
+			}
+			input.Visibility = &listVisibility
+		}
+
+		if description {
+			if !isStdinTerminal {
+				b, err := io.ReadAll(os.Stdin)
+				if err != nil {
+					log.Fatalf("failed to read description: %v", err)
+				}
+				description := string(b)
+				input.Description = &description
+			} else {
+				var (
+					err      error
+					user     *listssrht.User
+					username string
+				)
+
+				if owner != "" {
+					username = strings.TrimLeft(owner, ownerPrefixes)
+					user, err = listssrht.MailingListDescriptionByUser(c.Client, ctx, username, name)
+				} else {
+					user, err = listssrht.MailingListDescription(c.Client, ctx, name)
+				}
+
+				if err != nil {
+					log.Fatalf("failed to fetch description: %v", err)
+				} else if user == nil {
+					log.Fatalf("no such user %q", username)
+				} else if user.List == nil {
+					log.Fatalf("no such mailing list %q", name)
+				}
+
+				var prefill string
+				if user.List.Description != nil {
+					prefill = *user.List.Description
+				}
+
+				text, err := getInputWithEditor("hut_description*.md", prefill)
+				if err != nil {
+					log.Fatalf("failed to read description: %v", err)
+				}
+
+				if strings.TrimSpace(text) == "" {
+					_, err := listssrht.ClearDescription(c.Client, ctx, id)
+					if err != nil {
+						log.Fatalf("failed to clear description: %v", err)
+					}
+				} else {
+					input.Description = &text
+				}
+			}
+		}
+
+		_, err := listssrht.UpdateMailingList(c.Client, ctx, id, input)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Printf("Updated mailing list\n")
+	}
+
+	cmd := &cobra.Command{
+		Use:               "update [list]",
+		Short:             "Update a mailing list",
+		Args:              cobra.MaximumNArgs(1),
+		ValidArgsFunction: completeList,
+		Run:               run,
+	}
+	cmd.Flags().StringVarP(&visibility, "visibility", "v", "", "mailing list visibility")
+	cmd.RegisterFlagCompletionFunc("visibility", completeVisibility)
+	cmd.Flags().BoolVar(&description, "description", false, "edit description")
+	return cmd
 }
 
 func newListsSubscribeCommand() *cobra.Command {

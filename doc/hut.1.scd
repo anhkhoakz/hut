@@ -475,6 +475,17 @@ Options are:
 *unsubscribe* [list]
 	Unsubscribe from a mailing list.
 
+*update* [list] [options...]
+	Update a mailing list.
+
+	Options are:
+
+	*--description*
+		Edit description.
+
+	*-v*, *--visibility* <string>
+		Visibility to use (public, unlisted, private).
+
 *user-webhook create* [options...]
 	Create a user webhook.
 
