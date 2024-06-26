@@ -223,7 +223,14 @@ func newHgUpdateCommand() *cobra.Command {
 		var input hgsrht.RepoInput
 
 		if cmd.Flags().Changed("description") {
-			input.Description = &description
+			if description == "" {
+				_, err := hgsrht.ClearDescription(c.Client, ctx, id)
+				if err != nil {
+					log.Fatalf("failed to clear description: %v", err)
+				}
+			} else {
+				input.Description = &description
+			}
 		}
 
 		if nonPublishing != "" {

@@ -152,6 +152,12 @@ mutation clearCustomReadme($id: Int!) {
     }
 }
 
+mutation clearDescription($id: Int!) {
+    updateRepository(id: $id, input: { description: null }) {
+        name
+    }
+}
+
 mutation deleteRepository($id: Int!) {
     deleteRepository(id: $id) {
         name

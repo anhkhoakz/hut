@@ -544,6 +544,16 @@ func ClearCustomReadme(client *gqlclient.Client, ctx context.Context, id int32) 
 	return respData.UpdateRepository, err
 }
 
+func ClearDescription(client *gqlclient.Client, ctx context.Context, id int32) (updateRepository *Repository, err error) {
+	op := gqlclient.NewOperation("mutation clearDescription ($id: Int!) {\n\tupdateRepository(id: $id, input: {description:null}) {\n\t\tname\n\t}\n}\n")
+	op.Var("id", id)
+	var respData struct {
+		UpdateRepository *Repository
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.UpdateRepository, err
+}
+
 func DeleteRepository(client *gqlclient.Client, ctx context.Context, id int32) (deleteRepository *Repository, err error) {
 	op := gqlclient.NewOperation("mutation deleteRepository ($id: Int!) {\n\tdeleteRepository(id: $id) {\n\t\tname\n\t}\n}\n")
 	op.Var("id", id)
