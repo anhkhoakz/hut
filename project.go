@@ -9,6 +9,7 @@ import (
 )
 
 type projectConfig struct {
+	Tracker string `scfg:"tracker"`
 }
 
 func loadProjectConfig() (*projectConfig, error) {
