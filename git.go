@@ -222,6 +222,7 @@ func newGitDeleteCommand() *cobra.Command {
 
 func newGitCloneCommand() *cobra.Command {
 	run := func(cmd *cobra.Command, args []string) {
+		log.Println("Cloning repository")
 		cloneCmd := exec.Command("git", "clone", args[0])
 		cloneCmd.Stdin = os.Stdin
 		cloneCmd.Stdout = os.Stdout
@@ -250,6 +251,8 @@ func newGitCloneCommand() *cobra.Command {
 
 		if cfg != nil {
 			if cfg.DevList != "" {
+				log.Printf("Configuring repository for %q\n", "git send-email")
+
 				sendemailCmd := exec.Command("git", "config", "sendemail.to", cfg.DevList)
 				sendemailCmd.Stdin = os.Stdin
 				sendemailCmd.Stdout = os.Stdout
