@@ -749,7 +749,7 @@ Options are:
 	*-v*, *--visibility* <string>
 		Visibility to use (public, unlisted, private). Defaults to public.
 
-*delete* <tracker> [options...]
+*delete* [tracker] [options...]
 	Delete a tracker.
 
 	Options are:
@@ -915,7 +915,7 @@ Options are:
 *unsubscribe* [tracker]
 	Unsubscribe from a tracker.
 
-*update* <tracker> [options...]
+*update* [tracker] [options...]
 	Update a tracker.
 
 	Options are:

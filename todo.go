@@ -104,7 +104,17 @@ func newTodoDeleteCommand() *cobra.Command {
 	var autoConfirm bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		name, owner, instance := parseResourceName(args[0])
+
+		var name, owner, instance string
+		if len(args) > 0 {
+			name, owner, instance = parseResourceName(args[0])
+		} else {
+			var err error
+			name, owner, instance, err = getTrackerName(ctx, cmd)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
 		c := createClientWithInstance("todo", cmd, instance)
 		id := getTrackerID(c, ctx, name, owner)
 
@@ -124,9 +134,9 @@ func newTodoDeleteCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:               "delete <tracker>",
+		Use:               "delete [tracker]",
 		Short:             "Delete a tracker",
-		Args:              cobra.ExactArgs(1),
+		Args:              cobra.MaximumNArgs(1),
 		ValidArgsFunction: completeTracker,
 		Run:               run,
 	}
@@ -139,7 +149,17 @@ func newTodoUpdateCommand() *cobra.Command {
 	var description bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		name, owner, instance := parseResourceName(args[0])
+
+		var name, owner, instance string
+		if len(args) > 0 {
+			name, owner, instance = parseResourceName(args[0])
+		} else {
+			var err error
+			name, owner, instance, err = getTrackerName(ctx, cmd)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
 		c := createClientWithInstance("todo", cmd, instance)
 		id := getTrackerID(c, ctx, name, owner)
 		var input todosrht.TrackerInput
@@ -211,9 +231,9 @@ func newTodoUpdateCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:               "update <tracker>",
+		Use:               "update [tracker]",
 		Short:             "Update a tracker",
-		Args:              cobra.ExactArgs(1),
+		Args:              cobra.MaximumNArgs(1),
 		ValidArgsFunction: completeTracker,
 		Run:               run,
 	}
