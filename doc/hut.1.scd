@@ -994,6 +994,22 @@ instance "sr.ht" {
 }
 ```
 
+# Project configuration file
+
+The project configuration file is a top-level file called _.hut.scfg_ in a
+repository, where the assosciated tracker and development mailing list can be
+specified. These resources will be used whenever a command is called which needs
+a tracker/mailing list and none is explicitly set. Furthermore it is possible
+to configure that patches should contain the repository name in their prefix.
+The _hut git clone_ command will configure a freshly cloned repository to make
+contributing easier.
+
+```
+tracker https://todo.sr.ht/~xenrox/hut
+development-mailing-list ~xenrox/hut-dev@lists.sr.ht
+patch-prefix false
+```
+
 # AUTHORS
 
 Originally written by Simon Ser <contact@emersion.fr>. Currently maintained
