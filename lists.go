@@ -1224,7 +1224,7 @@ func getMailingListName(ctx context.Context, cmd *cobra.Command) (name, owner, i
 		return "", "", "", err
 	}
 	if cfg != nil && cfg.DevList != "" {
-		name, owner, instance = parseResourceName(cfg.DevList)
+		name, owner, instance = parseMailingListName(cfg.DevList)
 		return name, owner, instance, nil
 	}
 
