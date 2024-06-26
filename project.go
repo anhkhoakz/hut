@@ -9,8 +9,9 @@ import (
 )
 
 type projectConfig struct {
-	Tracker string `scfg:"tracker"`
-	DevList string `scfg:"development-mailing-list"`
+	Tracker     string `scfg:"tracker"`
+	DevList     string `scfg:"development-mailing-list"`
+	PatchPrefix bool   `scfg:"patch-prefix"`
 }
 
 func loadProjectConfig() (*projectConfig, error) {

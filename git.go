@@ -260,6 +260,18 @@ func newGitCloneCommand() *cobra.Command {
 					log.Fatalf("failed to set %q: %v", "git config sendemail.to", err)
 				}
 			}
+
+			if cfg.PatchPrefix {
+				prefixCmd := exec.Command("git", "config", "format.subjectPrefix", fmt.Sprintf("PATCH %s", s[len(s)-1]))
+				prefixCmd.Stdin = os.Stdin
+				prefixCmd.Stdout = os.Stdout
+				prefixCmd.Stderr = os.Stderr
+
+				err = prefixCmd.Run()
+				if err != nil {
+					log.Fatalf("failed to set %q: %v", "git config format.subjectPrefix", err)
+				}
+			}
 		}
 	}
 	cmd := &cobra.Command{
