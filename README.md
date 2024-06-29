@@ -6,7 +6,7 @@ A CLI tool for [sr.ht].
 
 ## Usage
 
-Run `hut init` to get started. Read the man page to learn about all commands.
+Run `hut init` to get started. Read the [man page] to learn about all commands.
 
 ## Building
 
@@ -34,6 +34,7 @@ Copyright (C) 2021 Simon Ser
 
 [hut]: https://sr.ht/~xenrox/hut/
 [sr.ht]: https://sr.ht/~sircmpwn/sourcehut/
+[man page]: https://git.sr.ht/~xenrox/hut/tree/master/item/doc/hut.1.scd
 [mailing list]: https://lists.sr.ht/~xenrox/hut-dev
 [issue tracker]: https://todo.sr.ht/~xenrox/hut
 [#hut on Libera Chat]: ircs://irc.libera.chat/#hut
