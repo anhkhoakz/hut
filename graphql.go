@@ -14,6 +14,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var completeService = cobra.FixedCompletions(
+	[]string{"builds", "git", "hg", "lists", "meta", "pages", "paste", "todo"},
+	cobra.ShellCompDirectiveNoFileComp)
+
 const graphqlPrefill = `
 # Please write the GraphQL query you want to execute above. The GraphQL schema
 # for %v.sr.ht is available at:
@@ -89,7 +93,7 @@ func newGraphqlCommand() *cobra.Command {
 		Use:               "graphql <service>",
 		Short:             "Execute a GraphQL query",
 		Args:              cobra.ExactArgs(1),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction: completeService,
 		Run:               run,
 	}
 	cmd.Flags().StringSliceVarP(&stringVars, "var", "v", nil, "set string variable")
