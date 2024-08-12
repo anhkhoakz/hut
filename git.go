@@ -289,9 +289,26 @@ func newGitCloneCommand() *cobra.Command {
 }
 
 func newGitSetupCommand() *cobra.Command {
+	var force bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		success := false
+
+		checkCmd := exec.Command("git", "config", "sendemail.to")
+		checkCmd.Stdin = os.Stdin
+		checkCmd.Stderr = os.Stderr
+
+		b, err := checkCmd.Output()
+		if err != nil {
+			log.Fatalf("failed to check current git settings: %v", err)
+		}
+
+		if strings.TrimSpace(string(b)) != "" && !force {
+			log.Println("Repository is already configured. Skipping setup.")
+			return
+		}
+
+		// TODO: hub.sr.ht API, .b4-config
 		cfg, err := loadProjectConfig()
 		if err != nil {
 			log.Fatalf("failed to load project config: %v", err)
@@ -338,6 +355,7 @@ func newGitSetupCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(0),
 		Run:   run,
 	}
+	cmd.Flags().BoolVarP(&force, "force", "f", false, "force setup even if already configured")
 	return cmd
 }
 

@@ -271,9 +271,16 @@ Options are:
 *list* [owner]
 	List repositories.
 
-*setup*
+*setup* [options...]
 	Setup a repository for _git send-email_. hut will read the required
-	settings from the project configuration file.
+	settings from the project configuration file. If the repository already
+	has some configuration, the setup will be skipped.
+
+	Options are:
+
+	*-f*, *--force*
+		Force the setup even if the repository is already configured for
+		_git send-email_.
 
 *show* [repo]
 	Display information about a repository.
