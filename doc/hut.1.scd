@@ -271,6 +271,10 @@ Options are:
 *list* [owner]
 	List repositories.
 
+*setup*
+	Setup a repository for _git send-email_. hut will read the required
+	settings from the project configuration file.
+
 *show* [repo]
 	Display information about a repository.
 

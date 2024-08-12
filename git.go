@@ -30,6 +30,7 @@ func newGitCommand() *cobra.Command {
 	cmd.AddCommand(newGitListCommand())
 	cmd.AddCommand(newGitDeleteCommand())
 	cmd.AddCommand(newGitCloneCommand())
+	cmd.AddCommand(newGitSetupCommand())
 	cmd.AddCommand(newGitACLCommand())
 	cmd.AddCommand(newGitShowCommand())
 	cmd.AddCommand(newGitUserWebhookCommand())
@@ -283,6 +284,59 @@ func newGitCloneCommand() *cobra.Command {
 		Args:              cobra.ExactArgs(1),
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
+	}
+	return cmd
+}
+
+func newGitSetupCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		success := false
+		cfg, err := loadProjectConfig()
+		if err != nil {
+			log.Fatalf("failed to load project config: %v", err)
+		}
+
+		if cfg != nil {
+			if cfg.DevList != "" {
+				sendemailCmd := exec.Command("git", "config", "sendemail.to", cfg.DevList)
+				sendemailCmd.Stdin = os.Stdin
+				sendemailCmd.Stdout = os.Stdout
+				sendemailCmd.Stderr = os.Stderr
+
+				err = sendemailCmd.Run()
+				if err != nil {
+					log.Fatalf("failed to set %q: %v", "git config sendemail.to", err)
+				}
+				success = true
+			}
+
+			if cfg.PatchPrefix {
+				name, _, _, err := guessGitRepoName(ctx, cmd)
+
+				prefixCmd := exec.Command("git", "config", "format.subjectPrefix", fmt.Sprintf("PATCH %s", name))
+				prefixCmd.Stdin = os.Stdin
+				prefixCmd.Stdout = os.Stdout
+				prefixCmd.Stderr = os.Stderr
+
+				err = prefixCmd.Run()
+				if err != nil {
+					log.Fatalf("failed to set %q: %v", "git config format.subjectPrefix", err)
+				}
+			}
+		}
+
+		if success {
+			log.Println("Configured repository")
+		} else {
+			log.Fatalln("Failed to configure repository")
+		}
+	}
+	cmd := &cobra.Command{
+		Use:   "setup",
+		Short: "Setup a repository for `git send-email`",
+		Args:  cobra.ExactArgs(0),
+		Run:   run,
 	}
 	return cmd
 }
