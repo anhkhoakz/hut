@@ -1033,13 +1033,18 @@ func getGitRepoID(c *Client, ctx context.Context, name, owner string) int32 {
 }
 
 func gitRemoteURLs(ctx context.Context) ([]*url.URL, error) {
+	var urls []*url.URL
+
 	// TODO: iterate over all remotes
 	out, err := exec.CommandContext(ctx, "git", "remote", "get-url", "--all", "origin").Output()
 	if err != nil {
+		eerr, ok := err.(*exec.ExitError)
+		if ok && eerr.ExitCode() == 128 {
+			return urls, nil
+		}
 		return nil, fmt.Errorf("failed to get remote URL: %v", err)
 	}
 
-	var urls []*url.URL
 	l := strings.Split(strings.TrimSpace(string(out)), "\n")
 	for _, raw := range l {
 		var u *url.URL
