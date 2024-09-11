@@ -1046,9 +1046,9 @@ func gitRemoteURLs(ctx context.Context) ([]*url.URL, error) {
 
 	l := strings.Split(strings.TrimSpace(string(out)), "\n")
 	for _, raw := range l {
-		_, raw, _ =  strings.Cut(raw, "\t")  // remote name
-		raw, _ =  strings.CutSuffix(raw, " (fetch)")
-		raw, _ =  strings.CutSuffix(raw, " (push)")
+		_, raw, _ = strings.Cut(raw, "\t") // remote name
+		raw, _ = strings.CutSuffix(raw, " (fetch)")
+		raw, _ = strings.CutSuffix(raw, " (push)")
 
 		var u *url.URL
 		switch {
