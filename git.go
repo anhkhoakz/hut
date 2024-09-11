@@ -330,6 +330,9 @@ func newGitSetupCommand() *cobra.Command {
 
 			if cfg.PatchPrefix {
 				name, _, _, err := guessGitRepoName(ctx, cmd)
+				if err != nil {
+					log.Fatalf("failed to get repository name: %v", err)
+				}
 
 				prefixCmd := exec.Command("git", "config", "format.subjectPrefix", fmt.Sprintf("PATCH %s", name))
 				prefixCmd.Stdin = os.Stdin
