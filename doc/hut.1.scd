@@ -164,7 +164,7 @@ create* read input depending on whether their stdin is on a terminal or not:
 	Submit a build manifest.
 
 	If no build manifest is specified, build manifests are discovered at
-	_.build.yml_ and _.builds/\*.yml_.
+	_.build.yml_, _.build.yaml_, _.builds/\*.yml_ and _.builds/\*.yaml_.
 
 	Options are:
 
