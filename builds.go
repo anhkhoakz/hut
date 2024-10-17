@@ -275,7 +275,10 @@ func newBuildsCancelCommand() *cobra.Command {
 }
 
 func newBuildsShowCommand() *cobra.Command {
-	var follow bool
+	var (
+		follow bool
+		web    bool
+	)
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
@@ -325,6 +328,18 @@ func newBuildsShowCommand() *cobra.Command {
 			}
 		}
 
+		buildUrl := fmt.Sprintf("%s/%s/job/%d", c.BaseURL, job.Owner.CanonicalName, job.Id)
+		if web {
+			err := openURL(buildUrl)
+			if err != nil {
+				log.Fatal(err)
+			}
+			os.Exit(0)
+		}
+
+		// prints url for easy access
+		fmt.Printf("%s\n\n", buildUrl)
+
 		printJob(os.Stdout, job)
 
 		failedTask := -1
@@ -359,6 +374,7 @@ func newBuildsShowCommand() *cobra.Command {
 		Run:               run,
 	}
 	cmd.Flags().BoolVarP(&follow, "follow", "f", false, "follow job status")
+	cmd.Flags().BoolVar(&web, "web", false, "open in browser")
 	return cmd
 }
 

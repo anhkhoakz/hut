@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -250,4 +251,60 @@ func sliceContains(s []string, v string) bool {
 		}
 	}
 	return false
+}
+
+// Opens a new browser window pointing to url.
+func openURL(url string) error {
+	goos := runtime.GOOS
+
+	switch goos {
+	case "darwin":
+		return runCmd("open", url)
+	case "linux":
+		return linux(url)
+	case "netbsd":
+		return netbsd(url)
+	case "openbsd":
+		return openbsd(url)
+	case "windows":
+		return runCmd("cmd", fmt.Sprintf("start %s", url))
+	default:
+		return fmt.Errorf("openBrowser: unsupported operating system: %v", goos)
+	}
+}
+
+func linux(url string) error {
+	providers := []string{"xdg-open", "x-www-browser", "www-browser"}
+
+	// There are multiple possible providers to open a browser on linux
+	// One of them is xdg-open, another is x-www-browser, then there's www-browser, etc.
+	// Look for one that exists and run it
+	for _, provider := range providers {
+		if _, err := exec.LookPath(provider); err == nil {
+			return runCmd(provider, url)
+		}
+	}
+
+	return &exec.Error{Name: strings.Join(providers, ","), Err: exec.ErrNotFound}
+}
+
+func netbsd(url string) error {
+	err := runCmd("xdg-open", url)
+	if e, ok := err.(*exec.Error); ok && e.Err == exec.ErrNotFound {
+		return errors.New("xdg-open: command not found - install xdg-utils from pkgsrc(7)")
+	}
+	return err
+}
+
+func openbsd(url string) error {
+	err := runCmd("xdg-open", url)
+	if e, ok := err.(*exec.Error); ok && e.Err == exec.ErrNotFound {
+		return errors.New("xdg-open: command not found - install xdg-utils from ports(8)")
+	}
+	return err
+}
+
+func runCmd(prog string, args ...string) error {
+	cmd := exec.Command(prog, args...)
+	return cmd.Run()
 }

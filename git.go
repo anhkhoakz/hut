@@ -666,6 +666,7 @@ func newGitACLDeleteCommand() *cobra.Command {
 }
 
 func newGitShowCommand() *cobra.Command {
+	var web bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
@@ -701,6 +702,18 @@ func newGitShowCommand() *cobra.Command {
 			log.Fatalf("no such repository %q", name)
 		}
 		repo := user.Repository
+		repoUrl := fmt.Sprintf("%s/%s/%s", c.BaseURL, owner, name)
+
+		if web {
+			err := openURL(repoUrl)
+			if err != nil {
+				log.Fatal(err)
+			}
+			os.Exit(0)
+		}
+
+		// prints url for easy access
+		fmt.Printf("%s\n\n", repoUrl)
 
 		// prints basic information
 		fmt.Printf("%s (%s)\n", termfmt.Bold.String(repo.Name), repo.Visibility.TermString())
@@ -750,6 +763,7 @@ func newGitShowCommand() *cobra.Command {
 		ValidArgsFunction: completeGitRepo,
 		Run:               run,
 	}
+	cmd.Flags().BoolVar(&web, "web", false, "open in browser")
 
 	return cmd
 }

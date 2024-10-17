@@ -835,6 +835,7 @@ func newTodoTicketDeleteCommand() *cobra.Command {
 }
 
 func newTodoTicketShowCommand() *cobra.Command {
+	var web bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
@@ -861,6 +862,15 @@ func newTodoTicketShowCommand() *cobra.Command {
 			log.Fatalf("no such user %q", username)
 		} else if user.Tracker == nil {
 			log.Fatalf("no such tracker %q", name)
+		}
+
+		todoUrl := fmt.Sprintf("%s/%s/%s/%d", c.BaseURL, owner, name, ticketID)
+		if web {
+			err := openURL(todoUrl)
+			if err != nil {
+				log.Fatal(err)
+			}
+			os.Exit(0)
 		}
 
 		ticket := user.Tracker.Ticket
@@ -927,6 +937,8 @@ func newTodoTicketShowCommand() *cobra.Command {
 		ValidArgsFunction: completeTicketID,
 		Run:               run,
 	}
+	cmd.Flags().BoolVar(&web, "web", false, "open in browser")
+
 	return cmd
 }
 

@@ -145,6 +145,9 @@ query show($id: Int!) {
         log {
             fullURL
         }
+        owner {
+            canonicalName
+        }
         tasks {
             name
             status

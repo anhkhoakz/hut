@@ -157,6 +157,9 @@ create* read input depending on whether their stdin is on a terminal or not:
 	*-f*, *--follow*
 		Follow job status.
 
+	*--web*
+		Open in browser.
+
 *ssh* <ID>
 	Connect with SSH to a job.
 
@@ -282,8 +285,13 @@ Options are:
 		Force the setup even if the repository is already configured for
 		_git send-email_.
 
-*show* [repo]
+*show* [repo] [options...]
 	Display information about a repository.
+
+	Options are:
+
+	*--web*
+		Open in browser.
 
 *update* [repo] [options...]
 	Update a repository. By default the current repo will be updated.
@@ -869,8 +877,13 @@ Options are:
 	*-s*, *--status* <string>
 		Filter by ticket status.
 
-*ticket show* <ID>
+*ticket show* <ID> [options...]
 	Display a ticket.
+
+	Options are:
+	
+	*--web*
+		Open in browser.
 
 *ticket subscribe* <ID>
 	Subscribe to a ticket.
