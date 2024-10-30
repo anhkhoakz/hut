@@ -413,11 +413,15 @@ func newTodoTicketCommand() *cobra.Command {
 func newTodoTicketListCommand() *cobra.Command {
 	var status string
 	run := func(cmd *cobra.Command, args []string) {
+		filterStatus := false
 		if status != "" {
-			_, err := todosrht.ParseTicketStatus(status)
-			if err != nil {
-				log.Fatal(err)
+			if status != "open" {
+				_, err := todosrht.ParseTicketStatus(status)
+				if err != nil {
+					log.Fatal(err)
+				}
 			}
+			filterStatus = true
 		}
 
 		ctx := cmd.Context()
@@ -453,10 +457,12 @@ func newTodoTicketListCommand() *cobra.Command {
 
 			for _, ticket := range user.Tracker.Tickets.Results {
 				// TODO: filter with API
-				if status != "" && !strings.EqualFold(status, string(ticket.Status)) {
+				if status == "open" && !ticket.IsOpen() {
+					continue
+				} else if status != "open" && status != "" && !strings.EqualFold(status, string(ticket.Status)) {
 					continue
 				}
-				printTicket(p, &ticket)
+				printTicket(p, &ticket, filterStatus)
 			}
 
 			cursor = user.Tracker.Tickets.Cursor
@@ -478,16 +484,20 @@ func newTodoTicketListCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(0),
 		Run:   run,
 	}
-	cmd.Flags().StringVarP(&status, "status", "s", "", "ticket status")
+	cmd.Flags().StringVarP(&status, "status", "s", "open", "ticket status")
 	cmd.RegisterFlagCompletionFunc("status", completeTicketStatus)
 	return cmd
 }
 
-func printTicket(w io.Writer, ticket *todosrht.Ticket) {
+func printTicket(w io.Writer, ticket *todosrht.Ticket, filterStatus bool) {
 	var labels string
-	s := termfmt.DarkYellow.Sprintf("#%d %s ", ticket.Id, ticket.Status.TermString())
-	if ticket.Status == todosrht.TicketStatusResolved && ticket.Resolution != todosrht.TicketResolutionClosed {
-		s += termfmt.Green.Sprintf("%s ", strings.ToLower(string(ticket.Resolution)))
+	s := termfmt.DarkYellow.Sprintf("#%d ", ticket.Id)
+
+	if !filterStatus {
+		s += fmt.Sprintf("%s ", ticket.Status.TermString())
+		if ticket.Status == todosrht.TicketStatusResolved && ticket.Resolution != todosrht.TicketResolutionClosed {
+			s += termfmt.Green.Sprintf("%s ", strings.ToLower(string(ticket.Resolution)))
+		}
 	}
 
 	if len(ticket.Labels) > 0 {

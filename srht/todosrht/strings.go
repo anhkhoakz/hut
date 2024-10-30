@@ -180,3 +180,7 @@ func ParseTrackerWebhookEvents(events []string) ([]WebhookEvent, error) {
 
 	return whEvents, nil
 }
+
+func (t Ticket) IsOpen() bool {
+	return t.Status != TicketStatusResolved
+}

@@ -884,7 +884,8 @@ Options are:
 	Options are:
 
 	*-s*, *--status* <string>
-		Filter by ticket status.
+		Filter by ticket status. By default only open tickets will be displayed.
+		Use "" to show all tickets.
 
 *ticket show* <ID> [options...]
 	Display a ticket.
