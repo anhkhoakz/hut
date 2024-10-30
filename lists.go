@@ -561,7 +561,7 @@ func newListsPatchsetListCommand() *cobra.Command {
 func printPatchset(w io.Writer, byUser bool, patchset *listssrht.Patchset) {
 	s := fmt.Sprintf("%s\t%s\t", termfmt.DarkYellow.Sprintf("#%d", patchset.Id), patchset.Status.TermString())
 	if patchset.Prefix != nil && *patchset.Prefix != "" {
-		s += fmt.Sprintf("[%s] ", *patchset.Prefix)
+		s += fmt.Sprintf("[%s] ", strings.TrimSpace(*patchset.Prefix))
 	}
 	s += patchset.Subject
 	if patchset.Version != 1 {
