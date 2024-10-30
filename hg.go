@@ -176,7 +176,10 @@ func newHgDeleteCommand() *cobra.Command {
 		}
 
 		c := createClientWithInstance("hg", cmd, instance)
-		id := getHgRepoID(c, ctx, name, owner)
+		id, err := getHgRepoID(c, ctx, name, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		if !autoConfirm && !getConfirmation(fmt.Sprintf("Do you really want to delete the repo %s", name)) {
 			log.Println("Aborted")
@@ -218,7 +221,10 @@ func newHgUpdateCommand() *cobra.Command {
 		}
 
 		c := createClientWithInstance("hg", cmd, instance)
-		id := getHgRepoID(c, ctx, name, owner)
+		id, err := getHgRepoID(c, ctx, name, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		var input hgsrht.RepoInput
 
@@ -407,7 +413,10 @@ func newHgACLUpdateCommand() *cobra.Command {
 		}
 
 		c := createClientWithInstance("hg", cmd, instance)
-		id := getHgRepoID(c, ctx, name, owner)
+		id, err := getHgRepoID(c, ctx, name, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		acl, err := hgsrht.UpdateACL(c.Client, ctx, id, accessMode, args[0])
 		if err != nil {
@@ -635,7 +644,7 @@ func hgRemoteUrl(ctx context.Context) (*url.URL, error) {
 	}
 }
 
-func getHgRepoID(c *Client, ctx context.Context, name, owner string) int32 {
+func getHgRepoID(c *Client, ctx context.Context, name, owner string) (int32, error) {
 	var (
 		user     *hgsrht.User
 		username string
@@ -648,13 +657,13 @@ func getHgRepoID(c *Client, ctx context.Context, name, owner string) int32 {
 		user, err = hgsrht.RepositoryIDByUser(c.Client, ctx, username, name)
 	}
 	if err != nil {
-		log.Fatalf("failed to get repository ID: %v", err)
+		return 0, fmt.Errorf("failed to get repository ID: %v", err)
 	} else if user == nil {
-		log.Fatalf("no such user %q", username)
+		return 0, fmt.Errorf("no such user %q", username)
 	} else if user.Repository == nil {
-		log.Fatalf("no such repository %q", name)
+		return 0, fmt.Errorf("no such repository %q", name)
 	}
-	return user.Repository.Id
+	return user.Repository.Id, nil
 }
 
 func completeHgUserWebhookEvents(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

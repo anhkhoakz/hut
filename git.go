@@ -196,7 +196,10 @@ func newGitDeleteCommand() *cobra.Command {
 		}
 
 		c := createClientWithInstance("git", cmd, instance)
-		id := getGitRepoID(c, ctx, name, owner)
+		id, err := getGitRepoID(c, ctx, name, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		if !autoConfirm && !getConfirmation(fmt.Sprintf("Do you really want to delete the repo %s", name)) {
 			log.Println("Aborted")
@@ -384,7 +387,10 @@ func newGitArtifactUploadCommand() *cobra.Command {
 
 		c := createClientWithInstance("git", cmd, instance)
 		c.HTTP.Timeout = fileTransferTimeout
-		repoID := getGitRepoID(c, ctx, repoName, owner)
+		repoID, err := getGitRepoID(c, ctx, repoName, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		if rev == "" {
 			var err error
@@ -612,7 +618,10 @@ func newGitACLUpdateCommand() *cobra.Command {
 		}
 
 		c := createClientWithInstance("git", cmd, instance)
-		id := getGitRepoID(c, ctx, name, owner)
+		id, err := getGitRepoID(c, ctx, name, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		acl, err := gitsrht.UpdateACL(c.Client, ctx, id, accessMode, args[0])
 		if err != nil {
@@ -904,7 +913,10 @@ func newGitUpdateCommand() *cobra.Command {
 		}
 
 		c := createClientWithInstance("git", cmd, instance)
-		id := getGitRepoID(c, ctx, name, owner)
+		id, err := getGitRepoID(c, ctx, name, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
 		var input gitsrht.RepoInput
 
 		if visibility != "" {
@@ -1027,7 +1039,7 @@ func guessGitRepoName(ctx context.Context, cmd *cobra.Command) (repoName, owner,
 	return "", "", "", fmt.Errorf("no sr.ht Git repository found in current directory")
 }
 
-func getGitRepoID(c *Client, ctx context.Context, name, owner string) int32 {
+func getGitRepoID(c *Client, ctx context.Context, name, owner string) (int32, error) {
 	var (
 		user     *gitsrht.User
 		username string
@@ -1040,13 +1052,13 @@ func getGitRepoID(c *Client, ctx context.Context, name, owner string) int32 {
 		user, err = gitsrht.RepositoryIDByUser(c.Client, ctx, username, name)
 	}
 	if err != nil {
-		log.Fatalf("failed to get repository ID: %v", err)
+		return 0, fmt.Errorf("failed to get repository ID: %v", err)
 	} else if user == nil {
-		log.Fatalf("no such user %q", username)
+		return 0, fmt.Errorf("no such user %q", username)
 	} else if user.Repository == nil {
-		log.Fatalf("no such repository %q", name)
+		return 0, fmt.Errorf("no such repository %q", name)
 	}
-	return user.Repository.Id
+	return user.Repository.Id, nil
 }
 
 func gitRemoteURLs(ctx context.Context) ([]*url.URL, error) {

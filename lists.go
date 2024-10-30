@@ -59,7 +59,10 @@ func newListsDeleteCommand() *cobra.Command {
 			}
 		}
 		c := createClientWithInstance("lists", cmd, instance)
-		id := getMailingListID(c, ctx, name, owner)
+		id, err := getMailingListID(c, ctx, name, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		if !autoConfirm && !getConfirmation(fmt.Sprintf("Do you really want to delete the list %s", name)) {
 			log.Println("Aborted")
@@ -163,7 +166,10 @@ func newListsUpdateCommand() *cobra.Command {
 		}
 
 		c := createClientWithInstance("lists", cmd, instance)
-		id := getMailingListID(c, ctx, name, owner)
+		id, err := getMailingListID(c, ctx, name, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
 		// TODO: Support permitMime, rejectMime
 		var input listssrht.MailingListInput
 
@@ -226,7 +232,7 @@ func newListsUpdateCommand() *cobra.Command {
 			}
 		}
 
-		_, err := listssrht.UpdateMailingList(c.Client, ctx, id, input)
+		_, err = listssrht.UpdateMailingList(c.Client, ctx, id, input)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -261,7 +267,10 @@ func newListsSubscribeCommand() *cobra.Command {
 			}
 		}
 		c := createClientWithInstance("lists", cmd, instance)
-		id := getMailingListID(c, ctx, name, owner)
+		id, err := getMailingListID(c, ctx, name, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		subscription, err := listssrht.MailingListSubscribe(c.Client, ctx, id)
 		if err != nil {
@@ -296,7 +305,10 @@ func newListsUnsubscribeCommand() *cobra.Command {
 			}
 		}
 		c := createClientWithInstance("lists", cmd, instance)
-		id := getMailingListID(c, ctx, name, owner)
+		id, err := getMailingListID(c, ctx, name, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		subscription, err := listssrht.MailingListUnsubscribe(c.Client, ctx, id)
 		if err != nil {
@@ -989,7 +1001,10 @@ func newListsWebhookCreateCommand() *cobra.Command {
 		}
 
 		c := createClientWithInstance("lists", cmd, instance)
-		id := getMailingListID(c, ctx, name, owner)
+		id, err := getMailingListID(c, ctx, name, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		var config listssrht.MailingListWebhookInput
 		config.Url = url
@@ -1184,7 +1199,7 @@ func parseMailingListName(s string) (name, owner, instance string) {
 	return name, owner, instance
 }
 
-func getMailingListID(c *Client, ctx context.Context, name, owner string) int32 {
+func getMailingListID(c *Client, ctx context.Context, name, owner string) (int32, error) {
 	var (
 		user     *listssrht.User
 		username string
@@ -1198,16 +1213,16 @@ func getMailingListID(c *Client, ctx context.Context, name, owner string) int32 
 		user, err = listssrht.MailingListIDByUser(c.Client, ctx, username, name)
 	}
 	if err != nil {
-		log.Fatal(err)
+		return 0, err
 	} else if user == nil {
-		log.Fatalf("no such user %q", username)
+		return 0, fmt.Errorf("no such user %q", username)
 	} else if user.List == nil {
 		if owner == "" {
-			log.Fatalf("no such mailing list %s", name)
+			return 0, fmt.Errorf("no such mailing list %s", name)
 		}
-		log.Fatalf("no such mailing list %s/%s/%s", c.BaseURL, owner, name)
+		return 0, fmt.Errorf("no such mailing list %s/%s/%s", c.BaseURL, owner, name)
 	}
-	return user.List.Id
+	return user.List.Id, nil
 }
 
 func getMailingListName(ctx context.Context, cmd *cobra.Command) (name, owner, instance string, err error) {

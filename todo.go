@@ -116,7 +116,10 @@ func newTodoDeleteCommand() *cobra.Command {
 			}
 		}
 		c := createClientWithInstance("todo", cmd, instance)
-		id := getTrackerID(c, ctx, name, owner)
+		id, err := getTrackerID(c, ctx, name, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		if !autoConfirm && !getConfirmation(fmt.Sprintf("Do you really want to delete the tracker %s", name)) {
 			log.Println("Aborted")
@@ -161,7 +164,10 @@ func newTodoUpdateCommand() *cobra.Command {
 			}
 		}
 		c := createClientWithInstance("todo", cmd, instance)
-		id := getTrackerID(c, ctx, name, owner)
+		id, err := getTrackerID(c, ctx, name, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
 		var input todosrht.TrackerInput
 
 		if visibility != "" {
@@ -258,7 +264,10 @@ func newTodoSubscribeCommand() *cobra.Command {
 			}
 		}
 		c := createClientWithInstance("todo", cmd, instance)
-		id := getTrackerID(c, ctx, name, owner)
+		id, err := getTrackerID(c, ctx, name, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		subscription, err := todosrht.TrackerSubscribe(c.Client, ctx, id)
 		if err != nil {
@@ -295,7 +304,10 @@ func newTodoUnsubscribeCommand() *cobra.Command {
 			}
 		}
 		c := createClientWithInstance("todo", cmd, instance)
-		id := getTrackerID(c, ctx, name, owner)
+		id, err := getTrackerID(c, ctx, name, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		subscription, err := todosrht.TrackerUnsubscribe(c.Client, ctx, id)
 		if err != nil {
@@ -504,7 +516,10 @@ func newTodoTicketCommentCommand() *cobra.Command {
 		}
 
 		c := createClientWithInstance("todo", cmd, instance)
-		trackerID := getTrackerID(c, ctx, name, owner)
+		trackerID, err := getTrackerID(c, ctx, name, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		var input todosrht.SubmitCommentInput
 
@@ -621,7 +636,10 @@ func newTodoTicketStatusCommand() *cobra.Command {
 		}
 
 		c := createClientWithInstance("todo", cmd, instance)
-		trackerID := getTrackerID(c, ctx, name, owner)
+		trackerID, err := getTrackerID(c, ctx, name, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		event, err := todosrht.UpdateTicketStatus(c.Client, ctx, trackerID, ticketID, input)
 		if err != nil {
@@ -655,7 +673,10 @@ func newTodoTicketSubscribeCommand() *cobra.Command {
 		}
 
 		c := createClientWithInstance("todo", cmd, instance)
-		trackerID := getTrackerID(c, ctx, name, owner)
+		trackerID, err := getTrackerID(c, ctx, name, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		subscription, err := todosrht.TicketSubscribe(c.Client, ctx, trackerID, ticketID)
 		if err != nil {
@@ -687,7 +708,10 @@ func newTodoTicketUnsubscribeCommand() *cobra.Command {
 		}
 
 		c := createClientWithInstance("todo", cmd, instance)
-		trackerID := getTrackerID(c, ctx, name, owner)
+		trackerID, err := getTrackerID(c, ctx, name, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		subscription, err := todosrht.TicketUnsubscribe(c.Client, ctx, trackerID, ticketID)
 		if err != nil {
@@ -720,7 +744,10 @@ func newTodoTicketAssignCommand() *cobra.Command {
 		}
 
 		c := createClientWithInstance("todo", cmd, instance)
-		trackerID := getTrackerID(c, ctx, name, owner)
+		trackerID, err := getTrackerID(c, ctx, name, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		user, err := todosrht.UserIDByName(c.Client, ctx, userName)
 		if err != nil {
@@ -763,7 +790,10 @@ func newTodoTicketUnassignCommand() *cobra.Command {
 		}
 
 		c := createClientWithInstance("todo", cmd, instance)
-		trackerID := getTrackerID(c, ctx, name, owner)
+		trackerID, err := getTrackerID(c, ctx, name, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		user, err := todosrht.UserIDByName(c.Client, ctx, userName)
 		if err != nil {
@@ -806,7 +836,10 @@ func newTodoTicketDeleteCommand() *cobra.Command {
 		}
 
 		c := createClientWithInstance("todo", cmd, instance)
-		trackerID := getTrackerID(c, ctx, name, owner)
+		trackerID, err := getTrackerID(c, ctx, name, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		if !autoConfirm && !getConfirmation(fmt.Sprintf("Do you really want to delete the ticket with ID %d", ticketID)) {
 			log.Println("Aborted")
@@ -966,7 +999,10 @@ func newTodoTicketWebhookCreateCommand() *cobra.Command {
 		}
 
 		c := createClientWithInstance("todo", cmd, instance)
-		trackerID := getTrackerID(c, ctx, name, owner)
+		trackerID, err := getTrackerID(c, ctx, name, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		var config todosrht.TicketWebhookInput
 		config.Url = url
@@ -1253,7 +1289,10 @@ func newTodoLabelCreateCommand() *cobra.Command {
 		}
 
 		c := createClientWithInstance("todo", cmd, instance)
-		id := getTrackerID(c, ctx, name, owner)
+		id, err := getTrackerID(c, ctx, name, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		if fg == "" {
 			fg = calcLabelForeground(bg)
@@ -1440,7 +1479,10 @@ func newTodoWebhookCreateCommand() *cobra.Command {
 		}
 
 		c := createClientWithInstance("todo", cmd, instance)
-		id := getTrackerID(c, ctx, name, owner)
+		id, err := getTrackerID(c, ctx, name, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		var config todosrht.TrackerWebhookInput
 		config.Url = url
@@ -1709,7 +1751,10 @@ func newTodoTicketCreateCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 		c := createClientWithInstance("todo", cmd, instance)
-		trackerID := getTrackerID(c, ctx, name, owner)
+		trackerID, err := getTrackerID(c, ctx, name, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		var input todosrht.SubmitTicketInput
 		if stdin {
@@ -1862,7 +1907,10 @@ func newTodoTicketLabelCommand() *cobra.Command {
 		}
 
 		c := createClientWithInstance("todo", cmd, instance)
-		trackerID := getTrackerID(c, ctx, trackerName, owner)
+		trackerID, err := getTrackerID(c, ctx, trackerName, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		labelID, err := getLabelID(c, ctx, trackerName, labelName, owner)
 		if err != nil {
@@ -1901,7 +1949,10 @@ func newTodoTicketUnlabelCommand() *cobra.Command {
 		}
 
 		c := createClientWithInstance("todo", cmd, instance)
-		trackerID := getTrackerID(c, ctx, trackerName, owner)
+		trackerID, err := getTrackerID(c, ctx, trackerName, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		labelID, err := getLabelID(c, ctx, trackerName, labelName, owner)
 		if err != nil {
@@ -1929,7 +1980,7 @@ func newTodoTicketUnlabelCommand() *cobra.Command {
 	return cmd
 }
 
-func getTrackerID(c *Client, ctx context.Context, name, owner string) int32 {
+func getTrackerID(c *Client, ctx context.Context, name, owner string) (int32, error) {
 	var (
 		user     *todosrht.User
 		username string
@@ -1943,14 +1994,14 @@ func getTrackerID(c *Client, ctx context.Context, name, owner string) int32 {
 		user, err = todosrht.TrackerIDByUser(c.Client, ctx, username, name)
 	}
 	if err != nil {
-		log.Fatalf("failed to get tracker ID: %v", err)
+		return 0, fmt.Errorf("failed to get tracker ID: %v", err)
 	} else if user == nil {
-		log.Fatalf("user %q does not exist", username)
+		return 0, fmt.Errorf("user %q does not exist", username)
 	} else if user.Tracker == nil {
-		log.Fatalf("tracker %q does not exist", name)
+		return 0, fmt.Errorf("tracker %q does not exist", name)
 	}
 
-	return user.Tracker.Id
+	return user.Tracker.Id, nil
 }
 
 func getTrackerName(ctx context.Context, cmd *cobra.Command) (name, owner, instance string, err error) {
