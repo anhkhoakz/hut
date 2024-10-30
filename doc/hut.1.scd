@@ -115,8 +115,13 @@ create* read input depending on whether their stdin is on a terminal or not:
 *cancel* <IDs...>
 	Cancel jobs.
 
-*list* [owner]
+*list* [owner] [options...]
 	List jobs.
+
+	Options are:
+
+	*-s*, *--status* <string>
+		Filter by job status.
 
 *resubmit* <ID>
 	Resubmit a build.

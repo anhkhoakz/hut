@@ -379,7 +379,15 @@ func newBuildsShowCommand() *cobra.Command {
 }
 
 func newBuildsListCommand() *cobra.Command {
+	var status string
 	run := func(cmd *cobra.Command, args []string) {
+		if status != "" {
+			_, err := buildssrht.ParseJobStatus(status)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
 		ctx := cmd.Context()
 		c := createClient("builds", cmd)
 		var cursor *buildssrht.Cursor
@@ -407,6 +415,10 @@ func newBuildsListCommand() *cobra.Command {
 			}
 
 			for _, job := range jobs.Results {
+				// TODO: filter with API
+				if status != "" && !strings.EqualFold(status, string(job.Status)) {
+					continue
+				}
 				printJob(p, &job)
 			}
 
@@ -430,6 +442,8 @@ func newBuildsListCommand() *cobra.Command {
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
+	cmd.Flags().StringVarP(&status, "status", "s", "", "job status")
+	cmd.RegisterFlagCompletionFunc("status", completeJobStatus)
 	return cmd
 }
 
@@ -972,6 +986,16 @@ func followJobShow(ctx context.Context, c *Client, id int32) (*buildssrht.Job, e
 		}
 	}
 }
+
+var completeJobStatus = cobra.FixedCompletions([]string{
+	"pending",
+	"queued",
+	"running",
+	"success",
+	"failed",
+	"timeout",
+	"cancelled",
+}, cobra.ShellCompDirectiveNoFileComp)
 
 func completeRunningJobs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	return completeJobs(cmd, true)

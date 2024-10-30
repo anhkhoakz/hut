@@ -111,3 +111,24 @@ func ParseVisibility(s string) (Visibility, error) {
 		return "", fmt.Errorf("invalid visibility: %s", s)
 	}
 }
+
+func ParseJobStatus(s string) (JobStatus, error) {
+	switch strings.ToLower(s) {
+	case "pending":
+		return JobStatusPending, nil
+	case "queued":
+		return JobStatusQueued, nil
+	case "running":
+		return JobStatusRunning, nil
+	case "success":
+		return JobStatusSuccess, nil
+	case "failed":
+		return JobStatusFailed, nil
+	case "timeout":
+		return JobStatusTimeout, nil
+	case "cancelled":
+		return JobStatusCancelled, nil
+	default:
+		return "", fmt.Errorf("invalid job status: %s", s)
+	}
+}
