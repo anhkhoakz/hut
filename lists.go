@@ -477,8 +477,18 @@ func newListsPatchsetCommand() *cobra.Command {
 
 func newListsPatchsetListCommand() *cobra.Command {
 	var byUser bool
+	var status string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
+
+		filterStatus := false
+		if status != "" {
+			_, err := listssrht.ParsePatchsetStatus(status)
+			if err != nil {
+				log.Fatal(err)
+			}
+			filterStatus = true
+		}
 
 		var name, owner, instance string
 		if len(args) > 0 {
@@ -544,7 +554,11 @@ func newListsPatchsetListCommand() *cobra.Command {
 			}
 
 			for _, patchset := range patches.Results {
-				printPatchset(p, byUser, &patchset)
+				// TODO: filter with API
+				if status != "" && !strings.EqualFold(status, string(patchset.Status)) {
+					continue
+				}
+				printPatchset(p, &patchset, byUser, filterStatus)
 			}
 
 			cursor = patches.Cursor
@@ -567,11 +581,17 @@ func newListsPatchsetListCommand() *cobra.Command {
 		Run:               run,
 	}
 	cmd.Flags().BoolVarP(&byUser, "user", "u", false, "list patches by user")
+	cmd.Flags().StringVarP(&status, "status", "s", "proposed", "patchset status")
+	cmd.RegisterFlagCompletionFunc("status", completePatchsetStatus)
 	return cmd
 }
 
-func printPatchset(w io.Writer, byUser bool, patchset *listssrht.Patchset) {
-	s := fmt.Sprintf("%s\t%s\t", termfmt.DarkYellow.Sprintf("#%d", patchset.Id), patchset.Status.TermString())
+func printPatchset(w io.Writer, patchset *listssrht.Patchset, byUser bool, filterStatus bool) {
+	s := fmt.Sprintf("%s\t", termfmt.DarkYellow.Sprintf("#%d", patchset.Id))
+	if !filterStatus {
+		s += fmt.Sprintf("%s\t", patchset.Status.TermString())
+	}
+
 	if patchset.Prefix != nil && *patchset.Prefix != "" {
 		s += fmt.Sprintf("[%s] ", strings.TrimSpace(*patchset.Prefix))
 	}

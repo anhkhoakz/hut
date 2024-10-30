@@ -475,6 +475,10 @@ Options are:
 
 	Options are:
 
+	*-s*, *--status* <string>
+		Filter by patchset status. By default only "PROPOSED" patchsets will be
+		displayed. Use "" to show all patchsets.
+		
 	*-u*, *--user*
 		List patchsets by user instead of by list.
 
