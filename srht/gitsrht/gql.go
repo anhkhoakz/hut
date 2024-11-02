@@ -840,6 +840,17 @@ func CompleteCoMaintainers(client *gqlclient.Client, ctx context.Context, name s
 	return respData.Me, err
 }
 
+func GitWebhooks(client *gqlclient.Client, ctx context.Context, repositoryID int32, cursor *Cursor) (gitWebhooks *WebhookSubscriptionCursor, err error) {
+	op := gqlclient.NewOperation("query gitWebhooks ($repositoryID: Int!, $cursor: Cursor) {\n\tgitWebhooks(repositoryID: $repositoryID, cursor: $cursor) {\n\t\tresults {\n\t\t\tid\n\t\t\turl\n\t\t}\n\t\tcursor\n\t}\n}\n")
+	op.Var("repositoryID", repositoryID)
+	op.Var("cursor", cursor)
+	var respData struct {
+		GitWebhooks *WebhookSubscriptionCursor
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.GitWebhooks, err
+}
+
 func UploadArtifact(client *gqlclient.Client, ctx context.Context, repoId int32, revspec string, file gqlclient.Upload) (uploadArtifact *Artifact, err error) {
 	op := gqlclient.NewOperation("mutation uploadArtifact ($repoId: Int!, $revspec: String!, $file: Upload!) {\n\tuploadArtifact(repoId: $repoId, revspec: $revspec, file: $file) {\n\t\tfilename\n\t}\n}\n")
 	op.Var("repoId", repoId)

@@ -230,6 +230,16 @@ query completeCoMaintainers($name: String!) {
     }
 }
 
+query gitWebhooks($repositoryID: Int!, $cursor: Cursor) {
+    gitWebhooks(repositoryID: $repositoryID, cursor: $cursor) {
+        results {
+            id
+            url
+        }
+        cursor
+    }
+}
+
 mutation uploadArtifact($repoId: Int!, $revspec: String!, $file: Upload!) {
     uploadArtifact(repoId: $repoId, revspec: $revspec, file: $file) {
         filename

@@ -999,6 +999,7 @@ func newGitWebhookCommand() *cobra.Command {
 		Short: "Manage git webhooks",
 	}
 	cmd.AddCommand(newGitWebhookCreateCommand())
+	cmd.AddCommand(newGitWebhookListCommand())
 	return cmd
 }
 
@@ -1059,6 +1060,60 @@ func newGitWebhookCreateCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&url, "url", "u", "", "payload url")
 	cmd.RegisterFlagCompletionFunc("url", cobra.NoFileCompletions)
 	cmd.MarkFlagRequired("url")
+	return cmd
+}
+
+func newGitWebhookListCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		var name, owner, instance string
+		if len(args) > 0 {
+			name, owner, instance = parseResourceName(args[0])
+		} else {
+			var err error
+			name, owner, instance, err = getGitRepoName(ctx, cmd)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
+		c := createClientWithInstance("git", cmd, instance)
+		id, err := getGitRepoID(c, ctx, name, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		var cursor *gitsrht.Cursor
+		err = pagerify(func(p pager) error {
+			webhooks, err := gitsrht.GitWebhooks(c.Client, ctx, id, cursor)
+			if err != nil {
+				return err
+			}
+
+			for _, webhook := range webhooks.Results {
+				fmt.Fprintf(p, "%s %s\n", termfmt.DarkYellow.Sprintf("#%d", webhook.Id), webhook.Url)
+			}
+
+			cursor = webhooks.Cursor
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	cmd := &cobra.Command{
+		Use:               "list [repo]",
+		Short:             "List git webhooks",
+		Args:              cobra.MaximumNArgs(1),
+		ValidArgsFunction: completeGitRepo,
+		Run:               run,
+	}
 	return cmd
 }
 
