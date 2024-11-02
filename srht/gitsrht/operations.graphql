@@ -332,3 +332,9 @@ mutation createGitWebhook($config: GitWebhookInput!) {
         id
     }
 }
+
+mutation deleteGitWebhook($id: Int!) {
+    deleteGitWebhook(id: $id) {
+        id
+    }
+}

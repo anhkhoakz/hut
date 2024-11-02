@@ -1000,6 +1000,7 @@ func newGitWebhookCommand() *cobra.Command {
 	}
 	cmd.AddCommand(newGitWebhookCreateCommand())
 	cmd.AddCommand(newGitWebhookListCommand())
+	cmd.AddCommand(newGitWebhookDeleteCommand())
 	return cmd
 }
 
@@ -1112,6 +1113,34 @@ func newGitWebhookListCommand() *cobra.Command {
 		Short:             "List git webhooks",
 		Args:              cobra.MaximumNArgs(1),
 		ValidArgsFunction: completeGitRepo,
+		Run:               run,
+	}
+	return cmd
+}
+
+func newGitWebhookDeleteCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("git", cmd)
+
+		id, err := parseInt32(args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		webhook, err := gitsrht.DeleteGitWebhook(c.Client, ctx, id)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		log.Printf("Deleted webhook %d\n", webhook.Id)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "delete <ID>",
+		Short:             "Delete a git webhook",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
 	return cmd

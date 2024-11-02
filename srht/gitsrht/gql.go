@@ -978,3 +978,13 @@ func CreateGitWebhook(client *gqlclient.Client, ctx context.Context, config GitW
 	err = client.Execute(ctx, op, &respData)
 	return respData.CreateGitWebhook, err
 }
+
+func DeleteGitWebhook(client *gqlclient.Client, ctx context.Context, id int32) (deleteGitWebhook *WebhookSubscription, err error) {
+	op := gqlclient.NewOperation("mutation deleteGitWebhook ($id: Int!) {\n\tdeleteGitWebhook(id: $id) {\n\t\tid\n\t}\n}\n")
+	op.Var("id", id)
+	var respData struct {
+		DeleteGitWebhook *WebhookSubscription
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.DeleteGitWebhook, err
+}

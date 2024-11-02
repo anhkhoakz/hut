@@ -352,6 +352,9 @@ Options are:
 
 	*-u*, *--url* <URL>
 		The payload URL which receives the _POST_ request. Required.
+		
+*webhook delete* <ID>
+	Delete a git webhook.
 
 *webhook list* [repo]
 	List git webhooks.
