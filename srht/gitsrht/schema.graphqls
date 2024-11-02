@@ -172,9 +172,14 @@ type OAuthClient {
 }
 
 enum WebhookEvent {
+  # User webhooks only
   REPO_CREATED
   REPO_UPDATE
   REPO_DELETED
+
+  # Git webhooks only
+  GIT_PRE_RECEIVE
+  GIT_POST_RECEIVE
 }
 
 interface WebhookSubscription {
@@ -203,7 +208,17 @@ type UserWebhookSubscription implements WebhookSubscription {
   url: String!
   client: OAuthClient @private
   deliveries(cursor: Cursor): WebhookDeliveryCursor!
-  sample(event: WebhookEvent): String!
+  sample(event: WebhookEvent!): String!
+}
+
+type GitWebhookSubscription implements WebhookSubscription {
+  id: Int!
+  events: [WebhookEvent!]!
+  query: String!
+  url: String!
+  client: OAuthClient @private
+  deliveries(cursor: Cursor): WebhookDeliveryCursor!
+  sample(event: WebhookEvent!): String!
 }
 
 type WebhookDelivery {
@@ -236,6 +251,41 @@ type RepositoryEvent implements WebhookPayload {
   date: Time!
 
   repository: Repository!
+}
+
+type UpdatedRef {
+  # Is null when pushing a new reference
+  ref: Reference
+  # Is null when pushing a new reference
+  old: Object
+  # Is null when deleting a reference
+  new: Object
+
+  """
+  Note: this only returns up to the most recent 50 commits included in the
+  update, i.e. old..new or new~50..new, whichever has fewer commits.
+  """
+  log: CommitCursor
+
+  """
+  Difference from old..new in the unified diff format.
+
+  This field is null if the diff requires more than one second to prepare.
+  """
+  diff: String
+}
+
+"""
+This event is used for pre-receive and post-receive git hooks.
+"""
+type GitEvent implements WebhookPayload {
+  uuid: String!
+  event: WebhookEvent!
+  date: Time!
+
+  repository: Repository! @access(scope: REPOSITORIES, kind: RO)
+  pusher: Entity! @access(scope: PROFILE, kind: RO)
+  updates: [UpdatedRef]! @access(scope: OBJECTS, kind: RO)
 }
 
 """
@@ -493,6 +543,18 @@ type Query {
   userWebhook(id: Int!): WebhookSubscription
 
   """
+  Returns a list of git webhook subscriptions associated with a repository. For
+  clients authenticated with a personal access token, this returns all webhooks
+  configured by all GraphQL clients for your account. For clients authenticated
+  with an OAuth 2.0 access token, this returns only webhooks registered for
+  your client.
+  """
+  gitWebhooks(repositoryID: Int!, cursor: Cursor): WebhookSubscriptionCursor!
+
+  "Returns details of a git webhook subscription by its ID."
+  gitWebhook(id: Int!): WebhookSubscription
+
+  """
   Returns information about the webhook currently being processed. This is
   not valid during normal queries over HTTP, and will return an error if used
   outside of a webhook context.
@@ -525,6 +587,26 @@ input UserWebhookInput {
   url: String!
   events: [WebhookEvent!]!
   query: String!
+}
+
+input GitWebhookInput {
+  repositoryID: Int!
+
+  url: String!
+  events: [WebhookEvent!]!
+  query: String!
+}
+
+input UpdatedRefInput {
+  ref: String!
+  old: String!
+  new: String!
+}
+
+input GitEventInput {
+  repositoryID: Int!
+  event: WebhookEvent!
+  updates: [UpdatedRefInput]!
 }
 
 type Mutation {
@@ -579,7 +661,39 @@ type Mutation {
   deleteUserWebhook(id: Int!): WebhookSubscription!
 
   """
+  Creates a git webhook. When an event from the provided list of events occurs,
+  the 'query' parameter (a GraphQL query) will be evaluated and the results
+  will be sent to the provided URL as the body of an HTTP POST request. The
+  list of events must include at least one event, and no duplicates.
+
+  This query is evaluated in the webhook context, such that query { webhook }
+  may be used to access details of the event which trigged the webhook. The
+  query may not make any mutations.
+  """
+  createGitWebhook(config: GitWebhookInput!): WebhookSubscription!
+
+  """
+  Deletes a git webhook. Any events already queued may still be delivered after
+  this request completes. Clients authenticated with a personal access token
+  may delete any webhook registered for their account, but authorized OAuth 2.0
+  clients may only delete their own webhooks. Manually deleting a webhook
+  configured by a third-party client may cause unexpected behavior with the
+  third-party integration.
+  """
+  deleteGitWebhook(id: Int!): WebhookSubscription!
+
+  ###                                               ###
+  ### The following resolvers are for internal use. ###
+  ###                                               ###
+
+  """
   Deletes the authenticated user's account. Internal use only.
   """
   deleteUser: Int! @internal
+
+  """
+  Delivers git webhooks. If it returns false, the push event should be
+  rejected. Invoked by gitsrht-update-hook.
+  """
+  deliverGitHook(input: GitEventInput!): Boolean! @internal
 }

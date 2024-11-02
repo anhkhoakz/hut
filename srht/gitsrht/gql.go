@@ -203,6 +203,43 @@ type Filter struct {
 	Search *string `json:"search,omitempty"`
 }
 
+// This event is used for pre-receive and post-receive git hooks.
+type GitEvent struct {
+	Uuid       string         `json:"uuid"`
+	Event      WebhookEvent   `json:"event"`
+	Date       gqlclient.Time `json:"date"`
+	Repository *Repository    `json:"repository"`
+	Pusher     *Entity        `json:"pusher"`
+	Updates    []*UpdatedRef  `json:"updates"`
+}
+
+func (*GitEvent) isWebhookPayload() {}
+
+type GitEventInput struct {
+	RepositoryID int32              `json:"repositoryID"`
+	Event        WebhookEvent       `json:"event"`
+	Updates      []*UpdatedRefInput `json:"updates"`
+}
+
+type GitWebhookInput struct {
+	RepositoryID int32          `json:"repositoryID"`
+	Url          string         `json:"url"`
+	Events       []WebhookEvent `json:"events"`
+	Query        string         `json:"query"`
+}
+
+type GitWebhookSubscription struct {
+	Id         int32                  `json:"id"`
+	Events     []WebhookEvent         `json:"events"`
+	Query      string                 `json:"query"`
+	Url        string                 `json:"url"`
+	Client     *OAuthClient           `json:"client,omitempty"`
+	Deliveries *WebhookDeliveryCursor `json:"deliveries"`
+	Sample     string                 `json:"sample"`
+}
+
+func (*GitWebhookSubscription) isWebhookSubscription() {}
+
 type OAuthClient struct {
 	Uuid string `json:"uuid"`
 }
@@ -409,6 +446,25 @@ type TreeEntryCursor struct {
 	Cursor  *Cursor     `json:"cursor,omitempty"`
 }
 
+type UpdatedRef struct {
+	Ref *Reference `json:"ref,omitempty"`
+	Old *Object    `json:"old,omitempty"`
+	New *Object    `json:"new,omitempty"`
+	// Note: this only returns up to the most recent 50 commits included in the
+	// update, i.e. old..new or new~50..new, whichever has fewer commits.
+	Log *CommitCursor `json:"log,omitempty"`
+	// Difference from old..new in the unified diff format.
+	//
+	// This field is null if the diff requires more than one second to prepare.
+	Diff *string `json:"diff,omitempty"`
+}
+
+type UpdatedRefInput struct {
+	Ref string `json:"ref"`
+	Old string `json:"old"`
+	New string `json:"new"`
+}
+
 type User struct {
 	Id            int32             `json:"id"`
 	Created       gqlclient.Time    `json:"created"`
@@ -496,9 +552,11 @@ type WebhookDeliveryCursor struct {
 type WebhookEvent string
 
 const (
-	WebhookEventRepoCreated WebhookEvent = "REPO_CREATED"
-	WebhookEventRepoUpdate  WebhookEvent = "REPO_UPDATE"
-	WebhookEventRepoDeleted WebhookEvent = "REPO_DELETED"
+	WebhookEventRepoCreated    WebhookEvent = "REPO_CREATED"
+	WebhookEventRepoUpdate     WebhookEvent = "REPO_UPDATE"
+	WebhookEventRepoDeleted    WebhookEvent = "REPO_DELETED"
+	WebhookEventGitPreReceive  WebhookEvent = "GIT_PRE_RECEIVE"
+	WebhookEventGitPostReceive WebhookEvent = "GIT_POST_RECEIVE"
 )
 
 type WebhookPayload struct {
@@ -524,6 +582,8 @@ func (base *WebhookPayload) UnmarshalJSON(b []byte) error {
 	switch data.TypeName {
 	case "RepositoryEvent":
 		base.Value = new(RepositoryEvent)
+	case "GitEvent":
+		base.Value = new(GitEvent)
 	case "":
 		return nil
 	default:
@@ -532,7 +592,7 @@ func (base *WebhookPayload) UnmarshalJSON(b []byte) error {
 	return json.Unmarshal(b, base.Value)
 }
 
-// WebhookPayloadValue is one of: RepositoryEvent
+// WebhookPayloadValue is one of: RepositoryEvent | GitEvent
 type WebhookPayloadValue interface {
 	isWebhookPayload()
 }
@@ -568,6 +628,8 @@ func (base *WebhookSubscription) UnmarshalJSON(b []byte) error {
 	switch data.TypeName {
 	case "UserWebhookSubscription":
 		base.Value = new(UserWebhookSubscription)
+	case "GitWebhookSubscription":
+		base.Value = new(GitWebhookSubscription)
 	case "":
 		return nil
 	default:
@@ -576,7 +638,7 @@ func (base *WebhookSubscription) UnmarshalJSON(b []byte) error {
 	return json.Unmarshal(b, base.Value)
 }
 
-// WebhookSubscriptionValue is one of: UserWebhookSubscription
+// WebhookSubscriptionValue is one of: UserWebhookSubscription | GitWebhookSubscription
 type WebhookSubscriptionValue interface {
 	isWebhookSubscription()
 }

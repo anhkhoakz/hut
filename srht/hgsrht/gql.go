@@ -102,6 +102,20 @@ type Features struct {
 	Artifacts bool `json:"artifacts"`
 }
 
+type File struct {
+	Name string `json:"name"`
+}
+
+// A cursor for enumerating files in a repository
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
+type FileCursor struct {
+	Results []File  `json:"results"`
+	Cursor  *Cursor `json:"cursor,omitempty"`
+}
+
 type NamedRevision struct {
 	Name string `json:"name"`
 	Id   string `json:"id"`
@@ -166,6 +180,10 @@ type Repository struct {
 	Branches *NamedRevisionCursor `json:"branches"`
 	// Returns a list of tags
 	Tags *NamedRevisionCursor `json:"tags"`
+	// Returns a list of files matching the given path
+	Files *FileCursor `json:"files"`
+	// Returns the contents of a file given a relative path and an optional revset
+	Cat *string `json:"cat,omitempty"`
 }
 
 // A cursor for enumerating a list of repositories

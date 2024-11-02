@@ -163,6 +163,12 @@ type Repository {
 
   "Returns a list of tags"
   tags(cursor: Cursor): NamedRevisionCursor! @access(scope: REVISIONS, kind: RO)
+
+  "Returns a list of files matching the given path"
+  files(path: String!, revspec: String, cursor: Cursor) : FileCursor! @access(scope: REVISIONS, kind: RO)
+
+  "Returns the contents of a file given a relative path and an optional revset"
+  cat(path: String!, revspec: String) : String @access(scope: REVISIONS, kind: RO)
 }
 
 type OAuthClient {
@@ -285,6 +291,18 @@ type NamedRevisionCursor {
 }
 
 """
+A cursor for enumerating files in a repository
+
+If there are additional results available, the cursor object may be passed
+back into the same endpoint to retrieve another page. If the cursor is null,
+there are no remaining results to return.
+"""
+type FileCursor {
+  results: [File!]!
+  cursor: Cursor
+}
+
+"""
 A cursor for enumerating a list of webhook deliveries
 
 If there are additional results available, the cursor object may be passed
@@ -327,6 +345,10 @@ type Revision {
 type NamedRevision {
   name: String!
   id: String!
+}
+
+type File {
+  name: String!
 }
 
 type Tag {
