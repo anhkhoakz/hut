@@ -35,6 +35,7 @@ func newGitCommand() *cobra.Command {
 	cmd.AddCommand(newGitShowCommand())
 	cmd.AddCommand(newGitUserWebhookCommand())
 	cmd.AddCommand(newGitUpdateCommand())
+	cmd.AddCommand(newGitWebhookCommand())
 	cmd.PersistentFlags().StringP("repo", "r", "", "name of repository")
 	cmd.RegisterFlagCompletionFunc("repo", completeGitRepo)
 	return cmd
@@ -992,6 +993,75 @@ func newGitUpdateCommand() *cobra.Command {
 	return cmd
 }
 
+func newGitWebhookCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "webhook",
+		Short: "Manage git webhooks",
+	}
+	cmd.AddCommand(newGitWebhookCreateCommand())
+	return cmd
+}
+
+func newGitWebhookCreateCommand() *cobra.Command {
+	var events []string
+	var stdin bool
+	var url string
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		var name, owner, instance string
+		if len(args) > 0 {
+			name, owner, instance = parseResourceName(args[0])
+		} else {
+			var err error
+			name, owner, instance, err = getGitRepoName(ctx, cmd)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
+		c := createClientWithInstance("git", cmd, instance)
+		id, err := getGitRepoID(c, ctx, name, owner)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		var config gitsrht.GitWebhookInput
+		config.RepositoryID = id
+		config.Url = url
+
+		whEvents, err := gitsrht.ParseGitWebhookEvents(events)
+		if err != nil {
+			log.Fatal(err)
+		}
+		config.Events = whEvents
+		config.Query = readWebhookQuery(stdin)
+
+		webhook, err := gitsrht.CreateGitWebhook(c.Client, ctx, config)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		log.Printf("Created git webhook with ID %d\n", webhook.Id)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "Create [repo]",
+		Short:             "Create a git webhook",
+		Args:              cobra.MaximumNArgs(1),
+		ValidArgsFunction: completeGitRepo,
+		Run:               run,
+	}
+	cmd.Flags().StringSliceVarP(&events, "events", "e", nil, "webhook events")
+	cmd.RegisterFlagCompletionFunc("events", completeGitWebhookEvents)
+	cmd.MarkFlagRequired("events")
+	cmd.Flags().BoolVar(&stdin, "stdin", !isStdinTerminal, "read webhook query from stdin")
+	cmd.Flags().StringVarP(&url, "url", "u", "", "payload url")
+	cmd.RegisterFlagCompletionFunc("url", cobra.NoFileCompletions)
+	cmd.MarkFlagRequired("url")
+	return cmd
+}
+
 func getGitRepoName(ctx context.Context, cmd *cobra.Command) (repoName, owner, instance string, err error) {
 	repoName, err = cmd.Flags().GetString("repo")
 	if err != nil {
@@ -1217,6 +1287,18 @@ func completeGitUserWebhookID(cmd *cobra.Command, args []string, toComplete stri
 	}
 
 	return webhookList, cobra.ShellCompDirectiveNoFileComp
+}
+
+func completeGitWebhookEvents(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	var eventList []string
+	events := [2]string{"git_pre_receive", "git_post_receive"}
+	set := strings.ToLower(cmd.Flag("events").Value.String())
+	for _, event := range events {
+		if !strings.Contains(set, event) {
+			eventList = append(eventList, event)
+		}
+	}
+	return eventList, cobra.ShellCompDirectiveNoFileComp
 }
 
 func completeBranches(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

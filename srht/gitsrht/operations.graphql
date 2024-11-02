@@ -316,3 +316,9 @@ mutation clearDescription($id: Int!) {
         name
     }
 }
+
+mutation createGitWebhook($config: GitWebhookInput!) {
+    createGitWebhook(config: $config) {
+        id
+    }
+}

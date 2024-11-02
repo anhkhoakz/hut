@@ -338,6 +338,21 @@ Options are:
 *user-webhook list*
 	List user webhooks.
 
+*webhook create* [list] [options...]
+	Create a git webhook.
+
+	Options are:
+
+	*-e*, *--events* <strings...>
+		List of events that should trigger the webhook (GIT_PRE_RECEIVE,
+		GIT_POST_RECEIVE). Required.
+
+	*--stdin*
+		Read query from _stdin_.
+
+	*-u*, *--url* <URL>
+		The payload URL which receives the _POST_ request. Required.
+
 ## hg
 
 Options are:

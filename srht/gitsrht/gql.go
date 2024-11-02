@@ -957,3 +957,13 @@ func ClearDescription(client *gqlclient.Client, ctx context.Context, id int32) (
 	err = client.Execute(ctx, op, &respData)
 	return respData.UpdateRepository, err
 }
+
+func CreateGitWebhook(client *gqlclient.Client, ctx context.Context, config GitWebhookInput) (createGitWebhook *WebhookSubscription, err error) {
+	op := gqlclient.NewOperation("mutation createGitWebhook ($config: GitWebhookInput!) {\n\tcreateGitWebhook(config: $config) {\n\t\tid\n\t}\n}\n")
+	op.Var("config", config)
+	var respData struct {
+		CreateGitWebhook *WebhookSubscription
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.CreateGitWebhook, err
+}

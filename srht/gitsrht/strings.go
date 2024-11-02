@@ -64,3 +64,19 @@ func ParseEvents(events []string) ([]WebhookEvent, error) {
 
 	return whEvents, nil
 }
+
+func ParseGitWebhookEvents(events []string) ([]WebhookEvent, error) {
+	var whEvents []WebhookEvent
+	for _, event := range events {
+		switch strings.ToLower(event) {
+		case "git_pre_receive":
+			whEvents = append(whEvents, WebhookEventGitPreReceive)
+		case "git_post_receive":
+			whEvents = append(whEvents, WebhookEventGitPostReceive)
+		default:
+			return whEvents, fmt.Errorf("invalid event: %q", event)
+		}
+	}
+
+	return whEvents, nil
+}
