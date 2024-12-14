@@ -91,6 +91,8 @@ func ParseUserEvents(events []string) ([]WebhookEvent, error) {
 		switch strings.ToLower(event) {
 		case "job_created":
 			whEvents = append(whEvents, WebhookEventJobCreated)
+		case "job_updated":
+			whEvents = append(whEvents, WebhookEventJobUpdated)
 		default:
 			return whEvents, fmt.Errorf("invalid event: %q", event)
 		}

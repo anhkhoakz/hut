@@ -1089,7 +1089,7 @@ func completeJobs(cmd *cobra.Command, onlyRunning bool) ([]string, cobra.ShellCo
 
 func completeBuildsUserWebhookEvents(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var eventList []string
-	events := [1]string{"job_created"}
+	events := [2]string{"job_created", "job_updated"}
 	set := strings.ToLower(cmd.Flag("events").Value.String())
 	for _, event := range events {
 		if !strings.Contains(set, event) {
