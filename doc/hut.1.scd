@@ -993,6 +993,9 @@ Options are:
 	*--description*
 		Edit description.
 
+	*-n*, *--name* <string>
+		New tracker name.
+
 	*-v*, *--visibility* <string>
 		Visibility to use (public, unlisted, private).
 

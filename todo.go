@@ -148,7 +148,7 @@ func newTodoDeleteCommand() *cobra.Command {
 }
 
 func newTodoUpdateCommand() *cobra.Command {
-	var visibility string
+	var visibility, newName string
 	var description bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
@@ -229,6 +229,10 @@ func newTodoUpdateCommand() *cobra.Command {
 			}
 		}
 
+		if newName != "" {
+			input.Name = &newName
+		}
+
 		tracker, err := todosrht.UpdateTracker(c.Client, ctx, id, input)
 		if err != nil {
 			log.Fatal(err)
@@ -246,6 +250,8 @@ func newTodoUpdateCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&visibility, "visibility", "v", "", "tracker visibility")
 	cmd.RegisterFlagCompletionFunc("visibility", completeVisibility)
 	cmd.Flags().BoolVar(&description, "description", false, "edit description")
+	cmd.Flags().StringVarP(&newName, "name", "n", "", "tracker name")
+	cmd.RegisterFlagCompletionFunc("name", cobra.NoFileCompletions)
 	return cmd
 }
 
