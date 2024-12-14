@@ -317,6 +317,9 @@ Options are:
 	*-d*, *--description* <description>
 		Set one-line repository description.
 
+	*-n*, *--name* <string>
+		New repository name.
+
 	*--readme* <file>
 		Update the custom README settings. You can read the HTML from a file or
 		pass "-" as the filename to read from _stdin_.
