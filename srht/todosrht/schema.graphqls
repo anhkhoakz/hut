@@ -689,8 +689,8 @@ type Query {
 }
 
 "You may omit any fields to leave them unchanged."
-# TODO: Allow users to change the name of a tracker
 input TrackerInput {
+  name: String
   description: String
   visibility: Visibility
 }

@@ -69,13 +69,23 @@ interface Entity {
 }
 
 enum UserType {
-  UNCONFIRMED
-  ACTIVE_NON_PAYING
-  ACTIVE_FREE
-  ACTIVE_PAYING
-  ACTIVE_DELINQUENT
+  PENDING
+  USER
   ADMIN
   SUSPENDED
+}
+
+enum PaymentStatus {
+  "User does not pay for their account"
+  UNPAID
+  "User is paid and their payment is current"
+  CURRENT
+  "User's payment has lapsed"
+  DELINQUENT
+  "User's paid services are subsidized"
+  SUBSIDIZED
+  "User receives paid services for free"
+  FREE
 }
 
 type User implements Entity {
@@ -89,11 +99,27 @@ type User implements Entity {
   location: String
   bio: String
 
-  userType: UserType! @private
-  suspensionNotice: String @internal
-
   sshKeys(cursor: Cursor): SSHKeyCursor! @access(scope: SSH_KEYS, kind: RO)
   pgpKeys(cursor: Cursor): PGPKeyCursor! @access(scope: PGP_KEYS, kind: RO)
+
+  userType: UserType! @private
+
+  ###                          ###
+  ### Internal user attributes ###
+  ###                          ###
+
+  "User's current payment status"
+  paymentStatus: PaymentStatus! @internal
+
+  # Note that this returns true in more situations than the simple case of
+  # paymentStatus == CURRENT, such as for users who have a subsidized account,
+  # admins, etc. This basically serves to centralize the business logic around
+  # who gets to use paid features across all services.
+  "Returns true if this user should have access to paid services."
+  receivesPaidServices: Boolean! @private
+
+  "Notice to provide to a suspended account"
+  suspensionNotice: String @internal
 }
 
 type AuditLogEntry {
@@ -486,6 +512,21 @@ type Mutation {
     username: String!,
     password: String!,
     pgpKey: String): User @anoninternal
+
+  "Requests a password reset. The return value is meaningless."
+  resetPassword(email: String!): Int @anoninternal
+
+  "Confirm an account registration email."
+  confirmRegistration(token: String!): User @anoninternal
+
+  "Confirm a user's change of email address"
+  confirmEmailChange(token: String!): User @anoninternal
+
+  "Confirm a user's password change"
+  confirmPasswordChange(
+    token: String!,
+    newPassword: String!,
+  ): User @anoninternal
 
   """
   Registers an OAuth client. Only OAuth 2.0 confidental clients are

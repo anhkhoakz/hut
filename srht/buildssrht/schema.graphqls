@@ -283,6 +283,7 @@ type OAuthClient {
 
 enum WebhookEvent {
   JOB_CREATED
+  JOB_UPDATED
 }
 
 interface WebhookSubscription {
@@ -458,6 +459,9 @@ type Mutation {
 
   "Cancels a submitted job."
   cancel(jobId: Int!): Job @access(scope: JOBS, kind: RW)
+
+  "Updates the visibility of a job."
+  update(jobId: Int!, visibility: Visibility!): Job @access(scope: JOBS, kind: RW)
 
   """
   Creates a job group from several pending jobs.

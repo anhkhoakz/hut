@@ -174,6 +174,21 @@ type PGPKeyEvent struct {
 
 func (*PGPKeyEvent) isWebhookPayload() {}
 
+type PaymentStatus string
+
+const (
+	// User does not pay for their account
+	PaymentStatusUnpaid PaymentStatus = "UNPAID"
+	// User is paid and their payment is current
+	PaymentStatusCurrent PaymentStatus = "CURRENT"
+	// User's payment has lapsed
+	PaymentStatusDelinquent PaymentStatus = "DELINQUENT"
+	// User's paid services are subsidized
+	PaymentStatusSubsidized PaymentStatus = "SUBSIDIZED"
+	// User receives paid services for free
+	PaymentStatusFree PaymentStatus = "FREE"
+)
+
 type ProfileUpdateEvent struct {
 	Uuid    string         `json:"uuid"`
 	Event   WebhookEvent   `json:"event"`
@@ -232,19 +247,24 @@ type SSHKeyEvent struct {
 func (*SSHKeyEvent) isWebhookPayload() {}
 
 type User struct {
-	Id               int32          `json:"id"`
-	Created          gqlclient.Time `json:"created"`
-	Updated          gqlclient.Time `json:"updated"`
-	CanonicalName    string         `json:"canonicalName"`
-	Username         string         `json:"username"`
-	Email            string         `json:"email"`
-	Url              *string        `json:"url,omitempty"`
-	Location         *string        `json:"location,omitempty"`
-	Bio              *string        `json:"bio,omitempty"`
-	UserType         UserType       `json:"userType"`
-	SuspensionNotice *string        `json:"suspensionNotice,omitempty"`
-	SshKeys          *SSHKeyCursor  `json:"sshKeys"`
-	PgpKeys          *PGPKeyCursor  `json:"pgpKeys"`
+	Id            int32          `json:"id"`
+	Created       gqlclient.Time `json:"created"`
+	Updated       gqlclient.Time `json:"updated"`
+	CanonicalName string         `json:"canonicalName"`
+	Username      string         `json:"username"`
+	Email         string         `json:"email"`
+	Url           *string        `json:"url,omitempty"`
+	Location      *string        `json:"location,omitempty"`
+	Bio           *string        `json:"bio,omitempty"`
+	SshKeys       *SSHKeyCursor  `json:"sshKeys"`
+	PgpKeys       *PGPKeyCursor  `json:"pgpKeys"`
+	UserType      UserType       `json:"userType"`
+	// User's current payment status
+	PaymentStatus PaymentStatus `json:"paymentStatus"`
+	// Returns true if this user should have access to paid services.
+	ReceivesPaidServices bool `json:"receivesPaidServices"`
+	// Notice to provide to a suspended account
+	SuspensionNotice *string `json:"suspensionNotice,omitempty"`
 }
 
 func (*User) isEntity() {}
@@ -263,13 +283,10 @@ type UserInput struct {
 type UserType string
 
 const (
-	UserTypeUnconfirmed      UserType = "UNCONFIRMED"
-	UserTypeActiveNonPaying  UserType = "ACTIVE_NON_PAYING"
-	UserTypeActiveFree       UserType = "ACTIVE_FREE"
-	UserTypeActivePaying     UserType = "ACTIVE_PAYING"
-	UserTypeActiveDelinquent UserType = "ACTIVE_DELINQUENT"
-	UserTypeAdmin            UserType = "ADMIN"
-	UserTypeSuspended        UserType = "SUSPENDED"
+	UserTypePending   UserType = "PENDING"
+	UserTypeUser      UserType = "USER"
+	UserTypeAdmin     UserType = "ADMIN"
+	UserTypeSuspended UserType = "SUSPENDED"
 )
 
 type Version struct {

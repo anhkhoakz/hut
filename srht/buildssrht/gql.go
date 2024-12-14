@@ -428,6 +428,7 @@ type WebhookEvent string
 
 const (
 	WebhookEventJobCreated WebhookEvent = "JOB_CREATED"
+	WebhookEventJobUpdated WebhookEvent = "JOB_UPDATED"
 )
 
 type WebhookPayload struct {

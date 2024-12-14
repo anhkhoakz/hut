@@ -654,6 +654,7 @@ func (*TrackerEvent) isWebhookPayload() {}
 
 // You may omit any fields to leave them unchanged.
 type TrackerInput struct {
+	Name        *string     `json:"name,omitempty"`
 	Description *string     `json:"description,omitempty"`
 	Visibility  *Visibility `json:"visibility,omitempty"`
 }
