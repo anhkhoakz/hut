@@ -191,6 +191,14 @@ create* read input depending on whether their stdin is on a terminal or not:
 	*-v*, *--visibility* <string>
 		Visibility to use (public, unlisted, private). Defaults to unlisted.
 
+*update* <ID> [options...]
+	Update a job's visibility.
+
+	Options are:
+
+	*-v*, *--visibility* <string>
+		Visibility to use (public, unlisted, private)
+
 *user-webhook create* [options...]
 	Create a user webhook.
 

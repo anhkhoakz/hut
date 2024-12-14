@@ -32,6 +32,7 @@ func newBuildsCommand() *cobra.Command {
 	cmd.AddCommand(newBuildsCancelCommand())
 	cmd.AddCommand(newBuildsShowCommand())
 	cmd.AddCommand(newBuildsListCommand())
+	cmd.AddCommand(newBuildsUpdateCommand())
 	cmd.AddCommand(newBuildsSecretCommand())
 	cmd.AddCommand(newBuildsSSHCommand())
 	cmd.AddCommand(newBuildsArtifactsCommand())
@@ -444,6 +445,48 @@ func newBuildsListCommand() *cobra.Command {
 	}
 	cmd.Flags().StringVarP(&status, "status", "s", "", "job status")
 	cmd.RegisterFlagCompletionFunc("status", completeJobStatus)
+	return cmd
+}
+
+func newBuildsUpdateCommand() *cobra.Command {
+	var visibility string
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+
+		id, instance, err := parseBuildID(args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		c := createClientWithInstance("builds", cmd, instance)
+
+		jobVisibility, err := buildssrht.ParseVisibility(visibility)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		job, err := buildssrht.Update(c.Client, ctx, id, jobVisibility)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if job == nil {
+			log.Fatalln("failed to update visibility")
+		}
+
+		log.Printf("Updated job %d visibility\n", job.Id)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "update <ID>",
+		Short:             "Update a job's visibility",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: completeAnyJobs,
+		Run:               run,
+	}
+	cmd.Flags().StringVarP(&visibility, "visibility", "v", "", "job visibility")
+	cmd.MarkFlagRequired("visibility")
+	cmd.RegisterFlagCompletionFunc("visibility", completeVisibility)
 	return cmd
 }
 

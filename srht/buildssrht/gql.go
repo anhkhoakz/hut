@@ -586,6 +586,17 @@ func ShareSecret(client *gqlclient.Client, ctx context.Context, uuid string, use
 	return respData.ShareSecret, err
 }
 
+func Update(client *gqlclient.Client, ctx context.Context, jobId int32, visibility Visibility) (update *Job, err error) {
+	op := gqlclient.NewOperation("mutation update ($jobId: Int!, $visibility: Visibility!) {\n\tupdate(jobId: $jobId, visibility: $visibility) {\n\t\tid\n\t}\n}\n")
+	op.Var("jobId", jobId)
+	op.Var("visibility", visibility)
+	var respData struct {
+		Update *Job
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Update, err
+}
+
 func Monitor(client *gqlclient.Client, ctx context.Context, id int32) (job *Job, err error) {
 	op := gqlclient.NewOperation("query monitor ($id: Int!) {\n\tjob(id: $id) {\n\t\tstatus\n\t\tlog {\n\t\t\tfullURL\n\t\t}\n\t\ttasks {\n\t\t\tname\n\t\t\tstatus\n\t\t\tlog {\n\t\t\t\tfullURL\n\t\t\t}\n\t\t}\n\t}\n}\n")
 	op.Var("id", id)

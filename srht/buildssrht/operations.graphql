@@ -41,6 +41,12 @@ mutation shareSecret($uuid: String!, $user: String!) {
     }
 }
 
+mutation update($jobId: Int!, $visibility: Visibility!) {
+    update(jobId: $jobId, visibility: $visibility) {
+        id
+    }
+}
+
 query monitor($id: Int!) {
     job(id: $id) {
         status
