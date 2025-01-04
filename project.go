@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"git.sr.ht/~emersion/go-scfg"
+	"codeberg.org/emersion/go-scfg"
 )
 
 type projectConfig struct {

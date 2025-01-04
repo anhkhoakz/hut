@@ -1,5 +1,5 @@
-git.sr.ht/~emersion/go-scfg v0.0.0-20240128091534-2ae16e782082 h1:9Udx5fm4vRtmgDIBjy2ef5QioHbzpw5oHabbhpAUyEw=
-git.sr.ht/~emersion/go-scfg v0.0.0-20240128091534-2ae16e782082/go.mod h1:ybgvEJTIx5XbaspSviB3KNa6OdPmAZqDoSud7z8fFlw=
+codeberg.org/emersion/go-scfg v0.1.0 h1:6dnGU0ZI4gX+O5rMjwhoaySItzHG710eXL5TIQKl+uM=
+codeberg.org/emersion/go-scfg v0.1.0/go.mod h1:0nooW1ufBB4SlJEdTtiVN9Or+bnNM1icOkQ6Tbrq6O0=
 git.sr.ht/~emersion/gqlclient v0.0.0-20230820050442-8873fe0204b9 h1:QNwHP6WknvS7X6MEFxCpefQb1QJMqgIIt+vn/PVoMMg=
 git.sr.ht/~emersion/gqlclient v0.0.0-20230820050442-8873fe0204b9/go.mod h1:kvl/JK0Z3VRmtbBxdOJR4ydyXVouUIcFIXgv4H6rVAY=
 github.com/agnivade/levenshtein v1.1.1 h1:QY8M92nrzkmr798gCo3kmMyqXFzdQVpxLlGPRBij0P8=

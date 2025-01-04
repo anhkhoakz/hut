@@ -3,7 +3,7 @@ module git.sr.ht/~xenrox/hut
 go 1.17
 
 require (
-	git.sr.ht/~emersion/go-scfg v0.0.0-20240128091534-2ae16e782082
+	codeberg.org/emersion/go-scfg v0.1.0
 	git.sr.ht/~emersion/gqlclient v0.0.0-20230820050442-8873fe0204b9
 	github.com/dustin/go-humanize v1.0.1
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510

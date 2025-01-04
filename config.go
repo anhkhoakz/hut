@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"git.sr.ht/~emersion/go-scfg"
+	"codeberg.org/emersion/go-scfg"
 	"github.com/spf13/cobra"
 
 	"git.sr.ht/~xenrox/hut/srht/metasrht"
