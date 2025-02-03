@@ -48,7 +48,7 @@ const buildsSubmitPrefill = `
 `
 
 func newBuildsSubmitCommand() *cobra.Command {
-	var follow, edit bool
+	var follow, edit, disableSecrets bool
 	var note, tagString, visibility string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
@@ -116,7 +116,7 @@ func newBuildsSubmitCommand() *cobra.Command {
 		}
 
 		for _, manifest := range manifests {
-			job, err := buildssrht.Submit(c.Client, ctx, manifest, tags, &note, &buildsVisibility)
+			job, err := buildssrht.Submit(c.Client, ctx, manifest, tags, &note, &buildsVisibility, !disableSecrets)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -148,6 +148,7 @@ func newBuildsSubmitCommand() *cobra.Command {
 	}
 	cmd.Flags().BoolVarP(&follow, "follow", "f", false, "follow build logs")
 	cmd.Flags().BoolVarP(&edit, "edit", "e", false, "edit manifest")
+	cmd.Flags().BoolVarP(&disableSecrets, "no-secrets", "s", false, "disable secrets")
 	cmd.Flags().StringVarP(&note, "note", "n", "", "short job description")
 	cmd.RegisterFlagCompletionFunc("note", cobra.NoFileCompletions)
 	cmd.Flags().StringVarP(&tagString, "tags", "t", "", "job tags (slash separated)")
@@ -158,7 +159,7 @@ func newBuildsSubmitCommand() *cobra.Command {
 }
 
 func newBuildsResubmitCommand() *cobra.Command {
-	var follow, edit bool
+	var follow, edit, disableSecrets bool
 	var note, visibility string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
@@ -205,7 +206,7 @@ func newBuildsResubmitCommand() *cobra.Command {
 			}
 		}
 
-		job, err := buildssrht.Submit(c.Client, ctx, oldJob.Manifest, nil, &note, &buildsVisibility)
+		job, err := buildssrht.Submit(c.Client, ctx, oldJob.Manifest, nil, &note, &buildsVisibility, !disableSecrets)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -237,6 +238,7 @@ func newBuildsResubmitCommand() *cobra.Command {
 	}
 	cmd.Flags().BoolVarP(&follow, "follow", "f", false, "follow build logs")
 	cmd.Flags().BoolVarP(&edit, "edit", "e", false, "edit manifest")
+	cmd.Flags().BoolVarP(&disableSecrets, "no-secrets", "s", false, "disable secrets")
 	cmd.Flags().StringVarP(&note, "note", "n", "", "short job description")
 	cmd.RegisterFlagCompletionFunc("note", cobra.NoFileCompletions)
 	cmd.Flags().StringVarP(&visibility, "visibility", "v", "", "builds visibility")

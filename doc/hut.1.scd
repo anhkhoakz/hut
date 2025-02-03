@@ -137,6 +137,9 @@ create* read input depending on whether their stdin is on a terminal or not:
 	*-n*, *--note* <string>
 		Provide a short job description.
 
+	*-s*, *--no-secrets*
+		Disable secrets for this build.
+
 	*-v*, *--visibility* <string>
 		Visibility to use (public, unlisted, private). Defaults to the same
 		visibility used by the original build job.
@@ -184,6 +187,9 @@ create* read input depending on whether their stdin is on a terminal or not:
 
 	*-n*, *--note* <string>
 		Provide a short job description.
+
+	*-s*, *--no-secrets*
+		Disable secrets for this build.
 
 	*-t*, *--tags* <string>
 		Slash separated tags (e.g. "hut/test").

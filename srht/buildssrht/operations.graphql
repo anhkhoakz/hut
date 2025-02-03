@@ -2,13 +2,15 @@ mutation submit(
     $manifest: String!
     $tags: [String!]
     $note: String
-    $visibility: Visibility
+    $visibility: Visibility,
+    $secrets: Boolean!,
 ) {
     submit(
         manifest: $manifest
         tags: $tags
         note: $note
-        visibility: $visibility
+        visibility: $visibility,
+        secrets: $secrets,
     ) {
         id
         owner {
