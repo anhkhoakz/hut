@@ -404,7 +404,7 @@ func DeleteUserWebhook(client *gqlclient.Client, ctx context.Context, id int32) 
 }
 
 func Sites(client *gqlclient.Client, ctx context.Context, cursor *Cursor) (sites *SiteCursor, err error) {
-	op := gqlclient.NewOperation("query sites ($cursor: Cursor) {\n\tsites(cursor: $cursor) {\n\t\tresults {\n\t\t\tdomain\n\t\t\tprotocol\n\t\t}\n\t\tcursor\n\t}\n}\n")
+	op := gqlclient.NewOperation("query sites ($cursor: Cursor) {\n\tsites(cursor: $cursor) {\n\t\tresults {\n\t\t\tid\n\t\t\tdomain\n\t\t\tprotocol\n\t\t}\n\t\tcursor\n\t}\n}\n")
 	op.Var("cursor", cursor)
 	var respData struct {
 		Sites *SiteCursor

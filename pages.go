@@ -246,7 +246,7 @@ func newPagesListCommand() *cobra.Command {
 			}
 
 			for _, site := range sites.Results {
-				fmt.Fprintf(p, "%s (%s)\n", termfmt.Bold.Sprintf(site.Domain), site.Protocol)
+				fmt.Fprintf(p, "%s %s (%s)\n", termfmt.DarkYellow.Sprintf("#%d", site.Id), termfmt.Bold.Sprintf(site.Domain), site.Protocol)
 			}
 
 			cursor = sites.Cursor

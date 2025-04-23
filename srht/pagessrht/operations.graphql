@@ -37,6 +37,7 @@ mutation deleteUserWebhook($id: Int!) {
 query sites($cursor: Cursor) {
     sites(cursor: $cursor) {
         results {
+            id
             domain
             protocol
         }
