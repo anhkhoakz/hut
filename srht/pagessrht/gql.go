@@ -403,6 +403,18 @@ func DeleteUserWebhook(client *gqlclient.Client, ctx context.Context, id int32) 
 	return respData.DeleteUserWebhook, err
 }
 
+func UpdateSiteACL(client *gqlclient.Client, ctx context.Context, siteId int32, userId int32, input ACLInput) (updateSiteACL *SiteACL, err error) {
+	op := gqlclient.NewOperation("mutation updateSiteACL ($siteId: Int!, $userId: Int!, $input: ACLInput!) {\n\tupdateSiteACL(siteId: $siteId, userId: $userId, input: $input) {\n\t\tentity {\n\t\t\tcanonicalName\n\t\t}\n\t}\n}\n")
+	op.Var("siteId", siteId)
+	op.Var("userId", userId)
+	op.Var("input", input)
+	var respData struct {
+		UpdateSiteACL *SiteACL
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.UpdateSiteACL, err
+}
+
 func Sites(client *gqlclient.Client, ctx context.Context, cursor *Cursor) (sites *SiteCursor, err error) {
 	op := gqlclient.NewOperation("query sites ($cursor: Cursor) {\n\tsites(cursor: $cursor) {\n\t\tresults {\n\t\t\tid\n\t\t\tdomain\n\t\t\tprotocol\n\t\t}\n\t\tcursor\n\t}\n}\n")
 	op.Var("cursor", cursor)
@@ -421,4 +433,14 @@ func UserWebhooks(client *gqlclient.Client, ctx context.Context, cursor *Cursor)
 	}
 	err = client.Execute(ctx, op, &respData)
 	return respData.UserWebhooks, err
+}
+
+func UserID(client *gqlclient.Client, ctx context.Context, username string) (user *User, err error) {
+	op := gqlclient.NewOperation("query userID ($username: String!) {\n\tuser(username: $username) {\n\t\tid\n\t}\n}\n")
+	op.Var("username", username)
+	var respData struct {
+		User *User
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.User, err
 }

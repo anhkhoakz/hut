@@ -34,6 +34,14 @@ mutation deleteUserWebhook($id: Int!) {
     }
 }
 
+mutation updateSiteACL($siteId: Int!, $userId: Int!, $input: ACLInput!) {
+    updateSiteACL(siteId: $siteId, userId: $userId, input: $input) {
+        entity {
+            canonicalName
+        }
+    }
+}
+
 query sites($cursor: Cursor) {
     sites(cursor: $cursor) {
         results {
@@ -52,5 +60,11 @@ query userWebhooks($cursor: Cursor) {
             url
         }
         cursor
+    }
+}
+
+query userID($username: String!) {
+    user(username: $username) {
+        id
     }
 }

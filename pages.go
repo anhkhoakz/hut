@@ -28,6 +28,7 @@ func newPagesCommand() *cobra.Command {
 	cmd.AddCommand(newPagesUnpublishCommand())
 	cmd.AddCommand(newPagesListCommand())
 	cmd.AddCommand(newPagesUserWebhookCommand())
+	cmd.AddCommand(newPagesACLCommand())
 	return cmd
 }
 
@@ -385,6 +386,54 @@ func newPagesUserWebhookDeleteCommand() *cobra.Command {
 		ValidArgsFunction: completePagesUserWebhookID,
 		Run:               run,
 	}
+	return cmd
+}
+
+func newPagesACLCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "acl",
+		Short: "Manage access-control lists",
+	}
+	cmd.AddCommand(newPagesACLUpdateCommand())
+	return cmd
+}
+
+func newPagesACLUpdateCommand() *cobra.Command {
+	var publish bool
+	var siteID int
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("pages", cmd)
+
+		user, err := pagessrht.UserID(c.Client, ctx, args[0])
+		if err != nil {
+			log.Fatalf("failed to get user ID: %v", err)
+		} else if user == nil {
+			log.Fatal("no such user")
+		}
+
+		var input pagessrht.ACLInput
+		input.Publish = publish
+
+		acl, err := pagessrht.UpdateSiteACL(c.Client, ctx, int32(siteID), user.Id, input)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		log.Printf("Updated access rights for %q\n", acl.Entity.CanonicalName)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "update <user>",
+		Short:             "Update ACL entries",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
+	cmd.Flags().BoolVar(&publish, "publish", false, "permission to publish the site")
+	cmd.Flags().IntVar(&siteID, "id", 0, "ID of the site")
+	cmd.MarkFlagRequired("id")
+	cmd.RegisterFlagCompletionFunc("id", cobra.NoFileCompletions)
 	return cmd
 }
 

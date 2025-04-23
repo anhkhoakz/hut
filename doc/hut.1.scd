@@ -688,6 +688,18 @@ Options are:
 
 ## pages
 
+*acl update* <user> [options...]
+	Update an ACL entry for user.
+
+	Options are:
+
+	*--id* <ID>
+		ID of the site.
+
+	*--publish*
+		Permission to publish the site. Leave this flag out to remove
+		the permission.
+
 *list*
 	List registered sites.
 
