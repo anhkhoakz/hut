@@ -130,6 +130,9 @@ type ByteRange struct {
 	End int32 `json:"end"`
 }
 
+// Confirmation token associated with a subscription request
+type ConfirmationToken string
+
 // Opaque string
 type Cursor string
 
@@ -258,6 +261,8 @@ type MailingList struct {
 	Emails *EmailCursor `json:"emails"`
 	// List of patches received on this list in order of most recently bumped
 	Patches *PatchsetCursor `json:"patches"`
+	// Get a specific email archived in this list by its Message-ID
+	Message *Email `json:"message,omitempty"`
 	// True if an import operation is underway for this list
 	Importing bool `json:"importing"`
 	// The access that applies to this user for this list
@@ -278,6 +283,17 @@ type MailingList struct {
 	Webhooks *WebhookSubscriptionCursor `json:"webhooks"`
 	// Returns details of a mailing list webhook subscription by its ID.
 	Webhook *WebhookSubscription `json:"webhook,omitempty"`
+	// Get the list of subscriptions to this mailing list.
+	//
+	// Internal use only.
+	Subscriptions []MailingListSubscription `json:"subscriptions"`
+	// Get access permissions for a specific user by their email address. If there
+	// is a related ACL entry for the given email address or an account linked to
+	// that address, it will be returned. Otherwise, the default ACL of the mailing
+	// list will be returned.
+	//
+	// Internal use only.
+	UserACL *GeneralACL `json:"userACL"`
 }
 
 // These ACLs are configured for specific entities, and may be used to expand or
@@ -334,9 +350,10 @@ type MailingListInput struct {
 }
 
 type MailingListSubscription struct {
-	Id      int32          `json:"id"`
-	Created gqlclient.Time `json:"created"`
-	List    *MailingList   `json:"list"`
+	Id         int32          `json:"id"`
+	Created    gqlclient.Time `json:"created"`
+	List       *MailingList   `json:"list"`
+	Subscriber *Entity        `json:"subscriber,omitempty"`
 }
 
 func (*MailingListSubscription) isActivitySubscription() {}

@@ -299,6 +299,14 @@ const (
 	ObjectTypeTag    ObjectType = "TAG"
 )
 
+type Redirect struct {
+	Created      gqlclient.Time `json:"created"`
+	Name         string         `json:"name"`
+	Owner        *Entity        `json:"owner"`
+	OriginalPath string         `json:"originalPath"`
+	Repository   *Repository    `json:"repository,omitempty"`
+}
+
 type Reference struct {
 	Name      string          `json:"name"`
 	Target    string          `json:"target"`
@@ -360,6 +368,7 @@ type Repository struct {
 	Path *TreeEntry `json:"path,omitempty"`
 	// Returns the commit for a given revspec.
 	Revparse_single *Commit `json:"revparse_single,omitempty"`
+	RepoPath        string  `json:"repoPath"`
 }
 
 // A cursor for enumerating a list of repositories

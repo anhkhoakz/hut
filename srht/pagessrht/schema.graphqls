@@ -21,6 +21,7 @@ enum AccessScope {
   PROFILE @scopehelp(details: "profile information")
   SITES   @scopehelp(details: "registered sites")
   PAGES   @scopehelp(details: "contents of registered sites")
+  ACLS    @scopehelp(details: "access control lists")
 }
 
 enum AccessKind {
@@ -88,6 +89,9 @@ type Site {
   version: String!
   "Path to the file to serve for 404 Not Found responses"
   notFound: String
+
+  # Only available to the site owner
+  acls(cursor: Cursor): SiteACLCursor! @access(scope: ACLS, kind: RO)
 }
 
 """
@@ -127,6 +131,39 @@ input SiteConfig {
 
 type OAuthClient {
   uuid: String!
+}
+
+"""
+An access control list item.
+"""
+interface ACL {
+  "Permission to publish this site"
+  publish: Boolean!
+}
+
+"""
+These ACLs are configured for specific sites, and may be used to expand or
+constrain the rights of a participant.
+"""
+type SiteACL implements ACL {
+  id: Int!
+  created: Time!
+  site: Site! @access(scope: SITES, kind: RO)
+  entity: Entity! @access(scope: PROFILE, kind: RO)
+
+  publish: Boolean!
+}
+
+"""
+A cursor for enumerating access control list entries
+
+If there are additional results available, the cursor object may be passed
+back into the same endpoint to retrieve another page. If the cursor is null,
+there are no remaining results to return.
+"""
+type SiteACLCursor {
+  results: [SiteACL!]!
+  cursor: Cursor
 }
 
 enum WebhookEvent {
@@ -226,6 +263,9 @@ type Query {
   "Returns the authenticated user."
   me: User! @access(scope: PROFILE, kind: RO)
 
+  "Returns a specific user."
+  user(username: String!): User @access(scope: PROFILE, kind: RO)
+
   "Returns a list of registered sites on your account."
   sites(cursor: Cursor): SiteCursor! @access(scope: SITES, kind: RO)
 
@@ -253,6 +293,11 @@ input UserWebhookInput {
   url: String!
   events: [WebhookEvent!]!
   query: String!
+}
+
+input ACLInput {
+  "Permission to publish the site"
+  publish: Boolean!
 }
 
 type Mutation {
@@ -286,6 +331,18 @@ type Mutation {
   If protocol is unset, HTTPS is presumed.
   """
   unpublish(domain: String!, protocol: Protocol): Site @access(scope: SITES, kind: RW)
+
+  "Adds or updates the ACL for a specific user on a site"
+  updateSiteACL(
+    siteId: Int!,
+    userId: Int!,
+    input: ACLInput!): SiteACL! @access(scope: ACLS, kind: RW)
+
+  """
+  Removes a site ACL. Following this change, the default site ACL will
+  apply to this user, which currently means "no access".
+  """
+  deleteSiteACL(id: Int!): SiteACL! @access(scope: ACLS, kind: RW)
 
   """
   Creates a new user webhook subscription. When an event from the

@@ -13,11 +13,9 @@ access token, and are not available to clients using OAuth 2.0 access tokens.
 """
 directive @private on FIELD_DEFINITION
 
-"""
-This used to decorate fields which are for internal use, and are not
-available to normal API users.
-"""
+# For internal use
 directive @internal on FIELD_DEFINITION
+directive @anoninternal on FIELD_DEFINITION
 
 enum AccessScope {
   PROFILE      @scopehelp(details: "profile information")
@@ -165,6 +163,18 @@ type Repository {
 
   "Returns the commit for a given revspec."
   revparse_single(revspec: String!): Commit @access(scope: OBJECTS, kind: RO)
+
+  ## For internal use
+  repoPath: String! @anoninternal
+}
+
+# For internal use
+type Redirect {
+  created: Time!
+  name: String!
+  owner: Entity!
+  originalPath: String!
+  repository: Repository
 }
 
 type OAuthClient {
@@ -560,6 +570,14 @@ type Query {
   outside of a webhook context.
   """
   webhook: WebhookPayload!
+
+  ## Internal use
+
+  # Looks up a repository by its path on disk
+  repositoryByDiskPath(path: String!): Repository @anoninternal
+
+  # Looks up a redirect by its (original) path on disk
+  redirectByDiskPath(path: String!): Redirect @anoninternal
 }
 
 input RepoInput {
@@ -693,7 +711,7 @@ type Mutation {
 
   """
   Delivers git webhooks. If it returns false, the push event should be
-  rejected. Invoked by gitsrht-update-hook.
+  rejected. Invoked by git.sr.ht-update-hook.
   """
   deliverGitHook(input: GitEventInput!): Boolean! @internal
 }

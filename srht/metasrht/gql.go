@@ -44,6 +44,64 @@ type AuditLogEntry struct {
 	Details   *string        `json:"details,omitempty"`
 }
 
+// Billing address for invoicing.
+type BillingAddress struct {
+	FullName     *string `json:"fullName,omitempty"`
+	BusinessName *string `json:"businessName,omitempty"`
+	Address1     *string `json:"address1,omitempty"`
+	Address2     *string `json:"address2,omitempty"`
+	City         *string `json:"city,omitempty"`
+	Region       *string `json:"region,omitempty"`
+	Postcode     *string `json:"postcode,omitempty"`
+	// ISO 3166 two-letter country code
+	Country *string `json:"country,omitempty"`
+	// Value-added tax number (EU)
+	Vat *string `json:"vat,omitempty"`
+}
+
+// All fields are optional. If a field is omitted, it is unchanged. If a field is
+// null, it is set to null.
+type BillingAddressInput struct {
+	FullName     *string `json:"fullName,omitempty"`
+	BusinessName *string `json:"businessName,omitempty"`
+	Address1     *string `json:"address1,omitempty"`
+	Address2     *string `json:"address2,omitempty"`
+	City         *string `json:"city,omitempty"`
+	Region       *string `json:"region,omitempty"`
+	Postcode     *string `json:"postcode,omitempty"`
+	// ISO 3166 two-letter country code
+	Country *string `json:"country,omitempty"`
+	// Value-added tax number (EU)
+	Vat *string `json:"vat,omitempty"`
+}
+
+type BillingSubscription struct {
+	Id      int32              `json:"id"`
+	User    *User              `json:"user"`
+	Created gqlclient.Time     `json:"created"`
+	Updated gqlclient.Time     `json:"updated"`
+	Status  SubscriptionStatus `json:"status"`
+	// If true, payment is automatically renewed when term ellapses.
+	Autorenew bool            `json:"autorenew"`
+	Currency  Currency        `json:"currency"`
+	Interval  PaymentInterval `json:"interval"`
+	// Selected product associated with this subscription.
+	Product *Product `json:"product"`
+	// Shortcut to get the applicable price point for this subscription's product ID
+	// and applicable currency
+	Price *ProductPrice `json:"price"`
+	// Total price, not including applicable taxes, in the smallest denomination of
+	// the currency, e.g. cents USD.
+	Subtotal int32 `json:"subtotal"`
+}
+
+type Currency string
+
+const (
+	CurrencyEur Currency = "EUR"
+	CurrencyUsd Currency = "USD"
+)
+
 type Cursor string
 
 type Entity struct {
@@ -87,10 +145,18 @@ type EntityValue interface {
 
 type Invoice struct {
 	Id        int32          `json:"id"`
-	Created   gqlclient.Time `json:"created"`
-	Cents     int32          `json:"cents"`
-	ValidThru gqlclient.Time `json:"validThru"`
-	Source    *string        `json:"source,omitempty"`
+	InvoiceNo string         `json:"invoiceNo"`
+	Issued    gqlclient.Time `json:"issued"`
+	Entity    *Entity        `json:"entity"`
+	Product   *Product       `json:"product"`
+	// Start of service period for which this invoice applies
+	ServiceStart gqlclient.Time `json:"serviceStart"`
+	// End of service period for which this invoice applies
+	ServiceEnd gqlclient.Time `json:"serviceEnd"`
+	Currency   Currency       `json:"currency"`
+	// Amount charged denoted in the smallest denomination of the applicable
+	// currency, e.g. cents USD.
+	Total int32 `json:"total"`
 }
 
 // A cursor for enumerating a list of invoices
@@ -174,6 +240,13 @@ type PGPKeyEvent struct {
 
 func (*PGPKeyEvent) isWebhookPayload() {}
 
+type PaymentInterval string
+
+const (
+	PaymentIntervalMonthly  PaymentInterval = "MONTHLY"
+	PaymentIntervalAnnually PaymentInterval = "ANNUALLY"
+)
+
 type PaymentStatus string
 
 const (
@@ -188,6 +261,28 @@ const (
 	// User receives paid services for free
 	PaymentStatusFree PaymentStatus = "FREE"
 )
+
+// A paid product available for purchase.
+type Product struct {
+	Id      int32          `json:"id"`
+	Name    string         `json:"name"`
+	Prices  []ProductPrice `json:"prices"`
+	Retired bool           `json:"retired"`
+}
+
+// Price point for a product in a given currency.
+type ProductPrice struct {
+	// Applicable currency for this price
+	Currency Currency `json:"currency"`
+	// Price in the smallest denomination of the currency, e.g. cents USD. Does not
+	// include any applicable taxes.
+	Amount int32 `json:"amount"`
+}
+
+type ProductPriceInput struct {
+	Currency Currency `json:"currency"`
+	Amount   int32    `json:"amount"`
+}
 
 type ProfileUpdateEvent struct {
 	Uuid    string         `json:"uuid"`
@@ -246,6 +341,21 @@ type SSHKeyEvent struct {
 
 func (*SSHKeyEvent) isWebhookPayload() {}
 
+type SubscriptionStatus string
+
+const (
+	// This subscription is pending and will become active once the first payment is
+	// successfully recieved.
+	SubscriptionStatusPending SubscriptionStatus = "PENDING"
+	// This subscription is paid but the payment has not settled. Paid services are
+	// available while awaiting settlement.
+	SubscriptionStatusSettlement SubscriptionStatus = "SETTLEMENT"
+	// This is the user's active subscription.
+	SubscriptionStatusActive SubscriptionStatus = "ACTIVE"
+	// This subscription has been cancelled and the service term is complete.
+	SubscriptionStatusInactive SubscriptionStatus = "INACTIVE"
+)
+
 type User struct {
 	Id            int32          `json:"id"`
 	Created       gqlclient.Time `json:"created"`
@@ -258,9 +368,20 @@ type User struct {
 	Bio           *string        `json:"bio,omitempty"`
 	SshKeys       *SSHKeyCursor  `json:"sshKeys"`
 	PgpKeys       *PGPKeyCursor  `json:"pgpKeys"`
-	UserType      UserType       `json:"userType"`
-	// User's current payment status
+	// User's current payment status. Only available if authenticated as this user.
 	PaymentStatus PaymentStatus `json:"paymentStatus"`
+	// Date at which next payment is due. Only available if authenticated as this
+	// user.
+	PaymentDue gqlclient.Time `json:"paymentDue,omitempty"`
+	// Details about the user's current paid subscription. Only available if
+	// authenticated as this user.
+	Subscription *BillingSubscription `json:"subscription,omitempty"`
+	// Returns invoices for this user. Only available if authenticated as this user.
+	Invoices *InvoiceCursor `json:"invoices"`
+	// User's billing address, if applicable, for invoicing.
+	BillingAddress *BillingAddress `json:"billingAddress,omitempty"`
+	// Internal user type (e.g. is admin)
+	UserType UserType `json:"userType"`
 	// Returns true if this user should have access to paid services.
 	ReceivesPaidServices bool `json:"receivesPaidServices"`
 	// Notice to provide to a suspended account

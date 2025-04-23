@@ -11,12 +11,21 @@ access token, and are not available to clients using OAuth 2.0 access tokens.
 directive @private on FIELD_DEFINITION
 
 """
-This used to decorate fields which are for internal use, and are not
-available to normal API users.
+Used to decorate fields which are for internal use, and are not available to
+normal API users.
 """
 directive @internal on FIELD_DEFINITION
 
+"""
+Used to decorate fields which are for internal use, and are not available to
+normal API users.
+"""
 directive @anoninternal on FIELD_DEFINITION
+
+"""
+Used to decorate fields which are only available to admin accounts.
+"""
+directive @admin on FIELD_DEFINITION
 
 """
 Used to provide a human-friendly description of an access scope.
@@ -102,19 +111,40 @@ type User implements Entity {
   sshKeys(cursor: Cursor): SSHKeyCursor! @access(scope: SSH_KEYS, kind: RO)
   pgpKeys(cursor: Cursor): PGPKeyCursor! @access(scope: PGP_KEYS, kind: RO)
 
-  userType: UserType! @private
+  """
+  User's current payment status. Only available if authenticated as this user.
+  """
+  paymentStatus: PaymentStatus! @access(scope: BILLING, kind: RO)
+
+  """
+  Date at which next payment is due. Only available if authenticated as this
+  user.
+  """
+  paymentDue: Time @access(scope: BILLING, kind: RO)
+
+  """
+  Details about the user's current paid subscription. Only available if
+  authenticated as this user.
+  """
+  subscription: BillingSubscription @access(scope: BILLING, kind: RO)
+
+  """
+  Returns invoices for this user. Only available if authenticated as this user.
+  """
+  invoices(cursor: Cursor): InvoiceCursor! @access(scope: BILLING, kind: RO)
+
+  """
+  User's billing address, if applicable, for invoicing.
+  """
+  billingAddress: BillingAddress @access(scope: BILLING, kind: RO)
 
   ###                          ###
   ### Internal user attributes ###
   ###                          ###
 
-  "User's current payment status"
-  paymentStatus: PaymentStatus! @internal
+  "Internal user type (e.g. is admin)"
+  userType: UserType! @private
 
-  # Note that this returns true in more situations than the simple case of
-  # paymentStatus == CURRENT, such as for users who have a subsidized account,
-  # admins, etc. This basically serves to centralize the business logic around
-  # who gets to use paid features across all services.
   "Returns true if this user should have access to paid services."
   receivesPaidServices: Boolean! @private
 
@@ -151,12 +181,127 @@ type PGPKey {
   fingerprint: String!
 }
 
+enum Currency {
+  EUR
+  USD
+}
+
+enum PaymentInterval {
+  MONTHLY
+  ANNUALLY
+}
+
+"""
+A paid product available for purchase.
+"""
+type Product {
+  id: Int!
+  name: String!
+  prices: [ProductPrice!]!
+  retired: Boolean!
+}
+
+"""
+Price point for a product in a given currency.
+"""
+type ProductPrice {
+  "Applicable currency for this price"
+  currency: Currency!
+
+  """
+  Price in the smallest denomination of the currency, e.g. cents USD. Does not
+  include any applicable taxes.
+  """
+  amount: Int!
+}
+
+"""
+Billing address for invoicing.
+"""
+type BillingAddress {
+  fullName: String
+  businessName: String
+  address1: String
+  address2: String
+  city: String
+  region: String
+  postcode: String
+  "ISO 3166 two-letter country code"
+  country: String
+  "Value-added tax number (EU)"
+  vat: String
+}
+
+enum SubscriptionStatus {
+  """
+  This subscription is pending and will become active once the first payment is
+  successfully recieved.
+  """
+  PENDING
+  """
+  This subscription is paid but the payment has not settled. Paid services are
+  available while awaiting settlement.
+  """
+  SETTLEMENT
+  """
+  This is the user's active subscription.
+  """
+  ACTIVE
+  """
+  This subscription has been cancelled and the service term is complete.
+  """
+  INACTIVE
+}
+
+type BillingSubscription {
+  id: Int!
+  user: User! @access(scope: PROFILE, kind: RO)
+  created: Time!
+  updated: Time!
+  status: SubscriptionStatus!
+
+  "If true, payment is automatically renewed when term ellapses."
+  autorenew: Boolean!
+
+  currency: Currency!
+  interval: PaymentInterval!
+
+  """
+  Selected product associated with this subscription.
+  """
+  product: Product!
+
+  """
+  Shortcut to get the applicable price point for this subscription's product ID
+  and applicable currency
+  """
+  price: ProductPrice!
+
+  """
+  Total price, not including applicable taxes, in the smallest denomination of
+  the currency, e.g. cents USD.
+  """
+  subtotal: Int!
+}
+
 type Invoice {
   id: Int!
-  created: Time!
-  cents: Int!
-  validThru: Time!
-  source: String
+  invoiceNo: String!
+  issued: Time!
+  entity: Entity! @access(scope: PROFILE, kind: RO)
+
+  product: Product!
+  """Start of service period for which this invoice applies"""
+  serviceStart: Time!
+  """End of service period for which this invoice applies"""
+  serviceEnd: Time!
+
+  currency: Currency!
+  """
+  Amount charged denoted in the smallest denomination of the applicable
+  currency, e.g. cents USD.
+  """
+  total: Int!
 }
 
 type OAuthGrant {
@@ -380,9 +525,6 @@ type Query {
   "Returns a specific PGP key by its fingerprint, in hexadecimal."
   pgpKeyByFingerprint(fingerprint: String!): PGPKey @access(scope: PGP_KEYS, kind: RO)
 
-  "Returns invoices for the authenticated user."
-  invoices(cursor: Cursor): InvoiceCursor! @access(scope: BILLING, kind: RO)
-
   "Returns the audit log for the authenticated user."
   auditLog(cursor: Cursor): AuditLogCursor! @access(scope: AUDIT_LOG, kind: RO)
 
@@ -416,6 +558,12 @@ type Query {
 
   "Returns a list of personal OAuth tokens issued"
   personalAccessTokens: [OAuthPersonalToken!]! @private
+
+  "Returns information about a subscription product available for purchase."
+  product(id: Int!): Product
+
+  "Returns a list of paid subscriptions available for purchase."
+  products: [Product!]!
 
   ###                                               ###
   ### The following resolvers are for internal use. ###
@@ -466,6 +614,29 @@ input ProfileWebhookInput {
   query: String!
 }
 
+input ProductPriceInput {
+  currency: Currency!
+  amount: Int!
+}
+
+"""
+All fields are optional. If a field is omitted, it is unchanged. If a field is
+null, it is set to null.
+"""
+input BillingAddressInput {
+  fullName: String
+  businessName: String
+  address1: String
+  address2: String
+  city: String
+  region: String
+  postcode: String
+  "ISO 3166 two-letter country code"
+  country: String
+  "Value-added tax number (EU)"
+  vat: String
+}
+
 type Mutation {
   updateUser(input: UserInput): User! @access(scope: PROFILE, kind: RW)
 
@@ -479,6 +650,11 @@ type Mutation {
   Causes the "last used" time of this SSH key to be set to the current time.
   """
   updateSSHKeyLastUsed(id: Int!): SSHKey! @access(scope: SSH_KEYS, kind: RO) @internal
+
+  """
+  Update the authenticated user's billing address.
+  """
+  updateBillingAddress(input: BillingAddressInput!): BillingAddress! @access(scope: BILLING, kind: RW)
 
   """
   Creates a new user profile webhook subscription. When an event from the
@@ -502,6 +678,31 @@ type Mutation {
   unexpected behavior with the third-party integration.
   """
   deleteWebhook(id: Int!): WebhookSubscription!
+
+  ###                                               ###
+  ### The following resolvers are for admin use.    ###
+  ###                                               ###
+
+  """
+  Transfers billing details from one user account to another, returning the
+  target account.
+  """
+  billingTransfer(from: String!, to: String!): User! @admin
+
+  """
+  Grants free service to the given user ID until the provided expiration date.
+  """
+  subsidizeUser(userID: Int!, until: Time!): User! @admin
+
+  """
+  Create a new paid product.
+  """
+  createProduct(name: String!, prices: [ProductPriceInput!]!): Product! @admin
+
+  """
+  Retires a paid product.
+  """
+  retireProduct(id: Int!): Product @admin
 
   ###                                               ###
   ### The following resolvers are for internal use. ###
@@ -587,11 +788,6 @@ type Mutation {
   settings.
   """
   sendEmail(address: String!, message: String!): Boolean! @anoninternal
-
-  """
-  Re-sends the account confirmation email to this user.
-  """
-  resendConfirmation(username: String!): String! @internal
 
   """
   Deletes the authenticated user's account.

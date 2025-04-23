@@ -15,6 +15,9 @@ wish to access the data at the provided URL.
 scalar URL
 scalar Upload
 
+"Confirmation token associated with a subscription request"
+scalar ConfirmationToken
+
 "Used to provide a human-friendly description of an access scope"
 directive @scopehelp(details: String!) on ENUM_VALUE
 
@@ -125,6 +128,9 @@ type MailingList {
   "List of patches received on this list in order of most recently bumped"
   patches(cursor: Cursor): PatchsetCursor! @access(scope: PATCHES, kind: RO)
 
+  "Get a specific email archived in this list by its Message-ID"
+  message(messageID: String!): Email @access(scope: EMAILS, kind: RO)
+
   "True if an import operation is underway for this list"
   importing: Boolean!
 
@@ -157,6 +163,23 @@ type MailingList {
 
   "Returns details of a mailing list webhook subscription by its ID."
   webhook(id: Int!): WebhookSubscription
+
+  """
+  Get the list of subscriptions to this mailing list.
+
+  Internal use only.
+  """
+  subscriptions: [MailingListSubscription!]! @internal
+
+  """
+  Get access permissions for a specific user by their email address. If there
+  is a related ACL entry for the given email address or an account linked to
+  that address, it will be returned. Otherwise, the default ACL of the mailing
+  list will be returned.
+
+  Internal use only.
+  """
+  userACL(email: String!): GeneralACL! @internal
 }
 
 type OAuthClient {
@@ -495,6 +518,7 @@ type MailingListSubscription implements ActivitySubscription {
   id: Int!
   created: Time!
   list: MailingList! @access(scope: LISTS, kind: RO)
+  subscriber: Entity @internal
 }
 
 """
@@ -771,4 +795,44 @@ type Mutation {
   Deletes the authenticated user's account. Internal use only.
   """
   deleteUser: Int! @internal
+
+  """
+  Archives an email (RFC 2045 MIME message) into a mailing list.
+  Internal use only.
+  """
+  archiveMessage(listID: Int!, message: Upload!): Boolean! @internal
+
+  """
+  Request a subscription to a mailing list for a given email address. If the
+  email is linked to a registered account, the subscription will be associated
+  to the account. Otherwise, it will be associated to the mailbox. If a pending
+  subscription request already exists for that list and email pair, the
+  existing confirmation token will be returned.
+
+  Internal use only.
+  """
+  requestSubscription(listID: Int!, email: String!): ConfirmationToken! @internal
+
+  """
+  Confirm a subscription request with a token previously obtained with
+  requestSubscription().
+
+  Internal use only.
+  """
+  confirmSubscription(token: ConfirmationToken!, email: String!): MailingListSubscription! @internal
+
+  """
+  Request unsubscription from a mailing list for a given email address.
+
+  Internal use only.
+  """
+  requestUnsubscription(listID: Int!, email: String!): ConfirmationToken! @internal
+
+  """
+  Confirm an unsubscription request with a token previously obtained with
+  requestUnsubscription().
+
+  Internal use only.
+  """
+  confirmUnsubscription(token: ConfirmationToken!, email: String!): MailingListSubscription! @internal
 }

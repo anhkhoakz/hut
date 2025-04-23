@@ -9,6 +9,47 @@ import (
 	gqlclient "git.sr.ht/~emersion/gqlclient"
 )
 
+// An access control list item.
+type ACL struct {
+	// Permission to publish this site
+	Publish bool `json:"publish"`
+
+	// Underlying value of the GraphQL interface
+	Value ACLValue `json:"-"`
+}
+
+func (base *ACL) UnmarshalJSON(b []byte) error {
+	type Raw ACL
+	var data struct {
+		*Raw
+		TypeName string `json:"__typename"`
+	}
+	data.Raw = (*Raw)(base)
+	err := json.Unmarshal(b, &data)
+	if err != nil {
+		return err
+	}
+	switch data.TypeName {
+	case "SiteACL":
+		base.Value = new(SiteACL)
+	case "":
+		return nil
+	default:
+		return fmt.Errorf("gqlclient: interface ACL: unknown __typename %q", data.TypeName)
+	}
+	return json.Unmarshal(b, base.Value)
+}
+
+// ACLValue is one of: SiteACL
+type ACLValue interface {
+	isACL()
+}
+
+type ACLInput struct {
+	// Permission to publish the site
+	Publish bool `json:"publish"`
+}
+
 type AccessKind string
 
 const (
@@ -22,6 +63,7 @@ const (
 	AccessScopeProfile AccessScope = "PROFILE"
 	AccessScopeSites   AccessScope = "SITES"
 	AccessScopePages   AccessScope = "PAGES"
+	AccessScopeAcls    AccessScope = "ACLS"
 )
 
 type Cursor string
@@ -101,7 +143,30 @@ type Site struct {
 	// SHA-256 checksum of the source tarball (uncompressed)
 	Version string `json:"version"`
 	// Path to the file to serve for 404 Not Found responses
-	NotFound *string `json:"notFound,omitempty"`
+	NotFound *string        `json:"notFound,omitempty"`
+	Acls     *SiteACLCursor `json:"acls"`
+}
+
+// These ACLs are configured for specific sites, and may be used to expand or
+// constrain the rights of a participant.
+type SiteACL struct {
+	Id      int32          `json:"id"`
+	Created gqlclient.Time `json:"created"`
+	Site    *Site          `json:"site"`
+	Entity  *Entity        `json:"entity"`
+	Publish bool           `json:"publish"`
+}
+
+func (*SiteACL) isACL() {}
+
+// A cursor for enumerating access control list entries
+//
+// If there are additional results available, the cursor object may be passed
+// back into the same endpoint to retrieve another page. If the cursor is null,
+// there are no remaining results to return.
+type SiteACLCursor struct {
+	Results []SiteACL `json:"results"`
+	Cursor  *Cursor   `json:"cursor,omitempty"`
 }
 
 type SiteConfig struct {
