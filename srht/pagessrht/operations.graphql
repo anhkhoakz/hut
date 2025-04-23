@@ -42,6 +42,14 @@ mutation updateSiteACL($siteId: Int!, $userId: Int!, $input: ACLInput!) {
     }
 }
 
+mutation deleteSiteACL($id: Int!) {
+    deleteSiteACL(id: $id) {
+        entity {
+            canonicalName
+        }
+    }
+}
+
 query sites($cursor: Cursor) {
     sites(cursor: $cursor) {
         results {

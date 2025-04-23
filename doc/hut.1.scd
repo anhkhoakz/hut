@@ -688,6 +688,9 @@ Options are:
 
 ## pages
 
+*acl delete* <ID>
+	Delete an ACL entry.
+
 *acl update* <user> [options...]
 	Update an ACL entry for user.
 

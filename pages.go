@@ -395,6 +395,7 @@ func newPagesACLCommand() *cobra.Command {
 		Short: "Manage access-control lists",
 	}
 	cmd.AddCommand(newPagesACLUpdateCommand())
+	cmd.AddCommand(newPagesACLDeleteCommand())
 	return cmd
 }
 
@@ -434,6 +435,34 @@ func newPagesACLUpdateCommand() *cobra.Command {
 	cmd.Flags().IntVar(&siteID, "id", 0, "ID of the site")
 	cmd.MarkFlagRequired("id")
 	cmd.RegisterFlagCompletionFunc("id", cobra.NoFileCompletions)
+	return cmd
+}
+
+func newPagesACLDeleteCommand() *cobra.Command {
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("pages", cmd)
+
+		id, err := parseInt32(args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		acl, err := pagessrht.DeleteSiteACL(c.Client, ctx, id)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		log.Printf("Deleted ACL entry for %q\n", acl.Entity.CanonicalName)
+	}
+
+	cmd := &cobra.Command{
+		Use:               "delete <ID>",
+		Short:             "Delete an ACL entry",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: cobra.NoFileCompletions,
+		Run:               run,
+	}
 	return cmd
 }
 

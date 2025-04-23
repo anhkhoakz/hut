@@ -415,6 +415,16 @@ func UpdateSiteACL(client *gqlclient.Client, ctx context.Context, siteId int32, 
 	return respData.UpdateSiteACL, err
 }
 
+func DeleteSiteACL(client *gqlclient.Client, ctx context.Context, id int32) (deleteSiteACL *SiteACL, err error) {
+	op := gqlclient.NewOperation("mutation deleteSiteACL ($id: Int!) {\n\tdeleteSiteACL(id: $id) {\n\t\tentity {\n\t\t\tcanonicalName\n\t\t}\n\t}\n}\n")
+	op.Var("id", id)
+	var respData struct {
+		DeleteSiteACL *SiteACL
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.DeleteSiteACL, err
+}
+
 func Sites(client *gqlclient.Client, ctx context.Context, cursor *Cursor) (sites *SiteCursor, err error) {
 	op := gqlclient.NewOperation("query sites ($cursor: Cursor) {\n\tsites(cursor: $cursor) {\n\t\tresults {\n\t\t\tid\n\t\t\tdomain\n\t\t\tprotocol\n\t\t}\n\t\tcursor\n\t}\n}\n")
 	op.Var("cursor", cursor)
