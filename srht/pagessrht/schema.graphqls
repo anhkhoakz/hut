@@ -266,6 +266,13 @@ type Query {
   "Returns a specific user."
   user(username: String!): User @access(scope: PROFILE, kind: RO)
 
+  """
+  Returns a specific site registered on your account.
+
+  Protocol defaults to HTTPS.
+  """
+  site(domain: String!, protocol: Protocol): Site! @access(scope: SITES, kind: RO)
+
   "Returns a list of registered sites on your account."
   sites(cursor: Cursor): SiteCursor! @access(scope: SITES, kind: RO)
 
