@@ -691,6 +691,17 @@ Options are:
 *acl delete* <ID>
 	Delete an ACL entry.
 
+*acl list* [options...]
+	List ACL entries of a site.
+
+	Options are:
+
+	*-d*, *--domain* <string>
+		Fully qualified domain name. Required.
+
+	*-p*, *--protocol* <string>
+		Protocol to use (either HTTPS or GEMINI; defaults to HTTPS).
+
 *acl update* <user> [options...]
 	Update an ACL entry for user.
 

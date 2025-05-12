@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"git.sr.ht/~emersion/gqlclient"
+	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
 
 	"git.sr.ht/~xenrox/hut/srht/pagessrht"
@@ -396,6 +397,7 @@ func newPagesACLCommand() *cobra.Command {
 	}
 	cmd.AddCommand(newPagesACLUpdateCommand())
 	cmd.AddCommand(newPagesACLDeleteCommand())
+	cmd.AddCommand(newPagesACLListCommand())
 	return cmd
 }
 
@@ -464,6 +466,69 @@ func newPagesACLDeleteCommand() *cobra.Command {
 		Run:               run,
 	}
 	return cmd
+}
+
+func newPagesACLListCommand() *cobra.Command {
+	var domain, protocol string
+	run := func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		c := createClient("pages", cmd)
+
+		pagesProtocol, err := pagessrht.ParseProtocol(protocol)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		var cursor *pagessrht.Cursor
+
+		err = pagerify(func(p pager) error {
+			site, err := pagessrht.Acls(c.Client, ctx, domain, pagesProtocol, cursor)
+			if err != nil {
+				return err
+			}
+
+			for _, acl := range site.Acls.Results {
+				printPagesACLEntry(p, &acl)
+			}
+
+			cursor = site.Acls.Cursor
+			if cursor == nil {
+				return pagerDone
+			}
+
+			return nil
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List ACL entries",
+		Args:  cobra.ExactArgs(0),
+		Run:   run,
+	}
+	cmd.Flags().StringVarP(&domain, "domain", "d", "", "domain name")
+	cmd.MarkFlagRequired("domain")
+	cmd.RegisterFlagCompletionFunc("domain", completeDomain)
+	cmd.Flags().StringVarP(&protocol, "protocol", "p", "HTTPS",
+		"protocol (HTTPS or GEMINI)")
+	cmd.RegisterFlagCompletionFunc("protocol", completeProtocol)
+	return cmd
+}
+
+func printPagesACLEntry(w io.Writer, acl *pagessrht.SiteACL) {
+	created := termfmt.Dim.String(humanize.Time(acl.Created.Time))
+
+	var permissions string
+	if acl.Publish {
+		permissions = "publish"
+	} else {
+		permissions = "none"
+	}
+	fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", termfmt.DarkYellow.Sprintf("#%d", acl.Id),
+		acl.Entity.CanonicalName, permissions, created)
 }
 
 var completeProtocol = cobra.FixedCompletions([]string{"https", "gemini"}, cobra.ShellCompDirectiveNoFileComp)

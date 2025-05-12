@@ -454,3 +454,15 @@ func UserID(client *gqlclient.Client, ctx context.Context, username string) (use
 	err = client.Execute(ctx, op, &respData)
 	return respData.User, err
 }
+
+func Acls(client *gqlclient.Client, ctx context.Context, domain string, protocol Protocol, cursor *Cursor) (site *Site, err error) {
+	op := gqlclient.NewOperation("query acls ($domain: String!, $protocol: Protocol!, $cursor: Cursor) {\n\tsite(domain: $domain, protocol: $protocol) {\n\t\tacls(cursor: $cursor) {\n\t\t\tresults {\n\t\t\t\tid\n\t\t\t\tcreated\n\t\t\t\tentity {\n\t\t\t\t\tcanonicalName\n\t\t\t\t}\n\t\t\t\tpublish\n\t\t\t}\n\t\t\tcursor\n\t\t}\n\t}\n}\n")
+	op.Var("domain", domain)
+	op.Var("protocol", protocol)
+	op.Var("cursor", cursor)
+	var respData struct {
+		Site *Site
+	}
+	err = client.Execute(ctx, op, &respData)
+	return respData.Site, err
+}

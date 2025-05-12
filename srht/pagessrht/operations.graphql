@@ -76,3 +76,19 @@ query userID($username: String!) {
         id
     }
 }
+
+query acls($domain: String!, $protocol: Protocol!, $cursor: Cursor) {
+    site(domain: $domain, protocol: $protocol) {
+        acls(cursor: $cursor) {
+            results {
+                id
+                created
+                entity {
+                    canonicalName
+                }
+                publish
+            }
+            cursor
+        }
+    }
+}
