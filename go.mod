@@ -1,6 +1,6 @@
 module git.sr.ht/~xenrox/hut
 
-go 1.17
+go 1.18
 
 require (
 	codeberg.org/emersion/go-scfg v0.1.0
