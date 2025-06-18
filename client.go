@@ -112,7 +112,7 @@ type httpTransport struct {
 }
 
 func (tr *httpTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	req.Header.Set("User-Agent", "hut")
+	req.Header.Set("User-Agent", "hut/"+version)
 	req.Header.Set("Authorization", "Bearer "+tr.accessToken)
 
 	// Add delay to consecutive API requests to keep hut from DoSing the server

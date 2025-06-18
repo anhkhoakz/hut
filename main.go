@@ -21,6 +21,8 @@ import (
 	"golang.org/x/term"
 )
 
+var version = "dev"
+
 // ownerPrefixes is the set of characters used to prefix sr.ht owners. "~" is
 // used to indicate users.
 const ownerPrefixes = "~"
