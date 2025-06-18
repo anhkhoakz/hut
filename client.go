@@ -108,11 +108,19 @@ func createClientWithToken(baseURL, token string, debug bool) *Client {
 type httpTransport struct {
 	accessToken string
 	logRequest  bool
+	count       int
 }
 
 func (tr *httpTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	req.Header.Set("User-Agent", "hut")
 	req.Header.Set("Authorization", "Bearer "+tr.accessToken)
+
+	// Add delay to consecutive API requests to keep hut from DoSing the server
+	if tr.count > 0 {
+		time.Sleep(time.Second)
+	}
+	tr.count++
+
 	if tr.logRequest {
 		log.Println(req.Body)
 	}
