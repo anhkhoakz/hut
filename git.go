@@ -117,6 +117,7 @@ func newGitCreateCommand() *cobra.Command {
 }
 
 func newGitListCommand() *cobra.Command {
+	var count int
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		var cursor *gitsrht.Cursor
@@ -156,7 +157,7 @@ func newGitListCommand() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -169,6 +170,8 @@ func newGitListCommand() *cobra.Command {
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of repos to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	return cmd
 }
 
@@ -523,6 +526,7 @@ func newGitACLCommand() *cobra.Command {
 }
 
 func newGitACLListCommand() *cobra.Command {
+	var count int
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		var name, owner, instance string
@@ -572,7 +576,7 @@ func newGitACLListCommand() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -585,6 +589,8 @@ func newGitACLListCommand() *cobra.Command {
 		ValidArgsFunction: completeGitRepo,
 		Run:               run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of ACL entries to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	return cmd
 }
 
@@ -833,6 +839,7 @@ func newGitUserWebhookCreateCommand() *cobra.Command {
 }
 
 func newGitUserWebhookListCommand() *cobra.Command {
+	var count int
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("git", cmd)
@@ -854,7 +861,7 @@ func newGitUserWebhookListCommand() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -866,6 +873,8 @@ func newGitUserWebhookListCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(0),
 		Run:   run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of webhooks to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	return cmd
 }
 
@@ -1071,6 +1080,7 @@ func newGitWebhookCreateCommand() *cobra.Command {
 }
 
 func newGitWebhookListCommand() *cobra.Command {
+	var count int
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
@@ -1108,7 +1118,7 @@ func newGitWebhookListCommand() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -1121,6 +1131,8 @@ func newGitWebhookListCommand() *cobra.Command {
 		ValidArgsFunction: completeGitRepo,
 		Run:               run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of webhooks to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	return cmd
 }
 
