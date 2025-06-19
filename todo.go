@@ -39,6 +39,7 @@ func newTodoCommand() *cobra.Command {
 }
 
 func newTodoListCommand() *cobra.Command {
+	var count int
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("todo", cmd)
@@ -76,7 +77,7 @@ func newTodoListCommand() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -89,6 +90,8 @@ func newTodoListCommand() *cobra.Command {
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of trackers to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	return cmd
 }
 
@@ -417,6 +420,7 @@ func newTodoTicketCommand() *cobra.Command {
 }
 
 func newTodoTicketListCommand() *cobra.Command {
+	var count int
 	var status string
 	run := func(cmd *cobra.Command, args []string) {
 		filterStatus := false
@@ -477,7 +481,7 @@ func newTodoTicketListCommand() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -490,6 +494,8 @@ func newTodoTicketListCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(0),
 		Run:   run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of tickets to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	cmd.Flags().StringVarP(&status, "status", "s", "open", "ticket status")
 	cmd.RegisterFlagCompletionFunc("status", completeTicketStatus)
 	return cmd
@@ -1056,6 +1062,7 @@ func newTodoTicketWebhookCreateCommand() *cobra.Command {
 }
 
 func newTodoTicketWebhookListCommand() *cobra.Command {
+	var count int
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
@@ -1099,7 +1106,7 @@ func newTodoTicketWebhookListCommand() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -1112,6 +1119,8 @@ func newTodoTicketWebhookListCommand() *cobra.Command {
 		ValidArgsFunction: completeTicketID,
 		Run:               run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of webhooks to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	return cmd
 }
 
@@ -1156,6 +1165,7 @@ func newTodoLabelCommand() *cobra.Command {
 }
 
 func newTodoLabelListCommand() *cobra.Command {
+	var count int
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		name, owner, instance, err := getTrackerName(ctx, cmd)
@@ -1198,7 +1208,7 @@ func newTodoLabelListCommand() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -1210,6 +1220,8 @@ func newTodoLabelListCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(0),
 		Run:   run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of labels to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	return cmd
 }
 
@@ -1350,6 +1362,7 @@ func newTodoACLCommand() *cobra.Command {
 }
 
 func newTodoACLListCommand() *cobra.Command {
+	var count int
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		var name, owner, instance string
@@ -1409,7 +1422,7 @@ func newTodoACLListCommand() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -1422,6 +1435,8 @@ func newTodoACLListCommand() *cobra.Command {
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of ACL entries to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	return cmd
 }
 
@@ -1536,6 +1551,7 @@ func newTodoWebhookCreateCommand() *cobra.Command {
 }
 
 func newTodoWebhookListCommand() *cobra.Command {
+	var count int
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
@@ -1587,7 +1603,7 @@ func newTodoWebhookListCommand() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -1601,6 +1617,8 @@ func newTodoWebhookListCommand() *cobra.Command {
 		ValidArgsFunction: completeTracker,
 		Run:               run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of webhooks to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	return cmd
 }
 
@@ -1687,6 +1705,7 @@ func newTodoUserWebhookCreateCommand() *cobra.Command {
 }
 
 func newTodoUserWebhookListCommand() *cobra.Command {
+	var count int
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("todo", cmd)
@@ -1708,7 +1727,7 @@ func newTodoUserWebhookListCommand() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -1720,6 +1739,8 @@ func newTodoUserWebhookListCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(0),
 		Run:   run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of webhooks to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	return cmd
 }
 

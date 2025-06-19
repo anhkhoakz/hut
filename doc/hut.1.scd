@@ -946,8 +946,13 @@ Options are:
 *acl delete* <ID>
 	Delete an ACL entry.
 
-*acl list* [tracker]
+*acl list* [tracker] [options...]
 	List ACL entries of a tracker.
+
+	Options are:
+
+	*--count* <int>
+		Number of ACL entries to fetch.
 
 *create* <name> [options...]
 	Create a tracker.
@@ -983,8 +988,13 @@ Options are:
 *label delete* <name>
 	Delete a label.
 
-*label list*
+*label list* [options...]
 	List labels.
+
+	Options are:
+
+	*--count* <int>
+		Number of labels to fetch.
 
 *label update* <name> [options...]
 	Update a label.
@@ -1000,8 +1010,13 @@ Options are:
 	*-n*, *--name*
 		New label name.
 
-*list* [owner]
+*list* [owner] [options...]
 	List trackers.
+
+	Options are:
+
+	*--count* <int>
+		Number of trackers to fetch.
 
 *subscribe* [tracker]
 	Subscribe to a tracker.
@@ -1061,6 +1076,9 @@ Options are:
 	List tickets.
 
 	Options are:
+
+	*--count* <int>
+		Number of tickets to fetch.
 
 	*-s*, *--status* <string>
 		Filter by ticket status. By default only open tickets will be displayed.
@@ -1126,8 +1144,13 @@ Options are:
 *ticket webhook delete* <ID>
 	Delete a ticket webhook.
 
-*ticket webhook list* <ID>
+*ticket webhook list* <ID> [options...]
 	List ticket webhooks.
+
+	Options are:
+
+	*--count* <int>
+		Number of webhooks to fetch.
 
 *unsubscribe* [tracker]
 	Unsubscribe from a tracker.
@@ -1164,8 +1187,13 @@ Options are:
 *user-webhook delete* <ID>
 	Delete a user webhook.
 
-*user-webhook list*
+*user-webhook list* [options...]
 	List user webhooks.
+
+	Options are:
+
+	*--count* <int>
+		Number of webhooks to fetch.
 
 *webhook create* [tracker] [options...]
 	Create a tracker webhook.
@@ -1186,8 +1214,13 @@ Options are:
 *webhook delete* <ID>
 	Delete a tracker webhook.
 
-*webhook list* [tracker]
+*webhook list* [tracker] [options...]
 	List tracker webhooks.
+
+	Options are:
+
+	*--count* <int>
+		Number of webhooks to fetch.
 
 # CONFIGURATION
 
