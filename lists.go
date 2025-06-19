@@ -91,12 +91,16 @@ func newListsDeleteCommand() *cobra.Command {
 }
 
 func newListsListCommand() *cobra.Command {
+	var count int
 	cmd := &cobra.Command{
 		Use:               "list [username]",
 		Short:             "List mailing lists",
 		Args:              cobra.MaximumNArgs(1),
 		ValidArgsFunction: cobra.NoFileCompletions,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of mailing lists to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
+
 	cmd.Run = func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("lists", cmd)
@@ -134,7 +138,7 @@ func newListsListCommand() *cobra.Command {
 				return pagerDone
 			}
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -476,6 +480,7 @@ func newListsPatchsetCommand() *cobra.Command {
 }
 
 func newListsPatchsetListCommand() *cobra.Command {
+	var count int
 	var byUser bool
 	var status string
 	run := func(cmd *cobra.Command, args []string) {
@@ -567,7 +572,7 @@ func newListsPatchsetListCommand() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -580,6 +585,8 @@ func newListsPatchsetListCommand() *cobra.Command {
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of patchsets to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	cmd.Flags().BoolVarP(&byUser, "user", "u", false, "list patches by user")
 	cmd.Flags().StringVarP(&status, "status", "s", "proposed", "patchset status")
 	cmd.RegisterFlagCompletionFunc("status", completePatchsetStatus)
@@ -757,6 +764,7 @@ func newListsACLCommand() *cobra.Command {
 }
 
 func newListsACLListCommand() *cobra.Command {
+	var count int
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
@@ -817,7 +825,7 @@ func newListsACLListCommand() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -830,6 +838,8 @@ func newListsACLListCommand() *cobra.Command {
 		ValidArgsFunction: completeList,
 		Run:               run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of ACL entries to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	return cmd
 }
 
@@ -927,6 +937,7 @@ func newListsUserWebhookCreateCommand() *cobra.Command {
 }
 
 func newListsUserWebhookListCommand() *cobra.Command {
+	var count int
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("lists", cmd)
@@ -948,7 +959,7 @@ func newListsUserWebhookListCommand() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -960,6 +971,8 @@ func newListsUserWebhookListCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(0),
 		Run:   run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of webhooks to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	return cmd
 }
 
@@ -1062,6 +1075,7 @@ func newListsWebhookCreateCommand() *cobra.Command {
 }
 
 func newListsWebhookListCommand() *cobra.Command {
+	var count int
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
@@ -1113,7 +1127,7 @@ func newListsWebhookListCommand() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -1126,6 +1140,8 @@ func newListsWebhookListCommand() *cobra.Command {
 		ValidArgsFunction: completeList,
 		Run:               run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of webhooks to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	return cmd
 }
 
@@ -1158,6 +1174,7 @@ func newListsWebhookDeleteCommand() *cobra.Command {
 }
 
 func newListsSubscriptions() *cobra.Command {
+	var count int
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("lists", cmd)
@@ -1179,7 +1196,7 @@ func newListsSubscriptions() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -1191,6 +1208,8 @@ func newListsSubscriptions() *cobra.Command {
 		Args:  cobra.ExactArgs(0),
 		Run:   run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of subscriptions to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	return cmd
 }
 

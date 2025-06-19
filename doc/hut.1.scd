@@ -524,8 +524,13 @@ Options are:
 *acl delete* <ID>
 	Delete an ACL entry.
 
-*acl list* [list]
+*acl list* [list] [options...]
 	List ACL entries of a mailing list.
+
+	Options are:
+
+	*--count* <int>
+		Number of ACL entries to fetch.
 
 *archive* [list] [options...]
 	Download a mailing list archive as an mbox file to _stdout_.
@@ -555,8 +560,13 @@ Options are:
 	*-y*, *--yes*
 		Confirm deletion without prompt.
 
-*list* [owner]
+*list* [owner] [options...]
 	List mailing lists.
+
+	Options are:
+
+	*--count* <int>
+		Number of mailing lists to fetch.
 
 *patchset apply* <ID>
 	Apply a patchset.
@@ -565,6 +575,9 @@ Options are:
 	List patchsets in list.
 
 	Options are:
+
+	*--count* <int>
+		Number of patchsets to fetch.
 
 	*-s*, *--status* <string>
 		Filter by patchset status. By default only "PROPOSED" patchsets will be
@@ -587,8 +600,13 @@ Options are:
 *subscribe* [list]
 	Subscribe to a mailing list.
 
-*subscriptions*
+*subscriptions* [options...]
 	List mailing list subscriptions.
+
+	Options are:
+
+	*--count* <int>
+		Number of subscriptions to fetch.
 
 *unsubscribe* [list]
 	Unsubscribe from a mailing list.
@@ -623,8 +641,13 @@ Options are:
 *user-webhook delete* <ID>
 	Delete a user webhook.
 
-*user-webhook list*
+*user-webhook list* [options...]
 	List user webhooks.
+
+	Options are:
+
+	*--count* <int>
+		Number of webhooks to fetch.
 
 *webhook create* [list] [options...]
 	Create a mailing list webhook.
@@ -644,8 +667,13 @@ Options are:
 *webhook delete* <ID>
 	Delete a tracker webhook.
 
-*webhook list* [list]
+*webhook list* [list] [options...]
 	List mailing list webhooks.
+
+	Options are:
+
+	*--count* <int>
+		Number of webhooks to fetch.
 
 ## meta
 
