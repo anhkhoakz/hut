@@ -133,6 +133,7 @@ func newPasteDeleteCommand() *cobra.Command {
 }
 
 func newPasteListCommand() *cobra.Command {
+	var count int
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("paste", cmd)
@@ -155,7 +156,7 @@ func newPasteListCommand() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -167,6 +168,8 @@ func newPasteListCommand() *cobra.Command {
 		Short: "List pastes",
 		Run:   run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of pastes to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	return cmd
 }
 
@@ -325,6 +328,7 @@ func newPasteUserWebhookCreateCommand() *cobra.Command {
 }
 
 func newPasteUserWebhookListCommand() *cobra.Command {
+	var count int
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("paste", cmd)
@@ -346,7 +350,7 @@ func newPasteUserWebhookListCommand() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -358,6 +362,8 @@ func newPasteUserWebhookListCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(0),
 		Run:   run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of webhooks to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	return cmd
 }
 

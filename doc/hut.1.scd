@@ -891,8 +891,13 @@ Options are:
 *delete* <IDs...>
 	Delete pastes.
 
-*list*
+*list* [options...]
 	List pastes.
+
+	Options are:
+
+	*--count* <int>
+		Number of pastes to fetch.
 
 *show* <ID>
 	Display a paste.
@@ -923,8 +928,13 @@ Options are:
 *user-webhook delete* <ID>
 	Delete a user webhook.
 
-*user-webhook list*
+*user-webhook list* [options...]
 	List user webhooks.
+
+	Options are:
+
+	*--count* <int>
+		Number of webhooks to fetch.
 
 ## todo
 
