@@ -67,12 +67,12 @@ func newHgListCommand() *cobra.Command {
 			}
 
 			cursor = repos.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(repos.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -361,12 +361,12 @@ func newHgACLListCommand() *cobra.Command {
 			}
 
 			cursor = user.Repository.AccessControlList.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(user.Repository.AccessControlList.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -540,12 +540,12 @@ func newHgUserWebhookListCommand() *cobra.Command {
 			}
 
 			cursor = webhooks.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(webhooks.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}

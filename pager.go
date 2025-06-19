@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"reflect"
 
 	"github.com/google/shlex"
 )
@@ -13,13 +14,14 @@ import (
 type pager interface {
 	io.WriteCloser
 	Running() bool
+	IsDone(any, int) bool
 }
 
 var pagerDone error = errors.New("paging is done")
 
-func newPager() pager {
-	if !isStdoutTerminal {
-		return &singleWritePager{os.Stdout, true}
+func newPager(expected int) pager {
+	if !isStdoutTerminal || expected != 0 {
+		return &staticPager{os.Stdout, expected, 0}
 	}
 
 	name, ok := os.LookupEnv("PAGER")
@@ -59,8 +61,8 @@ func newPager() pager {
 
 type pagerifyFn func(p pager) error
 
-func pagerify(fn pagerifyFn) error {
-	pager := newPager()
+func pagerify(fn pagerifyFn, expected int) error {
+	pager := newPager(expected)
 	defer pager.Close()
 
 	for pager.Running() {
@@ -75,18 +77,29 @@ func pagerify(fn pagerifyFn) error {
 	return nil
 }
 
-type singleWritePager struct {
+type staticPager struct {
 	io.WriteCloser
-	running bool
+	objectsExpected int
+	objectsGot      int
 }
 
-func (p *singleWritePager) Write(b []byte) (int, error) {
-	p.running = false
+func (p *staticPager) Write(b []byte) (int, error) {
 	return p.WriteCloser.Write(b)
 }
 
-func (p *singleWritePager) Running() bool {
-	return p.running
+func (p *staticPager) Running() bool {
+	return true
+}
+
+func (p *staticPager) IsDone(cursor any, objectsGot int) bool {
+	v := reflect.ValueOf(cursor)
+	if v.Kind() == reflect.Pointer && v.IsNil() {
+		return true
+	}
+
+	// TODO: Use API to request number of objects
+	p.objectsGot += objectsGot
+	return p.objectsGot >= p.objectsExpected
 }
 
 type cmdPager struct {
@@ -109,4 +122,13 @@ func (p *cmdPager) Running() bool {
 	default:
 		return true
 	}
+}
+
+func (p *cmdPager) IsDone(cursor any, _ int) bool {
+	v := reflect.ValueOf(cursor)
+	if v.Kind() == reflect.Pointer && v.IsNil() {
+		return true
+	}
+
+	return false
 }

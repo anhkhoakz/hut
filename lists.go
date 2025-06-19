@@ -130,11 +130,11 @@ func newListsListCommand() *cobra.Command {
 			}
 
 			cursor = lists.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(lists.Results)) {
 				return pagerDone
 			}
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -562,12 +562,12 @@ func newListsPatchsetListCommand() *cobra.Command {
 			}
 
 			cursor = patches.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(patches.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -812,12 +812,12 @@ func newListsACLListCommand() *cobra.Command {
 			}
 
 			cursor = user.List.Acl.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(user.List.Acl.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -943,12 +943,12 @@ func newListsUserWebhookListCommand() *cobra.Command {
 			}
 
 			cursor = webhooks.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(webhooks.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -1108,12 +1108,12 @@ func newListsWebhookListCommand() *cobra.Command {
 			}
 
 			cursor = user.List.Webhooks.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(user.List.Webhooks.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -1174,12 +1174,12 @@ func newListsSubscriptions() *cobra.Command {
 			}
 
 			cursor = subscriptions.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(subscriptions.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}

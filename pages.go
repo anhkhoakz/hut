@@ -252,12 +252,12 @@ func newPagesListCommand() *cobra.Command {
 			}
 
 			cursor = sites.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(sites.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -342,12 +342,12 @@ func newPagesUserWebhookListCommand() *cobra.Command {
 			}
 
 			cursor = webhooks.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(webhooks.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -492,12 +492,12 @@ func newPagesACLListCommand() *cobra.Command {
 			}
 
 			cursor = site.Acls.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(site.Acls.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}

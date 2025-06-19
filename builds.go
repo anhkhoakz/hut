@@ -426,12 +426,12 @@ func newBuildsListCommand() *cobra.Command {
 			}
 
 			cursor = jobs.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(jobs.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 
 		if err != nil {
 			log.Fatal(err)
@@ -644,12 +644,12 @@ func newBuildsUserWebhookListCommand() *cobra.Command {
 			}
 
 			cursor = webhooks.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(webhooks.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -752,12 +752,12 @@ func newBuildsSecretListCommand() *cobra.Command {
 			}
 
 			cursor = secrets.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(secrets.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}

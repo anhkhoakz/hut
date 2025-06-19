@@ -151,12 +151,12 @@ func newGitListCommand() *cobra.Command {
 			}
 
 			cursor = repos.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(repos.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -567,12 +567,12 @@ func newGitACLListCommand() *cobra.Command {
 			}
 
 			cursor = user.Repository.Acls.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(user.Repository.Acls.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -849,12 +849,12 @@ func newGitUserWebhookListCommand() *cobra.Command {
 			}
 
 			cursor = webhooks.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(webhooks.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -1103,12 +1103,12 @@ func newGitWebhookListCommand() *cobra.Command {
 			}
 
 			cursor = webhooks.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(webhooks.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}

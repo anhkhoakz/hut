@@ -95,12 +95,12 @@ func newMetaAuditLogCommand() *cobra.Command {
 			}
 
 			cursor = logs.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(logs.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -386,12 +386,12 @@ func newMetaSSHKeyListCommand() *cobra.Command {
 			}
 
 			cursor = user.SshKeys.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(user.SshKeys.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -569,12 +569,12 @@ func newMetaPGPKeyListCommand() *cobra.Command {
 			}
 
 			cursor = user.PgpKeys.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(user.PgpKeys.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -663,12 +663,12 @@ func newMetaUserWebhookListCommand() *cobra.Command {
 			}
 
 			cursor = webhooks.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(webhooks.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}

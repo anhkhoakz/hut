@@ -150,12 +150,12 @@ func newPasteListCommand() *cobra.Command {
 			}
 
 			cursor = pastes.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(pastes.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -341,12 +341,12 @@ func newPasteUserWebhookListCommand() *cobra.Command {
 			}
 
 			cursor = webhooks.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(webhooks.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}

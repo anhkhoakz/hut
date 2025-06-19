@@ -71,12 +71,12 @@ func newTodoListCommand() *cobra.Command {
 			}
 
 			cursor = trackers.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(trackers.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -472,12 +472,12 @@ func newTodoTicketListCommand() *cobra.Command {
 			}
 
 			cursor = user.Tracker.Tickets.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(user.Tracker.Tickets.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -1094,12 +1094,12 @@ func newTodoTicketWebhookListCommand() *cobra.Command {
 			}
 
 			cursor = user.Tracker.Ticket.Webhooks.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(user.Tracker.Ticket.Webhooks.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -1193,12 +1193,12 @@ func newTodoLabelListCommand() *cobra.Command {
 			}
 
 			cursor = user.Tracker.Labels.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(user.Tracker.Labels.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -1404,12 +1404,12 @@ func newTodoACLListCommand() *cobra.Command {
 			}
 
 			cursor = user.Tracker.Acls.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(user.Tracker.Acls.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -1582,12 +1582,12 @@ func newTodoWebhookListCommand() *cobra.Command {
 			}
 
 			cursor = user.Tracker.Webhooks.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(user.Tracker.Webhooks.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -1703,12 +1703,12 @@ func newTodoUserWebhookListCommand() *cobra.Command {
 			}
 
 			cursor = webhooks.Cursor
-			if cursor == nil {
+			if p.IsDone(cursor, len(webhooks.Results)) {
 				return pagerDone
 			}
 
 			return nil
-		})
+		}, 0)
 		if err != nil {
 			log.Fatal(err)
 		}
