@@ -419,8 +419,13 @@ Options are:
 *acl delete* <ID>
 	Delete an ACL entry.
 
-*acl list* [repo]
+*acl list* [repo] [options...]
 	List ACL entries of a repo. Defaults to current repo.
+
+	Options are:
+
+	*--count* <int>
+		Number of ACL entries to fetch.
 
 *acl update* <user> [options...]
 	Update or add an ACL entry for user.
@@ -453,8 +458,13 @@ Options are:
 	*-y*, *--yes*
 		Confirm deletion without prompt.
 
-*list* [owner]
+*list* [owner] [options...]
 	List repositories.
+
+	Options are:
+
+	*--count* <int>
+		Number of repositories to fetch.
 
 *update* [repo] [options...]
 	Update a repository. By default the current repo will be updated.
@@ -493,8 +503,13 @@ Options are:
 *user-webhook delete* <ID>
 	Delete a user webhook.
 
-*user-webhook list*
+*user-webhook list* [options...]
 	List user webhooks.
+
+	Options are:
+
+	*--count* <int>
+		Number of webhooks to fetch.
 
 ## lists
 

@@ -35,6 +35,7 @@ func newHgCommand() *cobra.Command {
 }
 
 func newHgListCommand() *cobra.Command {
+	var count int
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("hg", cmd)
@@ -72,7 +73,7 @@ func newHgListCommand() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -84,6 +85,8 @@ func newHgListCommand() *cobra.Command {
 		Args:  cobra.MaximumNArgs(1),
 		Run:   run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of repos to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	return cmd
 }
 
@@ -317,6 +320,7 @@ func newHgACLCommand() *cobra.Command {
 }
 
 func newHgACLListCommand() *cobra.Command {
+	var count int
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		var name, owner, instance string
@@ -366,7 +370,7 @@ func newHgACLListCommand() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -379,6 +383,8 @@ func newHgACLListCommand() *cobra.Command {
 		ValidArgsFunction: completeHgRepo,
 		Run:               run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of ACL entries to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	return cmd
 }
 
@@ -524,6 +530,7 @@ func newHgUserWebhookCreateCommand() *cobra.Command {
 }
 
 func newHgUserWebhookListCommand() *cobra.Command {
+	var count int
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("hg", cmd)
@@ -545,7 +552,7 @@ func newHgUserWebhookListCommand() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -558,6 +565,8 @@ func newHgUserWebhookListCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(0),
 		Run:   run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of webhooks to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	return cmd
 }
 
