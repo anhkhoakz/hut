@@ -788,6 +788,9 @@ Options are:
 
 	Options are:
 
+	*--count* <int>
+		Number of ACL entries to fetch.
+
 	*-d*, *--domain* <string>
 		Fully qualified domain name. Required.
 
@@ -806,8 +809,13 @@ Options are:
 		Permission to publish the site. Leave this flag out to remove
 		the permission.
 
-*list*
+*list* [options...]
 	List registered sites.
+
+	Options are:
+
+	*--count* <int>
+		Number of sites to fetch.
 
 *publish* [file] [options...]
 	Publish a website.
@@ -859,8 +867,13 @@ Options are:
 *user-webhook delete* <ID>
 	Delete a user webhook.
 
-*user-webhook list*
+*user-webhook list* [options...]
 	List user webhooks.
+
+	Options are:
+
+	*--count* <int>
+		Number of webhooks to fetch.
 
 ## paste
 

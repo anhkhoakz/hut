@@ -236,6 +236,7 @@ func newPagesUnpublishCommand() *cobra.Command {
 }
 
 func newPagesListCommand() *cobra.Command {
+	var count int
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("pages", cmd)
@@ -257,7 +258,7 @@ func newPagesListCommand() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -268,6 +269,8 @@ func newPagesListCommand() *cobra.Command {
 		Short: "List registered sites",
 		Run:   run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of sites to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	return cmd
 }
 
@@ -326,6 +329,7 @@ func newPagesUserWebhookCreateCommand() *cobra.Command {
 }
 
 func newPagesUserWebhookListCommand() *cobra.Command {
+	var count int
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("pages", cmd)
@@ -347,7 +351,7 @@ func newPagesUserWebhookListCommand() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -359,6 +363,8 @@ func newPagesUserWebhookListCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(0),
 		Run:   run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of webhooks to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	return cmd
 }
 
@@ -469,6 +475,7 @@ func newPagesACLDeleteCommand() *cobra.Command {
 }
 
 func newPagesACLListCommand() *cobra.Command {
+	var count int
 	var domain, protocol string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
@@ -497,7 +504,7 @@ func newPagesACLListCommand() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -509,6 +516,8 @@ func newPagesACLListCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(0),
 		Run:   run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of ACL entries to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	cmd.Flags().StringVarP(&domain, "domain", "d", "", "domain name")
 	cmd.MarkFlagRequired("domain")
 	cmd.RegisterFlagCompletionFunc("domain", completeDomain)
