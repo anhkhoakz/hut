@@ -383,6 +383,7 @@ func newBuildsShowCommand() *cobra.Command {
 
 func newBuildsListCommand() *cobra.Command {
 	var status string
+	var count int
 	run := func(cmd *cobra.Command, args []string) {
 		if status != "" {
 			_, err := buildssrht.ParseJobStatus(status)
@@ -431,7 +432,7 @@ func newBuildsListCommand() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 
 		if err != nil {
 			log.Fatal(err)
@@ -445,6 +446,8 @@ func newBuildsListCommand() *cobra.Command {
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of jobs to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	cmd.Flags().StringVarP(&status, "status", "s", "", "job status")
 	cmd.RegisterFlagCompletionFunc("status", completeJobStatus)
 	return cmd
@@ -628,6 +631,7 @@ func newBuildsUserWebhookCreateCommand() *cobra.Command {
 }
 
 func newBuildsUserWebhookListCommand() *cobra.Command {
+	var count int
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("builds", cmd)
@@ -649,7 +653,7 @@ func newBuildsUserWebhookListCommand() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -662,6 +666,8 @@ func newBuildsUserWebhookListCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(0),
 		Run:   run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of webhooks to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	return cmd
 }
 
@@ -733,6 +739,7 @@ func newBuildsSecretCommand() *cobra.Command {
 }
 
 func newBuildsSecretListCommand() *cobra.Command {
+	var count int
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("builds", cmd)
@@ -757,7 +764,7 @@ func newBuildsSecretListCommand() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -769,6 +776,8 @@ func newBuildsSecretListCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(0),
 		Run:   run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of secrets to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	return cmd
 }
 

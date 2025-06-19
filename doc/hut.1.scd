@@ -120,6 +120,9 @@ create* read input depending on whether their stdin is on a terminal or not:
 
 	Options are:
 
+	*--count* <int>
+		Number of jobs to fetch.
+
 	*-s*, *--status* <string>
 		Filter by job status.
 
@@ -144,8 +147,13 @@ create* read input depending on whether their stdin is on a terminal or not:
 		Visibility to use (public, unlisted, private). Defaults to the same
 		visibility used by the original build job.
 
-*secret list*
+*secret list* [options...]
 	List secrets.
+
+	Options are:
+	
+	*--count* <int>
+		Number of secrets to fetch.
 
 *secret share* <secret>
 	Share a secret.
@@ -222,8 +230,13 @@ create* read input depending on whether their stdin is on a terminal or not:
 *user-webhook delete* <ID>
 	Delete a user webhook.
 
-*user-webhook list*
+*user-webhook list* [options...]
 	List user webhooks.
+
+	Options are:
+	
+	*--count* <int>
+		Number of webhooks to fetch.
 
 ## git
 
