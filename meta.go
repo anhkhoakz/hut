@@ -79,6 +79,7 @@ func newMetaShowCommand() *cobra.Command {
 }
 
 func newMetaAuditLogCommand() *cobra.Command {
+	var count int
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("meta", cmd)
@@ -100,7 +101,7 @@ func newMetaAuditLogCommand() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -112,6 +113,8 @@ func newMetaAuditLogCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(0),
 		Run:   run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of log entries to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	return cmd
 }
 
@@ -335,6 +338,7 @@ func newMetaSSHKeyDeleteCommand() *cobra.Command {
 }
 
 func newMetaSSHKeyListCommand() *cobra.Command {
+	var count int
 	var raw bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
@@ -391,7 +395,7 @@ func newMetaSSHKeyListCommand() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -404,6 +408,8 @@ func newMetaSSHKeyListCommand() *cobra.Command {
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of keys to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	cmd.Flags().BoolVarP(&raw, "raw", "r", false, "print raw public keys")
 	return cmd
 }
@@ -521,6 +527,7 @@ func newMetaPGPKeyDeleteCommand() *cobra.Command {
 }
 
 func newMetaPGPKeyListCommand() *cobra.Command {
+	var count int
 	var raw bool
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
@@ -574,7 +581,7 @@ func newMetaPGPKeyListCommand() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -587,6 +594,8 @@ func newMetaPGPKeyListCommand() *cobra.Command {
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of keys to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	cmd.Flags().BoolVarP(&raw, "raw", "r", false, "print raw public keys")
 	return cmd
 
@@ -647,6 +656,7 @@ func newMetaUserWebhookCreateCommand() *cobra.Command {
 }
 
 func newMetaUserWebhookListCommand() *cobra.Command {
+	var count int
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("meta", cmd)
@@ -668,7 +678,7 @@ func newMetaUserWebhookListCommand() *cobra.Command {
 			}
 
 			return nil
-		}, 0)
+		}, count)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -680,6 +690,8 @@ func newMetaUserWebhookListCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(0),
 		Run:   run,
 	}
+	cmd.Flags().IntVar(&count, "count", 0, "number of webhooks to fetch")
+	cmd.RegisterFlagCompletionFunc("count", cobra.NoFileCompletions)
 	return cmd
 }
 

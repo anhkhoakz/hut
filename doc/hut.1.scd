@@ -677,8 +677,13 @@ Options are:
 
 ## meta
 
-*audit-log*
+*audit-log* [options...]
 	Display your audit log.
+
+	Options are:
+
+	*--count* <int>
+		Number of log entries to fetch.
 
 *oauth tokens*
 	List personal access tokens.
@@ -698,6 +703,9 @@ Options are:
 	List PGP public keys.
 
 	Options are:
+
+	*--count* <int>
+		Number of keys to fetch.
 
 	*-r*, *--raw*
 		Only print raw public key
@@ -719,6 +727,9 @@ Options are:
 	List SSH public keys.
 
 	Options are:
+
+	*--count* <int>
+		Number of keys to fetch.
 
 	*-r*, *--raw*
 		Only print raw public key
@@ -759,8 +770,13 @@ Options are:
 *user-webhook delete* <ID>
 	Delete a user webhook.
 
-*user-webhook list*
+*user-webhook list* [options...]
 	List user webhooks.
+
+	Options are:
+	
+	*--count* <int>
+		Number of webhooks to fetch.
 
 ## pages
 
