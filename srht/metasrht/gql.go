@@ -93,6 +93,8 @@ type BillingSubscription struct {
 	// Total price, not including applicable taxes, in the smallest denomination of
 	// the currency, e.g. cents USD.
 	Subtotal int32 `json:"subtotal"`
+	// Status of the last attempted payment for this subscription.
+	Payment *PaymentOutcome `json:"payment"`
 }
 
 type Currency string
@@ -240,12 +242,78 @@ type PGPKeyEvent struct {
 
 func (*PGPKeyEvent) isWebhookPayload() {}
 
+type PaymentIntent struct {
+	Id             string               `json:"id"`
+	Subscription   *BillingSubscription `json:"subscription"`
+	BillingAddress *BillingAddress      `json:"billingAddress"`
+	IdempotencyKey string               `json:"idempotencyKey"`
+	TaxRate        *int32               `json:"taxRate,omitempty"`
+	TaxDue         int32                `json:"taxDue"`
+	TotalDue       int32                `json:"totalDue"`
+	Method         *PaymentMethod       `json:"method,omitempty"`
+	Outcome        *PaymentOutcome      `json:"outcome,omitempty"`
+
+	// Underlying value of the GraphQL interface
+	Value PaymentIntentValue `json:"-"`
+}
+
+func (base *PaymentIntent) UnmarshalJSON(b []byte) error {
+	type Raw PaymentIntent
+	var data struct {
+		*Raw
+		TypeName string `json:"__typename"`
+	}
+	data.Raw = (*Raw)(base)
+	err := json.Unmarshal(b, &data)
+	if err != nil {
+		return err
+	}
+	switch data.TypeName {
+	case "StripePaymentIntent":
+		base.Value = new(StripePaymentIntent)
+	case "":
+		return nil
+	default:
+		return fmt.Errorf("gqlclient: interface PaymentIntent: unknown __typename %q", data.TypeName)
+	}
+	return json.Unmarshal(b, base.Value)
+}
+
+// PaymentIntentValue is one of: StripePaymentIntent
+type PaymentIntentValue interface {
+	isPaymentIntent()
+}
+
+type PaymentIntentStatus string
+
+const (
+	PaymentIntentStatusPending    PaymentIntentStatus = "PENDING"
+	PaymentIntentStatusCancelled  PaymentIntentStatus = "CANCELLED"
+	PaymentIntentStatusProcessing PaymentIntentStatus = "PROCESSING"
+	PaymentIntentStatusFailed     PaymentIntentStatus = "FAILED"
+	PaymentIntentStatusSucceeded  PaymentIntentStatus = "SUCCEEDED"
+)
+
 type PaymentInterval string
 
 const (
 	PaymentIntervalMonthly  PaymentInterval = "MONTHLY"
 	PaymentIntervalAnnually PaymentInterval = "ANNUALLY"
 )
+
+type PaymentMethod struct {
+	Id      int32          `json:"id"`
+	Created gqlclient.Time `json:"created"`
+	// User-friendly name of this payment method (e.g. 'Visa ending in 1234')
+	Name string `json:"name"`
+	// Expiration date of this payment method, if applicable to the type
+	Expires gqlclient.Time `json:"expires,omitempty"`
+}
+
+type PaymentOutcome struct {
+	Status PaymentIntentStatus `json:"status"`
+	Error  *string             `json:"error,omitempty"`
+}
 
 type PaymentStatus string
 
@@ -341,6 +409,64 @@ type SSHKeyEvent struct {
 
 func (*SSHKeyEvent) isWebhookPayload() {}
 
+type SetupIntent struct {
+	Id     string         `json:"id"`
+	Method *PaymentMethod `json:"method,omitempty"`
+
+	// Underlying value of the GraphQL interface
+	Value SetupIntentValue `json:"-"`
+}
+
+func (base *SetupIntent) UnmarshalJSON(b []byte) error {
+	type Raw SetupIntent
+	var data struct {
+		*Raw
+		TypeName string `json:"__typename"`
+	}
+	data.Raw = (*Raw)(base)
+	err := json.Unmarshal(b, &data)
+	if err != nil {
+		return err
+	}
+	switch data.TypeName {
+	case "StripeSetupIntent":
+		base.Value = new(StripeSetupIntent)
+	case "":
+		return nil
+	default:
+		return fmt.Errorf("gqlclient: interface SetupIntent: unknown __typename %q", data.TypeName)
+	}
+	return json.Unmarshal(b, base.Value)
+}
+
+// SetupIntentValue is one of: StripeSetupIntent
+type SetupIntentValue interface {
+	isSetupIntent()
+}
+
+type StripePaymentIntent struct {
+	Id             string               `json:"id"`
+	Subscription   *BillingSubscription `json:"subscription"`
+	BillingAddress *BillingAddress      `json:"billingAddress"`
+	IdempotencyKey string               `json:"idempotencyKey"`
+	TotalDue       int32                `json:"totalDue"`
+	TaxRate        *int32               `json:"taxRate,omitempty"`
+	TaxDue         int32                `json:"taxDue"`
+	Method         *PaymentMethod       `json:"method,omitempty"`
+	Outcome        *PaymentOutcome      `json:"outcome,omitempty"`
+	ClientSecret   *string              `json:"clientSecret,omitempty"`
+}
+
+func (*StripePaymentIntent) isPaymentIntent() {}
+
+type StripeSetupIntent struct {
+	Id           string         `json:"id"`
+	Method       *PaymentMethod `json:"method,omitempty"`
+	ClientSecret *string        `json:"clientSecret,omitempty"`
+}
+
+func (*StripeSetupIntent) isSetupIntent() {}
+
 type SubscriptionStatus string
 
 const (
@@ -355,6 +481,13 @@ const (
 	// This subscription has been cancelled and the service term is complete.
 	SubscriptionStatusInactive SubscriptionStatus = "INACTIVE"
 )
+
+// For changing the active paid subscription's parameters. Changes apply from the
+// start of the next payment term (i.e. from User.paymentDue).
+type UpdateBillingSubscriptionInput struct {
+	ProductID int32           `json:"productID"`
+	Interval  PaymentInterval `json:"interval"`
+}
 
 type User struct {
 	Id            int32          `json:"id"`
@@ -380,6 +513,10 @@ type User struct {
 	Invoices *InvoiceCursor `json:"invoices"`
 	// User's billing address, if applicable, for invoicing.
 	BillingAddress *BillingAddress `json:"billingAddress,omitempty"`
+	// User's payment methods, if any.
+	PaymentMethods []PaymentMethod `json:"paymentMethods"`
+	// The default payment method in use for automatic subscription renewals.
+	DefaultPaymentMethod *PaymentMethod `json:"defaultPaymentMethod,omitempty"`
 	// Internal user type (e.g. is admin)
 	UserType UserType `json:"userType"`
 	// Returns true if this user should have access to paid services.

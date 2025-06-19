@@ -244,13 +244,14 @@ type Mailbox struct {
 func (*Mailbox) isEntity() {}
 
 type MailingList struct {
-	Id          int32          `json:"id"`
-	Created     gqlclient.Time `json:"created"`
-	Updated     gqlclient.Time `json:"updated"`
-	Name        string         `json:"name"`
-	Owner       *Entity        `json:"owner"`
-	Description *string        `json:"description,omitempty"`
-	Visibility  Visibility     `json:"visibility"`
+	Id           int32          `json:"id"`
+	Created      gqlclient.Time `json:"created"`
+	Updated      gqlclient.Time `json:"updated"`
+	Name         string         `json:"name"`
+	Owner        *Entity        `json:"owner"`
+	LastActivity gqlclient.Time `json:"lastActivity,omitempty"`
+	Description  *string        `json:"description,omitempty"`
+	Visibility   Visibility     `json:"visibility"`
 	// List of globs for permitted or rejected mimetypes on this list
 	// e.g. text/*
 	PermitMime []string `json:"permitMime"`

@@ -138,6 +138,16 @@ type User implements Entity {
   """
   billingAddress: BillingAddress @access(scope: BILLING, kind: RO)
 
+  """
+  User's payment methods, if any.
+  """
+  paymentMethods: [PaymentMethod!]! @access(scope: BILLING, kind: RO)
+
+  """
+  The default payment method in use for automatic subscription renewals.
+  """
+  defaultPaymentMethod: PaymentMethod
+
   ###                          ###
   ### Internal user attributes ###
   ###                          ###
@@ -232,6 +242,17 @@ type BillingAddress {
   vat: String
 }
 
+type PaymentMethod {
+  id: Int!
+  created: Time!
+
+  "User-friendly name of this payment method (e.g. 'Visa ending in 1234')"
+  name: String!
+
+  "Expiration date of this payment method, if applicable to the type"
+  expires: Time
+}
+
 enum SubscriptionStatus {
   """
   This subscription is pending and will become active once the first payment is
@@ -251,6 +272,19 @@ enum SubscriptionStatus {
   This subscription has been cancelled and the service term is complete.
   """
   INACTIVE
+}
+
+enum PaymentIntentStatus {
+  PENDING
+  CANCELLED
+  PROCESSING
+  FAILED
+  SUCCEEDED
+}
+
+type PaymentOutcome {
+  status: PaymentIntentStatus!
+  error: String
 }
 
 type BillingSubscription {
@@ -282,6 +316,11 @@ type BillingSubscription {
   the currency, e.g. cents USD.
   """
   subtotal: Int!
+
+  """
+  Status of the last attempted payment for this subscription.
+  """
+  payment: PaymentOutcome!
 }
 
 type Invoice {
@@ -614,11 +653,6 @@ input ProfileWebhookInput {
   query: String!
 }
 
-input ProductPriceInput {
-  currency: Currency!
-  amount: Int!
-}
-
 """
 All fields are optional. If a field is omitted, it is unchanged. If a field is
 null, it is set to null.
@@ -635,6 +669,20 @@ input BillingAddressInput {
   country: String
   "Value-added tax number (EU)"
   vat: String
+}
+
+"""
+For changing the active paid subscription's parameters. Changes apply from the
+start of the next payment term (i.e. from User.paymentDue).
+"""
+input UpdateBillingSubscriptionInput {
+  productID: Int!
+  interval: PaymentInterval!
+}
+
+input ProductPriceInput {
+  currency: Currency!
+  amount: Int!
 }
 
 type Mutation {
@@ -655,6 +703,36 @@ type Mutation {
   Update the authenticated user's billing address.
   """
   updateBillingAddress(input: BillingAddressInput!): BillingAddress! @access(scope: BILLING, kind: RW)
+
+  """
+  Update an active billing subscription.
+  """
+  updateBillingSubscription(
+    subscriptionID: Int!,
+    input: UpdateBillingSubscriptionInput!,
+  ): BillingSubscription @access(scope: BILLING, kind: RW)
+
+  """
+  Cancels an active billing subscription. The changes will not take effect
+  until the end of the paid term (unless the account is past due, in which case
+  it applies immediately).
+  """
+  cancelBillingSubscription(
+    subscriptionID: Int!,
+  ): BillingSubscription @private
+
+  # TODO: Allow removal of the last payment method if the user has disabled
+  # automatic renewal (blocker: allow users to disable autorenew)
+  """
+  Removes a payment method from your account. Cannot be used to remove the last
+  payment method.
+  """
+  deletePaymentMethod(id: Int!): PaymentMethod @access(scope: BILLING, kind: RW)
+
+  """
+  Sets the user's default payment method.
+  """
+  setDefaultPaymentMethod(id: Int!): PaymentMethod @access(scope: BILLING, kind: RW)
 
   """
   Creates a new user profile webhook subscription. When an event from the
@@ -793,4 +871,105 @@ type Mutation {
   Deletes the authenticated user's account.
   """
   deleteUser(reserve: Boolean!): Int! @internal
+
+  """
+  Orders a new paid product subscription. The new subscription is in a PENDING
+  state. The payment intent should be completed to proceed.
+  """
+  orderProductSubscription(
+    productID: Int!,
+    currency: Currency!,
+    interval: PaymentInterval!,
+    autorenew: Boolean!,
+    """
+    Optional: update the user's billing address at the same time
+    """
+    address: BillingAddressInput,
+    """
+    Optional: include this if retrying the same request
+    """
+    idempotencyKey: String,
+  ): PaymentIntent @internal
+
+  """
+  Creates a new payment intent to charge a subscription's renewal fee
+  interactively. The subscription must be past due.
+  """
+  beginSubscriptionRenewal(
+    subscriptionID: Int!,
+    """
+    Optional: include this if retrying the same request
+    """
+    idempotencyKey: String,
+  ): PaymentIntent! @internal
+
+  """
+  Finalizes a product order from the PaymentIntent ID after the user has
+  finalized their payment, returning the completed PaymentIntent.
+  """
+  finalizePaymentIntent(intentID: String!): PaymentIntent! @internal
+
+  """
+  Creates a "setup" intent for adding a new payment method to the authenticated
+  user's account.
+  """
+  createSetupIntent: SetupIntent! @internal
+
+  """
+  Finalizes a setup intent.
+  """
+  finalizeSetupIntent(intentID: String!): SetupIntent @internal
+
+  """
+  Processes payment when the user's account is past due. Returns the payment
+  intent if a payment was collected, or null if a payment was not collected but
+  the operation was successful (the latter occurs when a subscription was
+  cancelled or a subsidized user's subsidy expired, in these cases the account
+  is settled and converted to non-paying).
+  """
+  processPaymentDue: PaymentIntent @internal
+}
+
+# The following types are for internal use
+
+interface PaymentIntent {
+  id: String!
+  subscription: BillingSubscription!
+  billingAddress: BillingAddress!
+  idempotencyKey: String!
+
+  taxRate: Int
+  taxDue: Int!
+  totalDue: Int!
+
+  method: PaymentMethod
+  outcome: PaymentOutcome
+}
+
+type StripePaymentIntent implements PaymentIntent {
+  id: String!
+  subscription: BillingSubscription!
+  billingAddress: BillingAddress!
+  idempotencyKey: String!
+
+  totalDue: Int!
+  taxRate: Int
+  taxDue: Int!
+
+  method: PaymentMethod
+  outcome: PaymentOutcome
+
+  clientSecret: String
+}
+
+interface SetupIntent {
+  id: String!
+  method: PaymentMethod
+}
+
+type StripeSetupIntent implements SetupIntent {
+  id: String!
+  method: PaymentMethod
+
+  clientSecret: String
 }
