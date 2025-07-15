@@ -999,6 +999,11 @@ func sshConnection(job *buildssrht.Job, user string) error {
 		return errors.New("job has no runner assigned yet")
 	}
 
+	// Add fallback for builds.sr.ht - this is not guaranteed to work with other instances
+	if user == "" {
+		user = "builds"
+	}
+
 	cmd := exec.Command("ssh", "-t", fmt.Sprintf("%s@%s", user, *job.Runner),
 		"connect", fmt.Sprint(job.Id))
 	cmd.Stdin = os.Stdin
