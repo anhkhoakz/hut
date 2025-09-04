@@ -212,16 +212,6 @@ func stripProtocol(s string) string {
 	return s
 }
 
-func hasCmdArg(cmd *cobra.Command, arg string) bool {
-	for _, v := range cmd.Flags().Args() {
-		if v == arg {
-			return true
-		}
-	}
-
-	return false
-}
-
 func readWebhookQuery(stdin bool) string {
 	var query string
 

@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -1080,7 +1081,7 @@ func completeJobs(cmd *cobra.Command, onlyRunning bool) ([]string, cobra.ShellCo
 			continue
 		}
 
-		if cmd.Name() == "cancel" && hasCmdArg(cmd, strconv.Itoa(int(job.Id))) {
+		if cmd.Name() == "cancel" && slices.Contains(cmd.Flags().Args(), strconv.Itoa(int(job.Id))) {
 			continue
 		}
 

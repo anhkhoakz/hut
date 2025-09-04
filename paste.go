@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"git.sr.ht/~emersion/gqlclient"
@@ -406,7 +407,7 @@ func completePasteID(cmd *cobra.Command, args []string, toComplete string) ([]st
 	}
 
 	for _, paste := range pastes.Results {
-		if cmd.Name() == "delete" && hasCmdArg(cmd, paste.Id) {
+		if cmd.Name() == "delete" && slices.Contains(cmd.Flags().Args(), paste.Id) {
 			continue
 		}
 
