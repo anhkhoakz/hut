@@ -1063,7 +1063,7 @@ func newGitWebhookCreateCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:               "Create [repo]",
+		Use:               "create [repo]",
 		Short:             "Create a git webhook",
 		Args:              cobra.MaximumNArgs(1),
 		ValidArgsFunction: completeGitRepo,
