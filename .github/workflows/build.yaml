@@ -76,7 +76,7 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'release'
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
 
     steps:
     - name: Download all artifacts
@@ -106,9 +106,13 @@ jobs:
           fi
         done
 
-    - name: Upload release assets
+    - name: Create or update release
       uses: softprops/action-gh-release@v2
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       with:
+        tag_name: ${{ github.sha }}
+        name: Build ${{ github.sha }}
         files: ./release/*
+        draft: false
+        prerelease: false
