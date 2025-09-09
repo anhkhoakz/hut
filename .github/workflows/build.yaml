@@ -1,0 +1,113 @@
+name: Build
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+  release:
+    types: [ published ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+            ext: ""
+          - goos: linux
+            goarch: arm64
+            ext: ""
+          - goos: linux
+            goarch: 386
+            ext: ""
+          - goos: windows
+            goarch: amd64
+            ext: ".exe"
+          - goos: windows
+            goarch: 386
+            ext: ".exe"
+          - goos: darwin
+            goarch: amd64
+            ext: ""
+          - goos: darwin
+            goarch: arm64
+            ext: ""
+          - goos: freebsd
+            goarch: amd64
+            ext: ""
+          - goos: freebsd
+            goarch: arm64
+            ext: ""
+          - goos: openbsd
+            goarch: amd64
+            ext: ""
+          - goos: openbsd
+            goarch: arm64
+            ext: ""
+          - goos: netbsd
+            goarch: amd64
+            ext: ""
+          - goos: netbsd
+            goarch: arm64
+            ext: ""
+
+    steps:
+    - uses: actions/checkout@v5
+
+    - name: Set up Go
+      uses: actions/setup-go@v6
+      with:
+        go-version: '1.23'
+
+    - name: Build
+      run: |
+        GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o hut-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }} .
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: hut-${{ matrix.goos }}-${{ matrix.goarch }}
+        path: hut-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+
+    - name: Create release archive
+      run: |
+        mkdir -p release
+        for dir in artifacts/*/; do
+          platform=$(basename "$dir")
+          binary=$(find "$dir" -name "hut-*" -type f | head -1)
+          if [ -f "$binary" ]; then
+            cp "$binary" "release/hut-${platform}"
+          fi
+        done
+
+        # Create archives for each platform
+        cd release
+        for binary in hut-*; do
+          platform=$(echo "$binary" | sed 's/hut-//')
+          if [[ "$platform" == *"windows"* ]]; then
+            zip "${binary}.zip" "$binary"
+          else
+            tar -czf "${binary}.tar.gz" "$binary"
+          fi
+        done
+
+    - name: Upload release assets
+      uses: softprops/action-gh-release@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        files: ./release/*

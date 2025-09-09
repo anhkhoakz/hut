@@ -13,10 +13,20 @@ BASHCOMPDIR = $(PREFIX)/share/bash-completion/completions
 ZSHCOMPDIR = $(PREFIX)/share/zsh/site-functions
 FISHCOMPDIR = $(PREFIX)/share/fish/vendor_completions.d
 
+# Cross-compilation targets
+PLATFORMS = linux/amd64 linux/arm64 linux/386 windows/amd64 windows/386 darwin/amd64 darwin/arm64 freebsd/amd64 freebsd/arm64 openbsd/amd64 openbsd/arm64 netbsd/amd64 netbsd/arm64
+
 all: hut completions doc/hut.1
 
 hut:
 	$(GO) build $(GOFLAGS)
+
+# Cross-compilation targets
+cross: $(addprefix hut-,$(subst /,-,$(PLATFORMS)))
+
+hut-%:
+	@echo "Building for $(subst -,/,$*)" && \
+	GOOS=$(word 1,$(subst /, ,$*)) GOARCH=$(word 2,$(subst /, ,$*)) $(GO) build $(GOFLAGS) -o hut-$(subst /,-,$*) .
 
 completions: hut.bash hut.zsh hut.fish
 
@@ -33,7 +43,7 @@ doc/hut.1: doc/hut.1.scd
 	$(SCDOC) <doc/hut.1.scd >doc/hut.1
 
 clean:
-	$(RM) -f hut doc/hut.1 hut.bash hut.zsh hut.fish
+	$(RM) -f hut doc/hut.1 hut.bash hut.zsh hut.fish hut-*
 
 install:
 	$(INSTALL) -d \
@@ -56,4 +66,4 @@ uninstall:
 		$(DESTDIR)$(ZSHCOMPDIR)/_hut \
 		$(DESTDIR)$(FISHCOMPDIR)/hut.fish
 
-.PHONY: all hut clean install uninstall completions
+.PHONY: all hut cross clean install uninstall completions
