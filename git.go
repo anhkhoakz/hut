@@ -306,8 +306,11 @@ func newGitSetupCommand() *cobra.Command {
 		checkCmd.Stderr = os.Stderr
 
 		b, err := checkCmd.Output()
-		if err != nil {
-			log.Fatalf("failed to check current git settings: %v", err)
+		if err == nil {
+			if strings.TrimSpace(string(b)) != "" && !force {
+				log.Println("Repository is already configured. Skipping setup.")
+				return
+			}
 		}
 
 		if strings.TrimSpace(string(b)) != "" && !force {
