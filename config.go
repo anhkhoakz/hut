@@ -17,6 +17,8 @@ import (
 	"git.sr.ht/~xenrox/hut/termfmt"
 )
 
+var tildeSlash = "~" + string(os.PathSeparator)
+
 type Config struct {
 	Instances []*InstanceConfig `scfg:"instance"`
 }
@@ -80,7 +82,14 @@ func instancesEqual(a, b string) bool {
 }
 
 func loadConfigFile(filename string) (*Config, error) {
-	f, err := os.Open(filename)
+	expandedName := filename
+	if strings.HasPrefix(expandedName, tildeSlash) {
+		homeDir, err := os.UserHomeDir()
+		if err == nil {
+			expandedName = homeDir + expandedName[1:]
+		}
+	}
+	f, err := os.Open(expandedName)
 	if err != nil {
 		return nil, err
 	}
