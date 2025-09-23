@@ -801,7 +801,7 @@ func newGitUserWebhookCommand() *cobra.Command {
 func newGitUserWebhookCreateCommand() *cobra.Command {
 	var events []string
 	var stdin bool
-	var url string
+	var url, query string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("git", cmd)
@@ -814,7 +814,7 @@ func newGitUserWebhookCreateCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 		config.Events = whEvents
-		config.Query = readWebhookQuery(stdin)
+		config.Query = readWebhookQuery(stdin, query)
 
 		webhook, err := gitsrht.CreateUserWebhook(c.Client, ctx, config)
 		if err != nil {
@@ -835,6 +835,8 @@ func newGitUserWebhookCreateCommand() *cobra.Command {
 	cmd.RegisterFlagCompletionFunc("events", completeGitUserWebhookEvents)
 	cmd.MarkFlagRequired("events")
 	cmd.Flags().BoolVar(&stdin, "stdin", !isStdinTerminal, "read webhook query from stdin")
+	cmd.Flags().StringVarP(&query, "query", "q", "", "webhook query")
+	cmd.MarkFlagsMutuallyExclusive("query", "stdin")
 	cmd.Flags().StringVarP(&url, "url", "u", "", "payload url")
 	cmd.RegisterFlagCompletionFunc("url", cobra.NoFileCompletions)
 	cmd.MarkFlagRequired("url")
@@ -1025,7 +1027,7 @@ func newGitWebhookCommand() *cobra.Command {
 func newGitWebhookCreateCommand() *cobra.Command {
 	var events []string
 	var stdin bool
-	var url string
+	var url, query string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
@@ -1055,7 +1057,7 @@ func newGitWebhookCreateCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 		config.Events = whEvents
-		config.Query = readWebhookQuery(stdin)
+		config.Query = readWebhookQuery(stdin, query)
 
 		webhook, err := gitsrht.CreateGitWebhook(c.Client, ctx, config)
 		if err != nil {
@@ -1076,6 +1078,8 @@ func newGitWebhookCreateCommand() *cobra.Command {
 	cmd.RegisterFlagCompletionFunc("events", completeGitWebhookEvents)
 	cmd.MarkFlagRequired("events")
 	cmd.Flags().BoolVar(&stdin, "stdin", !isStdinTerminal, "read webhook query from stdin")
+	cmd.Flags().StringVarP(&query, "query", "q", "", "webhook query")
+	cmd.MarkFlagsMutuallyExclusive("query", "stdin")
 	cmd.Flags().StringVarP(&url, "url", "u", "", "payload url")
 	cmd.RegisterFlagCompletionFunc("url", cobra.NoFileCompletions)
 	cmd.MarkFlagRequired("url")

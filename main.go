@@ -212,10 +212,12 @@ func stripProtocol(s string) string {
 	return s
 }
 
-func readWebhookQuery(stdin bool) string {
+func readWebhookQuery(stdin bool, q string) string {
 	var query string
 
-	if stdin {
+	if len(q) > 0 {
+		query = q
+	} else if stdin {
 		b, err := io.ReadAll(os.Stdin)
 		if err != nil {
 			log.Fatalf("failed to read webhook query: %v", err)

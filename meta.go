@@ -615,7 +615,7 @@ func newMetaUserWebhookCommand() *cobra.Command {
 func newMetaUserWebhookCreateCommand() *cobra.Command {
 	var events []string
 	var stdin bool
-	var url string
+	var url, query string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("meta", cmd)
@@ -628,7 +628,7 @@ func newMetaUserWebhookCreateCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 		config.Events = whEvents
-		config.Query = readWebhookQuery(stdin)
+		config.Query = readWebhookQuery(stdin, query)
 
 		webhook, err := metasrht.CreateUserWebhook(c.Client, ctx, config)
 		if err != nil {
@@ -649,6 +649,8 @@ func newMetaUserWebhookCreateCommand() *cobra.Command {
 	cmd.RegisterFlagCompletionFunc("events", completeMetaUserWebhookEvents)
 	cmd.MarkFlagRequired("events")
 	cmd.Flags().BoolVar(&stdin, "stdin", !isStdinTerminal, "read webhook query from stdin")
+	cmd.Flags().StringVarP(&query, "query", "q", "", "webhook query")
+	cmd.MarkFlagsMutuallyExclusive("query", "stdin")
 	cmd.Flags().StringVarP(&url, "url", "u", "", "payload url")
 	cmd.RegisterFlagCompletionFunc("url", cobra.NoFileCompletions)
 	cmd.MarkFlagRequired("url")

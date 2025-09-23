@@ -489,7 +489,7 @@ func newHgUserWebhookCommand() *cobra.Command {
 func newHgUserWebhookCreateCommand() *cobra.Command {
 	var events []string
 	var stdin bool
-	var url string
+	var url, query string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("hg", cmd)
@@ -502,7 +502,7 @@ func newHgUserWebhookCreateCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 		config.Events = whEvents
-		config.Query = readWebhookQuery(stdin)
+		config.Query = readWebhookQuery(stdin, query)
 
 		webhook, err := hgsrht.CreateUserWebhook(c.Client, ctx, config)
 		if err != nil {
@@ -523,6 +523,8 @@ func newHgUserWebhookCreateCommand() *cobra.Command {
 	cmd.RegisterFlagCompletionFunc("events", completeHgUserWebhookEvents)
 	cmd.MarkFlagRequired("events")
 	cmd.Flags().BoolVar(&stdin, "stdin", !isStdinTerminal, "read webhook query from stdin")
+	cmd.Flags().StringVarP(&query, "query", "q", "", "webhook query")
+	cmd.MarkFlagsMutuallyExclusive("query", "stdin")
 	cmd.Flags().StringVarP(&url, "url", "u", "", "payload url")
 	cmd.RegisterFlagCompletionFunc("url", cobra.NoFileCompletions)
 	cmd.MarkFlagRequired("url")

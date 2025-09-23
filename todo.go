@@ -1011,7 +1011,7 @@ func newTodoTicketWebhookCommand() *cobra.Command {
 func newTodoTicketWebhookCreateCommand() *cobra.Command {
 	var events []string
 	var stdin bool
-	var url string
+	var url, query string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
@@ -1034,7 +1034,7 @@ func newTodoTicketWebhookCreateCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 		config.Events = whEvents
-		config.Query = readWebhookQuery(stdin)
+		config.Query = readWebhookQuery(stdin, query)
 
 		webhook, err := todosrht.CreateTicketWebhook(c.Client, ctx, trackerID, ticketID, config)
 		if err != nil {
@@ -1055,6 +1055,8 @@ func newTodoTicketWebhookCreateCommand() *cobra.Command {
 	cmd.RegisterFlagCompletionFunc("events", completeTicketWebhookEvents)
 	cmd.MarkFlagRequired("events")
 	cmd.Flags().BoolVar(&stdin, "stdin", !isStdinTerminal, "read webhook query from stdin")
+	cmd.Flags().StringVarP(&query, "query", "q", "", "webhook query")
+	cmd.MarkFlagsMutuallyExclusive("query", "stdin")
 	cmd.Flags().StringVarP(&url, "url", "u", "", "payload url")
 	cmd.RegisterFlagCompletionFunc("url", cobra.NoFileCompletions)
 	cmd.MarkFlagRequired("url")
@@ -1494,7 +1496,7 @@ func newTodoWebhookCommand() *cobra.Command {
 func newTodoWebhookCreateCommand() *cobra.Command {
 	var events []string
 	var stdin bool
-	var url string
+	var url, query string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
@@ -1523,7 +1525,7 @@ func newTodoWebhookCreateCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 		config.Events = whEvents
-		config.Query = readWebhookQuery(stdin)
+		config.Query = readWebhookQuery(stdin, query)
 
 		webhook, err := todosrht.CreateTrackerWebhook(c.Client, ctx, id, config)
 		if err != nil {
@@ -1544,6 +1546,8 @@ func newTodoWebhookCreateCommand() *cobra.Command {
 	cmd.RegisterFlagCompletionFunc("events", completeTrackerWebhookEvents)
 	cmd.MarkFlagRequired("events")
 	cmd.Flags().BoolVar(&stdin, "stdin", !isStdinTerminal, "read webhook query from stdin")
+	cmd.Flags().StringVarP(&query, "query", "q", "", "webhook query")
+	cmd.MarkFlagsMutuallyExclusive("query", "stdin")
 	cmd.Flags().StringVarP(&url, "url", "u", "", "payload url")
 	cmd.RegisterFlagCompletionFunc("url", cobra.NoFileCompletions)
 	cmd.MarkFlagRequired("url")
@@ -1664,7 +1668,7 @@ func newTodoUserWebhookCommand() *cobra.Command {
 func newTodoUserWebhookCreateCommand() *cobra.Command {
 	var events []string
 	var stdin bool
-	var url string
+	var url, query string
 	run := func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		c := createClient("todo", cmd)
@@ -1677,7 +1681,7 @@ func newTodoUserWebhookCreateCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 		config.Events = whEvents
-		config.Query = readWebhookQuery(stdin)
+		config.Query = readWebhookQuery(stdin, query)
 
 		webhook, err := todosrht.CreateUserWebhook(c.Client, ctx, config)
 		if err != nil {
@@ -1698,6 +1702,8 @@ func newTodoUserWebhookCreateCommand() *cobra.Command {
 	cmd.RegisterFlagCompletionFunc("events", completeTodoUserWebhookEvents)
 	cmd.MarkFlagRequired("events")
 	cmd.Flags().BoolVar(&stdin, "stdin", !isStdinTerminal, "read webhook query from stdin")
+	cmd.Flags().StringVarP(&query, "query", "q", "", "webhook query")
+	cmd.MarkFlagsMutuallyExclusive("query", "stdin")
 	cmd.Flags().StringVarP(&url, "url", "u", "", "payload url")
 	cmd.RegisterFlagCompletionFunc("url", cobra.NoFileCompletions)
 	cmd.MarkFlagRequired("url")
