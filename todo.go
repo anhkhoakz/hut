@@ -330,7 +330,7 @@ func newTodoUnsubscribeCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:               "unsubscribe [tracker]",
-		Short:             "Unubscribe from a tracker",
+		Short:             "Unsubscribe from a tracker",
 		Args:              cobra.MaximumNArgs(1),
 		ValidArgsFunction: cobra.NoFileCompletions,
 		Run:               run,
