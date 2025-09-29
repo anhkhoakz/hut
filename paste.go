@@ -383,7 +383,7 @@ func newPasteUserWebhookDeleteCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		log.Printf("Deleted webhook %d\n", webhook.Id)
+		log.Printf("Deleted user webhook with ID %d\n", webhook.Id)
 	}
 
 	cmd := &cobra.Command{

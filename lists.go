@@ -991,7 +991,7 @@ func newListsUserWebhookDeleteCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		log.Printf("Deleted webhook %d\n", webhook.Id)
+		log.Printf("Deleted user webhook with ID %d\n", webhook.Id)
 	}
 
 	cmd := &cobra.Command{
@@ -1160,7 +1160,7 @@ func newListsWebhookDeleteCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		log.Printf("Deleted webhook %d\n", webhook.Id)
+		log.Printf("Deleted mailing list webhook with ID %d\n", webhook.Id)
 	}
 
 	cmd := &cobra.Command{

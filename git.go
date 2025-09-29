@@ -896,7 +896,7 @@ func newGitUserWebhookDeleteCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		log.Printf("Deleted webhook %d\n", webhook.Id)
+		log.Printf("Deleted user webhook with ID %d\n", webhook.Id)
 	}
 
 	cmd := &cobra.Command{
@@ -1154,7 +1154,7 @@ func newGitWebhookDeleteCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		log.Printf("Deleted webhook %d\n", webhook.Id)
+		log.Printf("Deleted git webhook with ID %d\n", webhook.Id)
 	}
 
 	cmd := &cobra.Command{

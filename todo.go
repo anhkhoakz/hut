@@ -1139,7 +1139,7 @@ func newTodoTicketWebhookDeleteCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		log.Printf("Deleted webhook %d\n", webhook.Id)
+		log.Printf("Deleted ticket webhook with ID %d\n", webhook.Id)
 	}
 
 	cmd := &cobra.Command{
@@ -1637,7 +1637,7 @@ func newTodoWebhookDeleteCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		log.Printf("Deleted webhook %d\n", webhook.Id)
+		log.Printf("Deleted tracker webhook with ID %d\n", webhook.Id)
 	}
 
 	cmd := &cobra.Command{
@@ -1759,7 +1759,7 @@ func newTodoUserWebhookDeleteCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		log.Printf("Deleted webhook %d\n", webhook.Id)
+		log.Printf("Deleted user webhook with ID %d\n", webhook.Id)
 	}
 
 	cmd := &cobra.Command{
