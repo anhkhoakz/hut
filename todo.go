@@ -136,7 +136,7 @@ func newTodoDeleteCommand() *cobra.Command {
 			log.Fatalf("failed to delete tracker %q", name)
 		}
 
-		log.Printf("Deleted tracker %s\n", tracker.Name)
+		log.Printf("Deleted tracker %q\n", tracker.Name)
 	}
 
 	cmd := &cobra.Command{
@@ -1244,7 +1244,7 @@ func newTodoLabelDeleteCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		log.Printf("Deleted label %s\n", label.Name)
+		log.Printf("Deleted label %q\n", label.Name)
 	}
 
 	cmd := &cobra.Command{
@@ -1333,7 +1333,7 @@ func newTodoLabelCreateCommand() *cobra.Command {
 			log.Fatal("failed to create label")
 		}
 
-		log.Printf("Created label %s\n", label.TermString())
+		log.Printf("Created label %q\n", label.TermString())
 	}
 
 	cmd := &cobra.Command{

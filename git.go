@@ -69,7 +69,7 @@ func newGitCreateCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		log.Printf("Created repository %s\n", repo.Name)
+		log.Printf("Created repository %q\n", repo.Name)
 
 		ver, err := gitsrht.SshSettings(c.Client, ctx)
 		if err != nil {
@@ -214,7 +214,7 @@ func newGitDeleteCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		log.Printf("Deleted repository %s\n", repo.Name)
+		log.Printf("Deleted repository %q\n", repo.Name)
 	}
 
 	cmd := &cobra.Command{
@@ -420,7 +420,7 @@ func newGitArtifactUploadCommand() *cobra.Command {
 				log.Fatal(err)
 			}
 
-			log.Printf("Uploaded %s\n", artifact.Filename)
+			log.Printf("Uploaded %q\n", artifact.Filename)
 		}
 	}
 
@@ -504,7 +504,7 @@ func newGitArtifactDeleteCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		log.Printf("Deleted artifact %s\n", artifact.Filename)
+		log.Printf("Deleted artifact %q\n", artifact.Filename)
 	}
 
 	cmd := &cobra.Command{
@@ -671,7 +671,7 @@ func newGitACLDeleteCommand() *cobra.Command {
 			log.Fatalf("failed to delete ACL entry with ID %d", id)
 		}
 
-		log.Printf("Deleted ACL entry for %s in repository %s\n", acl.Entity.CanonicalName, acl.Repository.Name)
+		log.Printf("Deleted ACL entry for %q in repository %q\n", acl.Entity.CanonicalName, acl.Repository.Name)
 	}
 
 	cmd := &cobra.Command{

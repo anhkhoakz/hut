@@ -76,7 +76,7 @@ func newListsDeleteCommand() *cobra.Command {
 			log.Fatalf("failed to delete list with ID %d", id)
 		}
 
-		log.Printf("Deleted mailing list %s\n", list.Name)
+		log.Printf("Deleted mailing list %q\n", list.Name)
 	}
 
 	cmd := &cobra.Command{

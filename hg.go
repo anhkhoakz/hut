@@ -117,7 +117,7 @@ func newHgCreateCommand() *cobra.Command {
 			log.Fatal("failed to create repository")
 		}
 
-		log.Printf("Created repository %s\n", repo.Name)
+		log.Printf("Created repository %q\n", repo.Name)
 
 		ver, err := hgsrht.SshSettings(c.Client, ctx)
 		if err != nil {
@@ -193,7 +193,7 @@ func newHgDeleteCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		log.Printf("Deleted repository %s\n", repo.Name)
+		log.Printf("Deleted repository %q\n", repo.Name)
 	}
 
 	cmd := &cobra.Command{
@@ -462,7 +462,7 @@ func newHgACLDeleteCommand() *cobra.Command {
 			log.Fatalf("failed to delete ACL entry with ID %d", id)
 		}
 
-		log.Printf("Deleted ACL entry for %s in repository %s\n", acl.Entity.CanonicalName, acl.Repository.Name)
+		log.Printf("Deleted ACL entry for %q in repository %q\n", acl.Entity.CanonicalName, acl.Repository.Name)
 	}
 
 	cmd := &cobra.Command{

@@ -324,7 +324,7 @@ func newMetaSSHKeyDeleteCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		log.Printf("Deleted SSH key %s\n", key.Fingerprint)
+		log.Printf("Deleted SSH key %q\n", key.Fingerprint)
 	}
 
 	cmd := &cobra.Command{
@@ -513,7 +513,7 @@ func newMetaPGPKeyDeleteCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		log.Printf("Deleted PGP key %s\n", key.Fingerprint)
+		log.Printf("Deleted PGP key %q\n", key.Fingerprint)
 	}
 
 	cmd := &cobra.Command{
