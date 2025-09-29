@@ -829,7 +829,7 @@ func Bio(client *gqlclient.Client, ctx context.Context) (me *User, err error) {
 }
 
 func CreateSSHKey(client *gqlclient.Client, ctx context.Context, key string) (createSSHKey *SSHKey, err error) {
-	op := gqlclient.NewOperation("mutation createSSHKey ($key: String!) {\n\tcreateSSHKey(key: $key) {\n\t\tfingerprint\n\t\tcomment\n\t}\n}\n")
+	op := gqlclient.NewOperation("mutation createSSHKey ($key: String!) {\n\tcreateSSHKey(key: $key) {\n\t\tid\n\t\tfingerprint\n\t\tcomment\n\t}\n}\n")
 	op.Var("key", key)
 	var respData struct {
 		CreateSSHKey *SSHKey

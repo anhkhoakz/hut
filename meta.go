@@ -268,7 +268,7 @@ func newMetaSSHKeyCreateCommand() *cobra.Command {
 			log.Fatal(err)
 		}
 
-		log.Printf("Uploaded SSH public key %v", key.Fingerprint)
+		log.Printf("Uploaded SSH public key %v with ID %d", key.Fingerprint, key.Id)
 		if key.Comment != nil {
 			log.Printf(" (%v)", *key.Comment)
 		}
