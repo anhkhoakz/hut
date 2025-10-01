@@ -917,6 +917,8 @@ func newTodoTicketShowCommand() *cobra.Command {
 			log.Fatalf("no such user %q", username)
 		} else if user.Tracker == nil {
 			log.Fatalf("no such tracker %q", name)
+		} else if user.Tracker.Ticket == nil {
+			log.Fatalf("no such ticket %d", ticketID)
 		}
 
 		todoUrl := fmt.Sprintf("%s/%s/%s/%d", c.BaseURL, owner, name, ticketID)

@@ -115,7 +115,7 @@ type Tracker {
   description: String
   visibility: Visibility!
 
-  ticket(id: Int!): Ticket! @access(scope: TICKETS, kind: RO)
+  ticket(id: Int!): Ticket @access(scope: TICKETS, kind: RO)
   tickets(cursor: Cursor): TicketCursor! @access(scope: TICKETS, kind: RO)
   label(name: String!): Label
   labels(cursor: Cursor): LabelCursor!
@@ -323,7 +323,7 @@ enum Authenticity {
   UNAUTHENTICATED
   """
   The server has evidence that the information has likely been manipulated by
-  a third-party.
+  a third party.
   """
   TAMPERED
 }
@@ -757,10 +757,10 @@ input SubmitTicketEmailInput {
 
 # For internal use only.
 enum EmailCmd {
-	RESOLVE
-	REOPEN
-	LABEL
-	UNLABEL
+  RESOLVE
+  REOPEN
+  LABEL
+  UNLABEL
 }
 
 # For internal use only.

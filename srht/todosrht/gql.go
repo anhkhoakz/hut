@@ -161,7 +161,7 @@ const (
 	// entity, no authentication was provided.
 	AuthenticityUnauthenticated Authenticity = "UNAUTHENTICATED"
 	// The server has evidence that the information has likely been manipulated by
-	// a third-party.
+	// a third party.
 	AuthenticityTampered Authenticity = "TAMPERED"
 )
 
@@ -592,7 +592,7 @@ type Tracker struct {
 	Name        string         `json:"name"`
 	Description *string        `json:"description,omitempty"`
 	Visibility  Visibility     `json:"visibility"`
-	Ticket      *Ticket        `json:"ticket"`
+	Ticket      *Ticket        `json:"ticket,omitempty"`
 	Tickets     *TicketCursor  `json:"tickets"`
 	Label       *Label         `json:"label,omitempty"`
 	Labels      *LabelCursor   `json:"labels"`
