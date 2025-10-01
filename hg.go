@@ -723,4 +723,3 @@ func completeHgRepo(cmd *cobra.Command, args []string, toComplete string) ([]str
 
 	return repoList, cobra.ShellCompDirectiveNoFileComp
 }
-
