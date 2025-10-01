@@ -871,10 +871,7 @@ func newTodoTicketDeleteCommand() *cobra.Command {
 		ticket, err := todosrht.DeleteTicket(c.Client, ctx, trackerID, ticketID)
 		if err != nil {
 			log.Fatal(err)
-		} else if ticket == nil {
-			log.Fatalf("failed to delete ticket %d", ticketID)
 		}
-
 		log.Printf("Deleted ticket %q\n", ticket.Subject)
 	}
 
@@ -1849,8 +1846,6 @@ func newTodoTicketCreateCommand() *cobra.Command {
 		ticket, err := todosrht.SubmitTicket(c.Client, ctx, trackerID, input)
 		if err != nil {
 			log.Fatal(err)
-		} else if ticket == nil {
-			log.Fatal("failed to create ticket")
 		}
 
 		log.Printf("Created new ticket %v\n", termfmt.DarkYellow.Sprintf("#%v", ticket.Id))
