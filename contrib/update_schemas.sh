@@ -1,6 +1,6 @@
 #!/bin/sh -eu
 
-set -- builds git lists meta pages paste todo
+set -- builds git hub lists man meta pages paste todo
 for service in "$@"; do
     url="https://git.sr.ht/~sircmpwn/$service.sr.ht"
     dir="$service"srht
