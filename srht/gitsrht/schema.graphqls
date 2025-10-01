@@ -4,6 +4,15 @@ scalar Cursor
 scalar Time
 scalar Upload
 
+"""
+URL from which some secondary data may be retrieved. You must provide the
+same Authentication header to this address as you did to the GraphQL resolver
+which provided it. The URL is not guaranteed to be consistent for an extended
+length of time; applications should submit a new GraphQL query each time they
+wish to access the data at the provided URL.
+"""
+scalar URL
+
 "Used to provide a human-friendly description of an access scope"
 directive @scopehelp(details: String!) on ENUM_VALUE
 
@@ -138,8 +147,23 @@ type Repository {
 
   ## Plumbing API:
 
+  """
+  Returns any number of git objects by their IDs.
+  """
   objects(ids: [String!]): [Object]! @access(scope: OBJECTS, kind: RO)
+  """
+  Returns a specific git object by its ID.
+  """
+  object(id: String!): Object @access(scope: OBJECTS, kind: RO)
+
+  """
+  Enumerates references on this repository.
+  """
   references(cursor: Cursor): ReferenceCursor! @access(scope: OBJECTS, kind: RO)
+  """
+  Returns a reference by its fully qualified name, e.g. refs/heads/master.
+  """
+  reference(name: String!): Reference @access(scope: OBJECTS, kind: RO)
 
   ## Porcelain API:
 
@@ -409,7 +433,7 @@ type Artifact {
   filename: String!
   checksum: String!
   size: Int!
-  url: String!
+  url: URL!
 }
 
 type Reference {
@@ -417,6 +441,7 @@ type Reference {
   target: String!
   follow: Object
 
+  artifact(filename: String!): Artifact
   artifacts(cursor: Cursor): ArtifactCursor!
 }
 
@@ -431,8 +456,6 @@ interface Object {
   type: ObjectType!
   id: String!
   shortId: String!
-  "Raw git object, base64 encoded"
-  raw: String!
 }
 
 type Signature {
@@ -445,7 +468,6 @@ type Commit implements Object {
   type: ObjectType!
   id: String!
   shortId: String!
-  raw: String!
   author: Signature!
   committer: Signature!
   message: String!
@@ -458,7 +480,6 @@ type Tree implements Object {
   type: ObjectType!
   id: String!
   shortId: String!
-  raw: String!
   # TODO: add globbing
   entries(cursor: Cursor): TreeEntryCursor!
 
@@ -475,15 +496,23 @@ type TreeEntry {
 
 interface Blob {
   id: String!
+  type: ObjectType!
+  content: URL!
+  "Size of the blob in bytes"
+  size: Int!
 }
 
 type TextBlob implements Object & Blob {
   type: ObjectType!
   id: String!
   shortId: String!
-  raw: String!
+  content: URL!
+  "Size of the blob in bytes"
+  size: Int!
 
-  # TODO: Consider adding a range specifier
+  """
+  Returns up to 128 KiB of text content. Use the content field if you need more.
+  """
   text: String!
 }
 
@@ -491,21 +520,29 @@ type BinaryBlob implements Object & Blob {
   type: ObjectType!
   id: String!
   shortId: String!
-  raw: String!
+  content: URL!
+  "Size of the blob in bytes"
+  size: Int!
 
-  # TODO: Consider adding a range specifier
+  """
+  Returns up to 32 KiB of binary content.
+
+  Notice: this field is deprecated. Prefer to use the content field.
+  """
   base64: String!
 }
 
+"""
+An annotated git tag.
+"""
 type Tag implements Object {
   type: ObjectType!
   id: String!
   shortId: String!
-  raw: String!
   target: Object!
   name: String!
   tagger: Signature!
-  message: String
+  message: String!
 }
 
 input Filter {

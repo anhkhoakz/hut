@@ -59,7 +59,7 @@ type Artifact struct {
 	Filename string         `json:"filename"`
 	Checksum string         `json:"checksum"`
 	Size     int32          `json:"size"`
-	Url      string         `json:"url"`
+	Url      URL            `json:"url"`
 }
 
 // A cursor for enumerating artifacts
@@ -76,8 +76,13 @@ type BinaryBlob struct {
 	Type    ObjectType `json:"type"`
 	Id      string     `json:"id"`
 	ShortId string     `json:"shortId"`
-	Raw     string     `json:"raw"`
-	Base64  string     `json:"base64"`
+	Content URL        `json:"content"`
+	// Size of the blob in bytes
+	Size int32 `json:"size"`
+	// Returns up to 32 KiB of binary content.
+	//
+	// Notice: this field is deprecated. Prefer to use the content field.
+	Base64 string `json:"base64"`
 }
 
 func (*BinaryBlob) isObject() {}
@@ -85,7 +90,11 @@ func (*BinaryBlob) isObject() {}
 func (*BinaryBlob) isBlob() {}
 
 type Blob struct {
-	Id string `json:"id"`
+	Id      string     `json:"id"`
+	Type    ObjectType `json:"type"`
+	Content URL        `json:"content"`
+	// Size of the blob in bytes
+	Size int32 `json:"size"`
 
 	// Underlying value of the GraphQL interface
 	Value BlobValue `json:"-"`
@@ -124,7 +133,6 @@ type Commit struct {
 	Type      ObjectType `json:"type"`
 	Id        string     `json:"id"`
 	ShortId   string     `json:"shortId"`
-	Raw       string     `json:"raw"`
 	Author    *Signature `json:"author"`
 	Committer *Signature `json:"committer"`
 	Message   string     `json:"message"`
@@ -248,8 +256,6 @@ type Object struct {
 	Type    ObjectType `json:"type"`
 	Id      string     `json:"id"`
 	ShortId string     `json:"shortId"`
-	// Raw git object, base64 encoded
-	Raw string `json:"raw"`
 
 	// Underlying value of the GraphQL interface
 	Value ObjectValue `json:"-"`
@@ -311,6 +317,7 @@ type Reference struct {
 	Name      string          `json:"name"`
 	Target    string          `json:"target"`
 	Follow    *Object         `json:"follow,omitempty"`
+	Artifact  *Artifact       `json:"artifact,omitempty"`
 	Artifacts *ArtifactCursor `json:"artifacts"`
 }
 
@@ -351,10 +358,16 @@ type Repository struct {
 	// sanitize this for display on the web, if so desired.
 	Readme *string `json:"readme,omitempty"`
 	// The access that applies to this user for this repository
-	Access     AccessMode       `json:"access"`
-	Acls       *ACLCursor       `json:"acls"`
-	Objects    []*Object        `json:"objects"`
+	Access AccessMode `json:"access"`
+	Acls   *ACLCursor `json:"acls"`
+	// Returns any number of git objects by their IDs.
+	Objects []*Object `json:"objects"`
+	// Returns a specific git object by its ID.
+	Object *Object `json:"object,omitempty"`
+	// Enumerates references on this repository.
 	References *ReferenceCursor `json:"references"`
+	// Returns a reference by its fully qualified name, e.g. refs/heads/master.
+	Reference *Reference `json:"reference,omitempty"`
 	// The HEAD reference for this repository (equivalent to the default branch)
 	HEAD *Reference `json:"HEAD,omitempty"`
 	// Returns a list of comments sorted by committer time (similar to `git log`'s
@@ -401,15 +414,15 @@ type Signature struct {
 	Time  gqlclient.Time `json:"time"`
 }
 
+// An annotated git tag.
 type Tag struct {
 	Type    ObjectType `json:"type"`
 	Id      string     `json:"id"`
 	ShortId string     `json:"shortId"`
-	Raw     string     `json:"raw"`
 	Target  *Object    `json:"target"`
 	Name    string     `json:"name"`
 	Tagger  *Signature `json:"tagger"`
-	Message *string    `json:"message,omitempty"`
+	Message string     `json:"message"`
 }
 
 func (*Tag) isObject() {}
@@ -418,8 +431,11 @@ type TextBlob struct {
 	Type    ObjectType `json:"type"`
 	Id      string     `json:"id"`
 	ShortId string     `json:"shortId"`
-	Raw     string     `json:"raw"`
-	Text    string     `json:"text"`
+	Content URL        `json:"content"`
+	// Size of the blob in bytes
+	Size int32 `json:"size"`
+	// Returns up to 128 KiB of text content. Use the content field if you need more.
+	Text string `json:"text"`
 }
 
 func (*TextBlob) isObject() {}
@@ -430,7 +446,6 @@ type Tree struct {
 	Type    ObjectType       `json:"type"`
 	Id      string           `json:"id"`
 	ShortId string           `json:"shortId"`
-	Raw     string           `json:"raw"`
 	Entries *TreeEntryCursor `json:"entries"`
 	Entry   *TreeEntry       `json:"entry,omitempty"`
 }
@@ -454,6 +469,13 @@ type TreeEntryCursor struct {
 	Results []TreeEntry `json:"results"`
 	Cursor  *Cursor     `json:"cursor,omitempty"`
 }
+
+// URL from which some secondary data may be retrieved. You must provide the
+// same Authentication header to this address as you did to the GraphQL resolver
+// which provided it. The URL is not guaranteed to be consistent for an extended
+// length of time; applications should submit a new GraphQL query each time they
+// wish to access the data at the provided URL.
+type URL string
 
 type UpdatedRef struct {
 	Ref *Reference `json:"ref,omitempty"`

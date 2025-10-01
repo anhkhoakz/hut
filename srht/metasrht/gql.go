@@ -54,7 +54,7 @@ type BillingAddress struct {
 	Region       *string `json:"region,omitempty"`
 	Postcode     *string `json:"postcode,omitempty"`
 	// ISO 3166 two-letter country code
-	Country *string `json:"country,omitempty"`
+	Country *Country `json:"country,omitempty"`
 	// Value-added tax number (EU)
 	Vat *string `json:"vat,omitempty"`
 }
@@ -70,7 +70,7 @@ type BillingAddressInput struct {
 	Region       *string `json:"region,omitempty"`
 	Postcode     *string `json:"postcode,omitempty"`
 	// ISO 3166 two-letter country code
-	Country *string `json:"country,omitempty"`
+	Country *Country `json:"country,omitempty"`
 	// Value-added tax number (EU)
 	Vat *string `json:"vat,omitempty"`
 }
@@ -93,9 +93,15 @@ type BillingSubscription struct {
 	// Total price, not including applicable taxes, in the smallest denomination of
 	// the currency, e.g. cents USD.
 	Subtotal int32 `json:"subtotal"`
+	// Total price, including applicable taxes, in the smallest denomination of the
+	// currency, e.g. cents USD.
+	Total int32 `json:"total"`
 	// Status of the last attempted payment for this subscription.
 	Payment *PaymentOutcome `json:"payment"`
 }
+
+// ISO-3166 country code
+type Country string
 
 type Currency string
 
@@ -169,6 +175,11 @@ type Invoice struct {
 type InvoiceCursor struct {
 	Results []Invoice `json:"results"`
 	Cursor  *Cursor   `json:"cursor,omitempty"`
+}
+
+type LoginSecurity struct {
+	// True if TOTP (time-based one time passwords) is enabled for 2FA
+	Totp bool `json:"totp"`
 }
 
 type OAuthClient struct {
@@ -247,7 +258,7 @@ type PaymentIntent struct {
 	Subscription   *BillingSubscription `json:"subscription"`
 	BillingAddress *BillingAddress      `json:"billingAddress"`
 	IdempotencyKey string               `json:"idempotencyKey"`
-	TaxRate        *int32               `json:"taxRate,omitempty"`
+	TaxRate        *float64             `json:"taxRate,omitempty"`
 	TaxDue         int32                `json:"taxDue"`
 	TotalDue       int32                `json:"totalDue"`
 	Method         *PaymentMethod       `json:"method,omitempty"`
@@ -304,6 +315,8 @@ const (
 type PaymentMethod struct {
 	Id      int32          `json:"id"`
 	Created gqlclient.Time `json:"created"`
+	// Currency used with this payment method
+	Currency Currency `json:"currency"`
 	// User-friendly name of this payment method (e.g. 'Visa ending in 1234')
 	Name string `json:"name"`
 	// Expiration date of this payment method, if applicable to the type
@@ -410,8 +423,9 @@ type SSHKeyEvent struct {
 func (*SSHKeyEvent) isWebhookPayload() {}
 
 type SetupIntent struct {
-	Id     string         `json:"id"`
-	Method *PaymentMethod `json:"method,omitempty"`
+	Id     string            `json:"id"`
+	Status SetupIntentStatus `json:"status"`
+	Method *PaymentMethod    `json:"method,omitempty"`
 
 	// Underlying value of the GraphQL interface
 	Value SetupIntentValue `json:"-"`
@@ -444,25 +458,37 @@ type SetupIntentValue interface {
 	isSetupIntent()
 }
 
+type SetupIntentStatus string
+
+const (
+	SetupIntentStatusPending    SetupIntentStatus = "PENDING"
+	SetupIntentStatusProcessing SetupIntentStatus = "PROCESSING"
+	SetupIntentStatusSucceeded  SetupIntentStatus = "SUCCEEDED"
+	SetupIntentStatusCancelled  SetupIntentStatus = "CANCELLED"
+)
+
 type StripePaymentIntent struct {
 	Id             string               `json:"id"`
 	Subscription   *BillingSubscription `json:"subscription"`
 	BillingAddress *BillingAddress      `json:"billingAddress"`
 	IdempotencyKey string               `json:"idempotencyKey"`
 	TotalDue       int32                `json:"totalDue"`
-	TaxRate        *int32               `json:"taxRate,omitempty"`
+	TaxRate        *float64             `json:"taxRate,omitempty"`
 	TaxDue         int32                `json:"taxDue"`
 	Method         *PaymentMethod       `json:"method,omitempty"`
 	Outcome        *PaymentOutcome      `json:"outcome,omitempty"`
+	PublicKey      *string              `json:"publicKey,omitempty"`
 	ClientSecret   *string              `json:"clientSecret,omitempty"`
 }
 
 func (*StripePaymentIntent) isPaymentIntent() {}
 
 type StripeSetupIntent struct {
-	Id           string         `json:"id"`
-	Method       *PaymentMethod `json:"method,omitempty"`
-	ClientSecret *string        `json:"clientSecret,omitempty"`
+	Id           string            `json:"id"`
+	Status       SetupIntentStatus `json:"status"`
+	Method       *PaymentMethod    `json:"method,omitempty"`
+	PublicKey    *string           `json:"publicKey,omitempty"`
+	ClientSecret *string           `json:"clientSecret,omitempty"`
 }
 
 func (*StripeSetupIntent) isSetupIntent() {}
@@ -481,6 +507,11 @@ const (
 	// This subscription has been cancelled and the service term is complete.
 	SubscriptionStatusInactive SubscriptionStatus = "INACTIVE"
 )
+
+type TOTPConfig struct {
+	// List of generated recovery codes for use with TOTP.
+	RecoveryCodes []string `json:"recoveryCodes"`
+}
 
 // For changing the active paid subscription's parameters. Changes apply from the
 // start of the next payment term (i.e. from User.paymentDue).

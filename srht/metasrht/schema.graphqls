@@ -4,6 +4,9 @@
 scalar Cursor
 scalar Time
 
+"ISO-3166 country code"
+scalar Country
+
 """
 This is used to decorate fields which are only accessible with a personal
 access token, and are not available to clients using OAuth 2.0 access tokens.
@@ -170,6 +173,11 @@ type AuditLogEntry {
   details: String
 }
 
+type LoginSecurity {
+  "True if TOTP (time-based one time passwords) is enabled for 2FA"
+  totp: Boolean!
+}
+
 type SSHKey {
   id: Int!
   created: Time!
@@ -237,7 +245,7 @@ type BillingAddress {
   region: String
   postcode: String
   "ISO 3166 two-letter country code"
-  country: String
+  country: Country
   "Value-added tax number (EU)"
   vat: String
 }
@@ -245,6 +253,9 @@ type BillingAddress {
 type PaymentMethod {
   id: Int!
   created: Time!
+
+  "Currency used with this payment method"
+  currency: Currency!
 
   "User-friendly name of this payment method (e.g. 'Visa ending in 1234')"
   name: String!
@@ -316,6 +327,12 @@ type BillingSubscription {
   the currency, e.g. cents USD.
   """
   subtotal: Int!
+
+  """
+  Total price, including applicable taxes, in the smallest denomination of the
+  currency, e.g. cents USD.
+  """
+  total: Int!
 
   """
   Status of the last attempted payment for this subscription.
@@ -567,6 +584,9 @@ type Query {
   "Returns the audit log for the authenticated user."
   auditLog(cursor: Cursor): AuditLogCursor! @access(scope: AUDIT_LOG, kind: RO)
 
+  "Returns the authenticated user's login security settings."
+  loginSecurity: LoginSecurity! @access(scope: PROFILE, kind: RO)
+
   """
   Returns a list of user profile webhook subscriptions. For clients
   authenticated with a personal access token, this returns all webhooks
@@ -666,7 +686,7 @@ input BillingAddressInput {
   region: String
   postcode: String
   "ISO 3166 two-letter country code"
-  country: String
+  country: Country
   "Value-added tax number (EU)"
   vat: String
 }
@@ -685,6 +705,13 @@ input ProductPriceInput {
   amount: Int!
 }
 
+type TOTPConfig {
+  """
+  List of generated recovery codes for use with TOTP.
+  """
+  recoveryCodes: [String!]!
+}
+
 type Mutation {
   updateUser(input: UserInput): User! @access(scope: PROFILE, kind: RW)
 
@@ -697,7 +724,7 @@ type Mutation {
   """
   Causes the "last used" time of this SSH key to be set to the current time.
   """
-  updateSSHKeyLastUsed(id: Int!): SSHKey! @access(scope: SSH_KEYS, kind: RO) @internal
+  updateSSHKeyLastUsed(fingerprint: String!): SSHKey! @access(scope: SSH_KEYS, kind: RO) @anoninternal
 
   """
   Update the authenticated user's billing address.
@@ -806,6 +833,15 @@ type Mutation {
     token: String!,
     newPassword: String!,
   ): User @anoninternal
+
+  """
+  Enables TOTP for the user account. The secret is 20 base32-encoded bytes.
+  """
+  enableTOTP(secret: String!): TOTPConfig! @internal
+
+  # TODO:
+  # - Enable TOTP via GraphQL as well
+  # - Manage logins and authentication through GraphQL more generally
 
   """
   Registers an OAuth client. Only OAuth 2.0 confidental clients are
@@ -928,6 +964,12 @@ type Mutation {
   is settled and converted to non-paying).
   """
   processPaymentDue: PaymentIntent @internal
+
+  """
+  Causes an invoice to be regenerated in order to issue a correction. The admin
+  is assumed to have manually made the required changes in the database.
+  """
+  reissueInvoice(id: Int!): Invoice @admin
 }
 
 # The following types are for internal use
@@ -938,7 +980,7 @@ interface PaymentIntent {
   billingAddress: BillingAddress!
   idempotencyKey: String!
 
-  taxRate: Int
+  taxRate: Float
   taxDue: Int!
   totalDue: Int!
 
@@ -953,23 +995,34 @@ type StripePaymentIntent implements PaymentIntent {
   idempotencyKey: String!
 
   totalDue: Int!
-  taxRate: Int
+  taxRate: Float
   taxDue: Int!
 
   method: PaymentMethod
   outcome: PaymentOutcome
 
+  publicKey: String
   clientSecret: String
+}
+
+enum SetupIntentStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  CANCELLED
 }
 
 interface SetupIntent {
   id: String!
+  status: SetupIntentStatus!
   method: PaymentMethod
 }
 
 type StripeSetupIntent implements SetupIntent {
   id: String!
+  status: SetupIntentStatus!
   method: PaymentMethod
 
+  publicKey: String
   clientSecret: String
 }
