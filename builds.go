@@ -626,6 +626,7 @@ func newBuildsUserWebhookCreateCommand() *cobra.Command {
 	cmd.MarkFlagRequired("events")
 	cmd.Flags().BoolVar(&stdin, "stdin", !isStdinTerminal, "read webhook query from stdin")
 	cmd.Flags().StringVarP(&query, "query", "q", "", "webhook query")
+	cmd.RegisterFlagCompletionFunc("query", cobra.NoFileCompletions)
 	cmd.MarkFlagsMutuallyExclusive("query", "stdin")
 	cmd.Flags().StringVarP(&url, "url", "u", "", "payload url")
 	cmd.RegisterFlagCompletionFunc("url", cobra.NoFileCompletions)

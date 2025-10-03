@@ -224,6 +224,9 @@ create* read input depending on whether their stdin is on a terminal or not:
 	*--stdin*
 		Read query from _stdin_.
 
+	*-q*, *--query* <string>
+		The webhook query. Exclusive with *--stdin*.
+
 	*-u*, *--url* <URL>
 		The payload URL which receives the _POST_ request. Required.
 
@@ -369,6 +372,9 @@ Options are:
 	*--stdin*
 		Read query from _stdin_.
 
+	*-q*, *--query* <string>
+		The webhook query. Exclusive with *--stdin*.
+
 	*-u*, *--url* <URL>
 		The payload URL which receives the _POST_ request. Required.
 
@@ -394,6 +400,9 @@ Options are:
 
 	*--stdin*
 		Read query from _stdin_.
+
+	*-q*, *--query* <string>
+		The webhook query. Exclusive with *--stdin*.
 
 	*-u*, *--url* <URL>
 		The payload URL which receives the _POST_ request. Required.
@@ -496,6 +505,9 @@ Options are:
 
 	*--stdin*
 		Read query from _stdin_.
+
+	*-q*, *--query* <string>
+		The webhook query. Exclusive with *--stdin*.
 
 	*-u*, *--url* <URL>
 		The payload URL which receives the _POST_ request. Required.
@@ -635,6 +647,9 @@ Options are:
 	*--stdin*
 		Read query from _stdin_.
 
+	*-q*, *--query* <string>
+		The webhook query. Exclusive with *--stdin*.
+
 	*-u*, *--url* <URL>
 		The payload URL which receives the _POST_ request. Required.
 
@@ -660,6 +675,9 @@ Options are:
 
 	*--stdin*
 		Read query from _stdin_.
+
+	*-q*, *--query* <string>
+		The webhook query. Exclusive with *--stdin*.
 
 	*-u*, *--url* <URL>
 		The payload URL which receives the _POST_ request. Required.
@@ -764,6 +782,9 @@ Options are:
 	*--stdin*
 		Read query from _stdin_.
 
+	*-q*, *--query* <string>
+		The webhook query. Exclusive with *--stdin*.
+
 	*-u*, *--url* <URL>
 		The payload URL which receives the _POST_ request. Required.
 
@@ -861,6 +882,9 @@ Options are:
 	*--stdin*
 		Read query from _stdin_.
 
+	*-q*, *--query* <string>
+		The webhook query. Exclusive with *--stdin*.
+
 	*-u*, *--url* <URL>
 		The payload URL which receives the _POST_ request. Required.
 
@@ -921,6 +945,9 @@ Options are:
 
 	*--stdin*
 		Read query from _stdin_.
+
+	*-q*, *--query* <string>
+		The webhook query. Exclusive with *--stdin*.
 
 	*-u*, *--url* <URL>
 		The payload URL which receives the _POST_ request. Required.
@@ -1138,6 +1165,9 @@ Options are:
 	*--stdin*
 		Read query from _stdin_.
 
+	*-q*, *--query* <string>
+		The webhook query. Exclusive with *--stdin*.
+
 	*-u*, *--url* <URL>
 		The payload URL which receives the _POST_ request. Required.
 
@@ -1181,6 +1211,9 @@ Options are:
 	*--stdin*
 		Read query from _stdin_.
 
+	*-q*, *--query* <string>
+		The webhook query. Exclusive with *--stdin*.
+
 	*-u*, *--url* <URL>
 		The payload URL which receives the _POST_ request. Required.
 
@@ -1207,6 +1240,9 @@ Options are:
 
 	*--stdin*
 		Read query from _stdin_.
+
+	*-q*, *--query* <string>
+		The webhook query. Exclusive with *--stdin*.
 
 	*-u*, *--url* <URL>
 		The payload URL which receives the _POST_ request. Required.
